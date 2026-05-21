@@ -1,0 +1,74 @@
+name: Run JS Lint
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-js:
+    name: JS Lint & TypeScript
+    runs-on: [public-repo]
+    container:
+      image: ghcr.io/actions/actions-runner@sha256:1ad983536759ceec39ed75a2c8f007ca8c37b66eee35ed86f13623b29a4db97d # v2.333.0
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Configure Git for Safe Directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        id: eslint
+        continue-on-error: true
+        run: npm run lint:js
+
+      - name: Run TypeScript check
+        id: typescript
+        continue-on-error: true
+        run: npm run lint:js:types
+
+      - name: Run Stylelint
+        id: stylelint
+        continue-on-error: true
+        run: npm run lint:css
+
+      - name: Run Prettier check
+        id: prettier
+        continue-on-error: true
+        run: npm run format -- --check
+
+      - name: Check for errors
+        if: ${{ steps.eslint.outcome == 'failure' || steps.typescript.outcome == 'failure' || steps.prettier.outcome == 'failure' || steps.stylelint.outcome == 'failure' }}
+        run: |
+          echo "One or more checks failed. See logs above for details."
+          exit 1
+
+      - name: Cleanup Workspace & Home to avoid pollution
+        if: always()
+        run: |
+          # Wipes the actual code, build artifacts, and hidden files
+          sudo rm -rf ./* .[!.]* 2>/dev/null || true
+
+          # Deletes everything inside _temp EXCEPT the locked mount points
+          sudo find /__w/_temp/ -mindepth 1 -maxdepth 1 ! -name '_github_home' ! -name '_github_workflow' -exec rm -rf {} +
+
+          # Empties the contents of the locked directories without deleting the folders themselves
+          sudo rm -rf /github/home/* || true
+          sudo rm -rf /github/home/.* 2>/dev/null || true
+
+          sudo rm -rf /github/workflow/* || true
+          sudo rm -rf /github/workflow/.* 2>/dev/null || true

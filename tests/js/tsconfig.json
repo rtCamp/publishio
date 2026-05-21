@@ -1,0 +1,20 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig.json",
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"outDir": "../_output/js",
+		"noEmit": true,
+		"types": [ "jest", "node", "@testing-library/jest-dom" ]
+	},
+	"include": [
+		"./**/*.ts",
+		"./**/*.tsx",
+		"../../src/**/__tests__/**/*.ts",
+		"../../src/**/__tests__/**/*.tsx",
+		"../../src/**/*.test.ts",
+		"../../src/**/*.test.tsx",
+		"../../src/**/*.spec.ts",
+		"../../src/**/*.spec.tsx"
+	],
+	"exclude": [ "../../node_modules", "../../build", "../../vendor" ]
+}

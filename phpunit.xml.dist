@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+	bootstrap="tests/php/bootstrap.php"
+	backupGlobals="false"
+	cacheDirectory="tests/_output/.phpunit.cache"
+	colors="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	displayDetailsOnTestsThatTriggerErrors="true"
+	displayDetailsOnTestsThatTriggerWarnings="true"
+	displayDetailsOnTestsThatTriggerNotices="true"
+	displayDetailsOnTestsThatTriggerDeprecations="true"
+	displayDetailsOnPhpunitDeprecations="true"
+	failOnWarning="true"
+	failOnNotice="true"
+	failOnDeprecation="true"
+	failOnPhpunitDeprecation="false"
+	requireCoverageMetadata="true"
+>
+	<testsuites>
+		<testsuite name="framework">
+			<directory suffix=".php">tests/php/Framework</directory>
+		</testsuite>
+		<testsuite name="unit">
+			<directory suffix=".php">tests/php/Unit</directory>
+		</testsuite>
+	</testsuites>
+	<source>
+		<include>
+			<directory suffix=".php">inc</directory>
+			<directory suffix=".php">framework</directory>
+		</include>
+	</source>
+	<coverage includeUncoveredFiles="true">
+		<report>
+			<clover outputFile="tests/_output/php-coverage.xml" />
+			<html outputDirectory="tests/_output/html" />
+			<text outputFile="php://stdout" showOnlySummary="true" />
+		</report>
+	</coverage>
+</phpunit>

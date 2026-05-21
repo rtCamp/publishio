@@ -1,0 +1,33 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Publish with AI Demo",
+		"description": "@Todo: Your demo description goes here.",
+		"author": "rtCamp",
+		"categories": [ "plugin", "skeleton", "development", "enterprise" ]
+	},
+	"landingPage": "/wp-admin/plugins.php",
+	"preferredVersions": {
+		"php": "8.4",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "login",
+			"username": "admin"
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://github.com/rtCamp/publishwithai/releases/latest/download/rtcamp-publish-with-ai.zip"
+			},
+			"options": {
+				"activate": true
+			}
+		}
+	]
+}

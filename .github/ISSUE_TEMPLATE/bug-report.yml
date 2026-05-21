@@ -1,0 +1,56 @@
+name: Bug Report
+description: >-
+  A bug report. This should be a client-facing issue that needs to be resolved.
+title: 'Bug: '
+labels:
+  - 'type: bug 🐛'
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: >-
+        Please write a brief description of the bug, including what you expected and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        Please list the all the steps needed to reproduce the bug in an *isolated* way.
+      placeholder: >-
+        1. Go to "..."
+        2. ...
+        3. Result show X but should be Y
+    validations:
+      required: true
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: Additional Notes
+      description: Include any additional notes, context, considerations.
+  - type: checkboxes
+    attributes:
+      label: Please confirm that you have searched existing issues in the repo.
+      description: >-
+        You can do this by searching
+        https://github.com/rtCamp/publishwithai/issues and making sure the
+        bug is not related to another plugin.
+      options:
+        - label: 'Yes'
+          required: true
+  - type: textarea
+    id: site-health
+    attributes:
+      label: Site Health Info
+      description: Please include the output of the Site Health Info page, by going to your WordPress `Dashboard > Tools > Site Health > Info`, clicking `Copy site info to clipboard`, and pasting the output here.
+      value: |
+        <details>
+          <summary>Site Health Info</summary>
+          <!-- Please leave one blank line below for enabling the code block rendering. -->
+
+          ```
+          PASTE SITE HEALTH INFO HERE
+          ```
+        </details>
+    validations:
+      required: true

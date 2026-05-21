@@ -1,0 +1,28 @@
+#####
+# Files and directories to ignore if the repository is installed as a Composer package.
+#
+# File and directory paths for the plugin's own build process are managed via `package.json:files`.
+#####
+
+## Directories
+/.git
+/.github
+/.lefthook.yml
+/docs
+/tests
+/packages
+
+## Files
+.*
+CHANGELOG.md
+composer.json
+composer.lock
+package.json
+package-lock.json
+phpstan.neon.dist
+phpunit.xml.dist
+README.md
+readme.txt
+tsconfig.base.json
+tsconfig.json
+webpack.config.js

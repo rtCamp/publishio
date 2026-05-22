@@ -69,10 +69,6 @@ class Pattern_Schema {
 		return serialize_blocks( $blocks );
 	}
 
-	// ------------------------------------------------------------------
-	// Extraction
-	// ------------------------------------------------------------------
-
 	/**
 	 * Walk blocks and extract schema entries.
 	 *
@@ -195,10 +191,6 @@ class Pattern_Schema {
 			'items'       => $items,
 		];
 	}
-
-	// ------------------------------------------------------------------
-	// Application
-	// ------------------------------------------------------------------
 
 	/**
 	 * Walk blocks and apply schema values.

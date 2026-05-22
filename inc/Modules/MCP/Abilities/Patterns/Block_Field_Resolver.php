@@ -116,8 +116,6 @@ class Block_Field_Resolver {
 		return isset( self::FIELD_MAP[ $block_name ] );
 	}
 
-	// ------------------------------------------------------------------
-
 	/**
 	 * Get the appropriate writer for a field definition.
 	 *

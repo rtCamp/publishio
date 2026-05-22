@@ -66,8 +66,6 @@ class Html_Attribute_Writer implements Field_Writer_Interface {
 		}
 	}
 
-	// ------------------------------------------------------------------
-
 	/**
 	 * Resolve which tag to target from a comma-separated selector.
 	 *

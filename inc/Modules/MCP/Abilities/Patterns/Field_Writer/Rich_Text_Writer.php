@@ -50,8 +50,6 @@ class Rich_Text_Writer implements Field_Writer_Interface {
 		}
 	}
 
-	// ------------------------------------------------------------------
-
 	/**
 	 * Resolve which tag to target from a comma-separated selector.
 	 *

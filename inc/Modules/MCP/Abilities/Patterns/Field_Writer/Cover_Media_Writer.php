@@ -65,10 +65,6 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 		$block['innerHTML'] = implode( '', array_filter( $block['innerContent'], 'is_string' ) );
 	}
 
-	// ------------------------------------------------------------------
-	// URL writers
-	// ------------------------------------------------------------------
-
 	/**
 	 * Write URL to the cover image element (non-parallax mode).
 	 *
@@ -139,10 +135,6 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 			?? $html;
 	}
 
-	// ------------------------------------------------------------------
-	// Alt writers
-	// ------------------------------------------------------------------
-
 	/**
 	 * Write alt to the cover <img> element (non-parallax mode).
 	 *
@@ -193,10 +185,6 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 			?? self::write_alt_to_div( $html, $alt )
 			?? $html;
 	}
-
-	// ------------------------------------------------------------------
-	// ID writers
-	// ------------------------------------------------------------------
 
 	/**
 	 * Write attachment ID to the cover <img> element class (non-parallax mode).
@@ -253,10 +241,6 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 			?? self::write_id_to_div( $html, $id )
 			?? $html;
 	}
-
-	// ------------------------------------------------------------------
-	// Helpers
-	// ------------------------------------------------------------------
 
 	/**
 	 * Check if the current tag processor position is the cover background element.

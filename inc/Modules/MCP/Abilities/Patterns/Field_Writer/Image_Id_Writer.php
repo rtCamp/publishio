@@ -47,8 +47,6 @@ class Image_Id_Writer implements Field_Writer_Interface {
 		}
 	}
 
-	// ------------------------------------------------------------------
-
 	/**
 	 * Update the wp-image-{id} class on an <img> tag.
 	 *

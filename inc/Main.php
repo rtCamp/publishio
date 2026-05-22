@@ -28,8 +28,8 @@ final class Main {
 		Modules\CLI::class,
 		Modules\Settings\Admin_Screen::class,
 		Modules\Settings\Settings::class,
-		Modules\OAuth\OAuth::class,
-		Modules\Abilities\Abilities::class,
+		Modules\MCP\OAuth\OAuth::class,
+		Modules\MCP\Abilities\Abilities::class,
 	];
 
 	/**
@@ -78,7 +78,7 @@ final class Main {
 	 */
 	public static function activate(): void {
 		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
-		Modules\OAuth\Token\Token_Store::create_table();
+		Modules\MCP\OAuth\Token\Token_Store::create_table();
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 

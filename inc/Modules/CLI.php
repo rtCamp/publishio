@@ -10,6 +10,9 @@ declare( strict_types = 1 );
 namespace rtCamp\Publish_With_AI\Modules;
 
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\CLI\Get_Client;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\CLI\Remove_Client;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\CLI\Set_Client;
 
 /**
  * Class - CLI
@@ -49,6 +52,9 @@ final class CLI implements Registrable {
 	private function get_commands(): array {
 		$commands = [
 			CLI\Healthcheck::class,
+			Set_Client::class,
+			Get_Client::class,
+			Remove_Client::class,
 		];
 
 		return array_reduce(

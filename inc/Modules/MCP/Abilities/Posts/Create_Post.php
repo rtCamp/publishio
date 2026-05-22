@@ -18,7 +18,7 @@ class Create_Post {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/create-post',
+			'pwai/create-post',
 			[
 				'label'               => __( 'Create Empty Post or Page', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

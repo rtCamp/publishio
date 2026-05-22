@@ -25,8 +25,8 @@ class Content_Generation_Guide {
 	public function add_resource( array $config ): array {
 		$resource = McpResource::fromArray(
 			[
-				'uri'         => 'wordpress://rtcamp-publish-with-ai/content-generation-guide',
-				'name'        => 'rtcamp-publish-with-ai/content-generation-guide',
+				'uri'         => 'wordpress://pwai/content-generation-guide',
+				'name'        => 'pwai/content-generation-guide',
 				'title'       => 'WordPress Content Generation Guide',
 				'description' => 'Rules and workflows for generating WordPress content using patterns and incremental assembly. Read this before creating any post or page.',
 				'mimeType'    => 'text/markdown',

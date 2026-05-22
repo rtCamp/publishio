@@ -33,7 +33,7 @@ class Auth_Server_Metadata implements Registrable {
 	public function add_rewrite_rules(): void {
 		add_rewrite_rule(
 			'^\.well-known/oauth-authorization-server/?$',
-			'index.php?rt_mcp_oauth_as_metadata=1',
+			'index.php?pwai_oauth_as_metadata=1',
 			'top'
 		);
 	}
@@ -46,7 +46,7 @@ class Auth_Server_Metadata implements Registrable {
 	 * @return array<string>
 	 */
 	public function add_query_vars( array $vars ): array {
-		$vars[] = 'rt_mcp_oauth_as_metadata';
+		$vars[] = 'pwai_oauth_as_metadata';
 		return $vars;
 	}
 
@@ -56,7 +56,7 @@ class Auth_Server_Metadata implements Registrable {
 	 * @param \WP $wp The WordPress environment instance.
 	 */
 	public function handle_request( \WP $wp ): void {
-		if ( empty( $wp->query_vars['rt_mcp_oauth_as_metadata'] ) ) {
+		if ( empty( $wp->query_vars['pwai_oauth_as_metadata'] ) ) {
 			return;
 		}
 

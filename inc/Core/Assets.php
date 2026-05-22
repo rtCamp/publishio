@@ -21,7 +21,7 @@ final class Assets implements Registrable {
 	/**
 	 * Prefix for all asset handles.
 	 */
-	private const PREFIX = 'rtcamp-publish-with-ai-';
+	private const PREFIX = 'pwai-';
 
 	/**
 	 * Asset handles

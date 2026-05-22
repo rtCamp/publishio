@@ -22,7 +22,7 @@ class Profile_Section {
 	public function register(): void {
 		add_action( 'show_user_profile', [ $this, 'render_section' ] );
 		add_action( 'edit_user_profile', [ $this, 'render_section' ] );
-		add_action( 'admin_post_rt_mcp_oauth_revoke', [ $this, 'handle_revoke' ] );
+		add_action( 'admin_post_pwai_oauth_revoke', [ $this, 'handle_revoke' ] );
 	}
 
 	/**
@@ -33,7 +33,7 @@ class Profile_Section {
 
 		// Verify nonce.
 		if ( ! isset( $_GET['_wpnonce'] ) ||
-			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'rt_mcp_oauth_revoke_' . $user_id )
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'pwai_oauth_revoke_' . $user_id )
 		) {
 			wp_die( esc_html__( 'Invalid or expired request.', 'rtcamp-publish-with-ai' ), 403 );
 		}
@@ -51,8 +51,8 @@ class Profile_Section {
 
 		// Redirect back to profile with a success message.
 		$redirect = get_current_user_id() === $user_id
-			? admin_url( 'profile.php?rt_mcp_oauth_revoked=1' )
-			: admin_url( 'user-edit.php?user_id=' . $user_id . '&rt_mcp_oauth_revoked=1' );
+			? admin_url( 'profile.php?pwai_oauth_revoked=1' )
+			: admin_url( 'user-edit.php?user_id=' . $user_id . '&pwai_oauth_revoked=1' );
 
 		wp_safe_redirect( $redirect );
 		exit;
@@ -65,7 +65,7 @@ class Profile_Section {
 	 */
 	public function render_section( \WP_User $user ): void {
 		$active  = Token_Store::get_active_for_user( $user->ID );
-		$revoked = isset( $_GET['rt_mcp_oauth_revoked'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$revoked = isset( $_GET['pwai_oauth_revoked'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
 		<h2><?php esc_html_e( 'MCP OAuth Sessions', 'rtcamp-publish-with-ai' ); ?></h2>
 
@@ -99,8 +99,8 @@ class Profile_Section {
 
 			<?php
 			$revoke_url = wp_nonce_url(
-				admin_url( 'admin-post.php?action=rt_mcp_oauth_revoke&user_id=' . $user->ID ),
-				'rt_mcp_oauth_revoke_' . $user->ID
+				admin_url( 'admin-post.php?action=pwai_oauth_revoke&user_id=' . $user->ID ),
+				'pwai_oauth_revoke_' . $user->ID
 			);
 			?>
 			<p style="margin-top: 12px;">

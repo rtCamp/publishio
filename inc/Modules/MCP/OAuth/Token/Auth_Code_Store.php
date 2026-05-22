@@ -21,7 +21,7 @@ class Auth_Code_Store {
 	 * Transient key prefix for auth codes.
 	 * Kept as-is for external compatibility.
 	 */
-	private const TRANSIENT_PREFIX = 'rt_mcp_oauth_code_';
+	private const TRANSIENT_PREFIX = 'pwai_oauth_code_';
 
 	/**
 	 * Create a new authorization code and store it as a transient.

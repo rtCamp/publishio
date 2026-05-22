@@ -18,7 +18,7 @@ class Get_Patterns {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/get-patterns',
+			'pwai/get-patterns',
 			[
 				'label'               => __( 'Get All Patterns', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,

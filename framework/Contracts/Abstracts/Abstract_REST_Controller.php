@@ -25,7 +25,7 @@ abstract class Abstract_REST_Controller extends WP_REST_Controller implements Re
 	 *
 	 * @var string
 	 */
-	protected $namespace = 'rtcamp-publish-with-ai/v';
+	protected $namespace = 'pwai/v';
 
 	/**
 	 * Version number for the REST API routes.

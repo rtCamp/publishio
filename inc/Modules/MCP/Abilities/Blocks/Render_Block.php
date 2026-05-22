@@ -18,7 +18,7 @@ class Render_Block {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/render-block',
+			'pwai/render-block',
 			[
 				'label'               => __( 'Render Block Markup', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,

@@ -18,7 +18,7 @@ class Get_Pattern_Schema {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/get-pattern-schema',
+			'pwai/get-pattern-schema',
 			[
 				'label'               => __( 'Get Pattern Content Schema', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,

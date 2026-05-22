@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Blocks
  */
 class Blocks {
-	public const SLUG = 'rtcamp-publish-with-ai-blocks';
+	public const SLUG = 'pwai-blocks';
 
 	/**
 	 * Register the category.

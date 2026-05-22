@@ -6,7 +6,7 @@
  * - authorization_code: exchanges code + PKCE verifier for tokens
  * - refresh_token: rotates refresh token and issues new access token
  *
- * Registered at: POST /wp-json/rt-mcp-oauth/v1/token
+ * Registered at: POST /wp-json/pwai-oauth/v1/token
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
  */

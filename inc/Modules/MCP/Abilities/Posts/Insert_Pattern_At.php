@@ -20,7 +20,7 @@ class Insert_Pattern_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/insert-pattern-at',
+			'pwai/insert-pattern-at',
 			[
 				'label'               => __( 'Insert Pattern at Position in Page', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

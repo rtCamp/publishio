@@ -18,7 +18,7 @@ class Get_Block {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/get-block',
+			'pwai/get-block',
 			[
 				'label'               => __( 'Get Block Details', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,

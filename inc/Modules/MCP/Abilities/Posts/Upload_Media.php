@@ -18,7 +18,7 @@ class Upload_Media {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/upload-media',
+			'pwai/upload-media',
 			[
 				'label'               => __( 'Upload Media', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

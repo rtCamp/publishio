@@ -18,7 +18,7 @@ class Search_Attachments {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/search-attachments',
+			'pwai/search-attachments',
 			[
 				'label'               => __( 'Search Attachments', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

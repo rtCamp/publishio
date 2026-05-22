@@ -18,7 +18,7 @@ class Update_Post {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/update-post',
+			'pwai/update-post',
 			[
 				'label'               => __( 'Update Post or Page Metadata', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

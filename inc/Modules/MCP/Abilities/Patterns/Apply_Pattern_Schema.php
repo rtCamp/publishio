@@ -18,7 +18,7 @@ class Apply_Pattern_Schema {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtcamp-publish-with-ai/apply-pattern-schema',
+			'pwai/apply-pattern-schema',
 			[
 				'label'               => __( 'Apply Content Schema to Pattern', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,

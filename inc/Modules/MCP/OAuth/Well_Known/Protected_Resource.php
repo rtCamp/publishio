@@ -36,7 +36,7 @@ class Protected_Resource implements Registrable {
 		foreach ( Config::get_all_mcp_endpoint_paths() as $endpoint_path ) {
 			add_rewrite_rule(
 				'^\.well-known/oauth-protected-resource/wp-json/' . preg_quote( $endpoint_path, '/' ) . '/?$',
-				'index.php?rt_mcp_oauth_wellknown=protected-resource&rt_mcp_oauth_resource_path=' . rawurlencode( $endpoint_path ),
+				'index.php?pwai_oauth_wellknown=protected-resource&pwai_oauth_resource_path=' . rawurlencode( $endpoint_path ),
 				'top'
 			);
 		}
@@ -44,7 +44,7 @@ class Protected_Resource implements Registrable {
 		// Root fallback: /.well-known/oauth-protected-resource.
 		add_rewrite_rule(
 			'^\.well-known/oauth-protected-resource/?$',
-			'index.php?rt_mcp_oauth_wellknown=protected-resource',
+			'index.php?pwai_oauth_wellknown=protected-resource',
 			'top'
 		);
 	}
@@ -57,8 +57,8 @@ class Protected_Resource implements Registrable {
 	 * @return array<string>
 	 */
 	public function add_query_vars( array $vars ): array {
-		$vars[] = 'rt_mcp_oauth_wellknown';
-		$vars[] = 'rt_mcp_oauth_resource_path';
+		$vars[] = 'pwai_oauth_wellknown';
+		$vars[] = 'pwai_oauth_resource_path';
 		return $vars;
 	}
 
@@ -68,16 +68,16 @@ class Protected_Resource implements Registrable {
 	 * @param \WP $wp The WordPress environment instance.
 	 */
 	public function handle_request( \WP $wp ): void {
-		if ( empty( $wp->query_vars['rt_mcp_oauth_wellknown'] ) ) {
+		if ( empty( $wp->query_vars['pwai_oauth_wellknown'] ) ) {
 			return;
 		}
 
-		if ( 'protected-resource' !== $wp->query_vars['rt_mcp_oauth_wellknown'] ) {
+		if ( 'protected-resource' !== $wp->query_vars['pwai_oauth_wellknown'] ) {
 			return;
 		}
 
-		$resource_path = ! empty( $wp->query_vars['rt_mcp_oauth_resource_path'] )
-			? sanitize_text_field( $wp->query_vars['rt_mcp_oauth_resource_path'] )
+		$resource_path = ! empty( $wp->query_vars['pwai_oauth_resource_path'] )
+			? sanitize_text_field( $wp->query_vars['pwai_oauth_resource_path'] )
 			: Config::get_mcp_endpoint_path();
 
 		// Validate that the resource path is a registered protected route.

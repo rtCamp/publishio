@@ -35,7 +35,7 @@ class MainTest extends TestCase {
 		remove_all_actions( 'init' );
 		remove_all_actions( 'admin_enqueue_scripts' );
 		remove_all_filters( 'script_loader_tag' );
-		delete_option( 'Publish_With_AI_version' );
+		delete_option( 'publish_with_ai_version' );
 
 		parent::tearDown();
 	}
@@ -58,7 +58,7 @@ class MainTest extends TestCase {
 
 		Main::activate();
 
-		$this->assertEquals( RTCAMP_PUBLISH_WITH_AI_VERSION, get_option( 'Publish_With_AI_version' ) );
+		$this->assertEquals( RTCAMP_PUBLISH_WITH_AI_VERSION, get_option( 'publish_with_ai_version' ) );
 	}
 
 	/**

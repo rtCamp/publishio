@@ -29,6 +29,8 @@ final class Main {
 		Modules\Example::class,
 		Modules\Settings\Admin_Screen::class,
 		Modules\Settings\Settings::class,
+		Modules\OAuth\OAuth::class,
+		Modules\Abilities\Abilities::class,
 	];
 
 	/**
@@ -76,10 +78,9 @@ final class Main {
 	 * @internal description
 	 */
 	public static function activate(): void {
-		// For complicated stuff, you might want to use a Core\Activation class.
-
-		// For simple stuff, you can do it here.
-		update_option( 'Publish_With_AI_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
+		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
+		Modules\OAuth\Token\Token_Store::create_table();
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 
 	/**
@@ -88,8 +89,6 @@ final class Main {
 	 * @internal description
 	 */
 	public static function deactivate(): void {
-		// For complicated stuff, you might want to use Core\Deactivation class.
-
-		// For uninstall stuff, use the root `uninstall.php` file instead.
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 }

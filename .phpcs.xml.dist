@@ -9,7 +9,6 @@
 	<!-- What to scan: include any root-level PHP files and any folders that contain PHP -->
 	<file>./framework/</file>
 	<file>./inc/</file>
-	<file>./src/blocks/</file>
 	<file>./templates/</file>
 	<file>./tests/php/</file>
 	<file>./rtcamp-publish-with-ai.php</file>
@@ -96,7 +95,7 @@
 			<property name="prefixes" type="array">
 				<element value="RTCAMP_PUBLISH_WITH_AI" /><!-- Constant -->
 				<element value="rtCamp\Publish_With_AI" /><!-- Class -->
-				<element value="Publish_With_AI_" /><!-- Function/variable -->
+				<element value="publish_with_ai_" /><!-- Function/variable -->
 			</property>
 		</properties>
 	</rule>

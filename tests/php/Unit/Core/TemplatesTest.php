@@ -40,10 +40,10 @@ class TemplatesTest extends TestCase {
 	 */
 	protected function tearDown(): void {
 		$this->reset_templates_instance();
-		remove_all_filters( 'Publish_With_AI/template_args' );
-		remove_all_filters( 'Publish_With_AI/located_template' );
-		remove_all_filters( 'Publish_With_AI/template_paths' );
-		remove_all_actions( 'Publish_With_AI/get_template_part_test' );
+		remove_all_filters( 'publish_with_ai/template_args' );
+		remove_all_filters( 'publish_with_ai/located_template' );
+		remove_all_filters( 'publish_with_ai/template_paths' );
+		remove_all_actions( 'publish_with_ai/get_template_part_test' );
 
 		parent::tearDown();
 	}
@@ -68,7 +68,7 @@ class TemplatesTest extends TestCase {
 
 		$captured = [];
 		add_action(
-			'Publish_With_AI/get_template_part_test',
+			'publish_with_ai/get_template_part_test',
 			static function ( string $slug, ?string $name, array $args ) use ( &$captured ): void {
 				$captured = [
 					'slug' => $slug,
@@ -101,7 +101,7 @@ class TemplatesTest extends TestCase {
 
 		// Add filter to locate our temp template.
 		add_filter(
-			'Publish_With_AI/located_template',
+			'publish_with_ai/located_template',
 			static function ( $located, $templates ) use ( $template_path ) {
 				if ( in_array( 'test-template.php', $templates, true ) ) {
 					return $template_path;

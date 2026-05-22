@@ -49,8 +49,6 @@ final class Assets implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'register_blocks' ] );
-
 		add_action( 'admin_enqueue_scripts', [ $this, 'register_admin_assets' ] );
 
 		// Add defer attribute to certain plugin bundles to improve admin load performance.
@@ -66,13 +64,6 @@ final class Assets implements Registrable {
 		// Register admin script and style.
 		$this->register_script( self::ADMIN_HANDLE, 'admin' );
 		$this->register_style( self::ADMIN_HANDLE, 'admin' );
-	}
-
-	/**
-	 * Register block assets.
-	 */
-	public function register_blocks(): void {
-		$this->register_block_manifest( $this->assets_dir . '/blocks', $this->assets_dir . '/blocks-manifest.php' );
 	}
 
 	/**

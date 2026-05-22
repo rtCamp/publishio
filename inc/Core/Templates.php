@@ -24,7 +24,7 @@ final class Templates {
 	/**
 	 * The hook prefix for all filters and actions in this trait.
 	 */
-	private const HOOK_PREFIX = 'Publish_With_AI';
+	private const HOOK_PREFIX = 'publish_with_ai';
 
 	/**
 	 * The relative template dir.

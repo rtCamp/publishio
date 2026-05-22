@@ -1,5 +1,6 @@
 {
 	"name": "rtcamp/rtcamp-publish-with-ai",
+	"version": "0.0.1",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
 	"config": {
@@ -31,7 +32,8 @@
 		}
 	],
 	"require": {
-		"php": "^8.2"
+		"php": "^8.2",
+		"wordpress/mcp-adapter": "0.5.0"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",

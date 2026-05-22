@@ -26,7 +26,6 @@ parameters:
 		- uninstall.php
 		- framework/
 		- inc/
-		- src/blocks/
 		- templates/
 	excludePaths:
 		analyse:

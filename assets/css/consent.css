@@ -1,0 +1,286 @@
+/**
+ * Consent screen styles for the OAuth authorization page.
+ *
+ * @package rtCamp\Publish_With_AI
+ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	background: #f0f0f1;
+	margin: 0;
+	padding: 40px 20px;
+	color: #1d2327;
+	line-height: 1.5;
+	min-height: 100vh;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+}
+
+/* Card */
+.consent-card {
+	width: 100%;
+	max-width: 440px;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.06),
+		0 4px 16px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+}
+
+/* Header */
+.consent-header {
+	padding: 32px 32px 0;
+	text-align: center;
+}
+
+.app-icon {
+	width: 56px;
+	height: 56px;
+	margin: 0 auto 16px;
+	background: #f0f6fc;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #2271b1;
+}
+
+.consent-header h1 {
+	font-size: 20px;
+	font-weight: 700;
+	margin: 0 0 8px;
+	color: #1d2327;
+}
+
+.consent-header .subtitle {
+	color: #50575e;
+	font-size: 14px;
+	margin: 0;
+	line-height: 1.6;
+}
+
+.consent-header .site-link {
+	color: #2271b1;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.consent-header .site-link:hover {
+	text-decoration: underline;
+}
+
+/* Body */
+.consent-body {
+	padding: 24px 32px;
+}
+
+.section {
+	margin-bottom: 20px;
+}
+
+.section:last-child {
+	margin-bottom: 0;
+}
+
+.section-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #787c82;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 8px;
+}
+
+/* User info */
+.user-info {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #f6f7f7;
+	border-radius: 8px;
+	padding: 12px 16px;
+}
+
+.user-avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #2271b1;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.user-name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.user-email {
+	font-size: 13px;
+	color: #787c82;
+}
+
+/* Server info */
+.server-info {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	background: #f0f6fc;
+	border-radius: 8px;
+	padding: 12px 16px;
+}
+
+.server-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	background: #2271b1;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.server-name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.server-url {
+	font-size: 12px;
+	color: #787c82;
+	margin-top: 2px;
+	word-break: break-all;
+}
+
+.server-url code {
+	font-family: Menlo, Consolas, Monaco, "Liberation Mono", monospace;
+	font-size: 11px;
+	background: none;
+	padding: 0;
+}
+
+/* Scopes */
+.scope-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.scope-list li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	background: #f6f7f7;
+	border-radius: 6px;
+	margin-bottom: 6px;
+	font-size: 14px;
+}
+
+.scope-list li:last-child {
+	margin-bottom: 0;
+}
+
+.scope-icon {
+	color: #00a32a;
+	flex-shrink: 0;
+}
+
+.scope-list code {
+	font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+	font-size: 13px;
+	color: #1d2327;
+	background: none;
+	padding: 0;
+}
+
+/* Footer / Form */
+.consent-footer {
+	padding: 20px 32px 28px;
+	border-top: 1px solid #f0f0f1;
+	margin: 0;
+}
+
+.buttons {
+	display: flex;
+	gap: 12px;
+}
+
+.btn {
+	flex: 1;
+	padding: 12px 20px;
+	font-size: 14px;
+	font-weight: 600;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	text-align: center;
+	transition: all 0.15s ease;
+	line-height: 1;
+}
+
+.btn-allow {
+	background: #2271b1;
+	color: #fff;
+}
+
+.btn-allow:hover,
+.btn-allow:focus {
+	background: #135e96;
+}
+
+.btn-deny {
+	background: #f6f7f7;
+	color: #50575e;
+	border: 1px solid #dcdcde;
+}
+
+.btn-deny:hover,
+.btn-deny:focus {
+	background: #dcdcde;
+	color: #1d2327;
+}
+
+.btn:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.footer-note {
+	text-align: center;
+	font-size: 12px;
+	color: #a7aaad;
+	margin: 14px 0 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+
+	body {
+		padding: 20px 12px;
+	}
+
+	.consent-header,
+	.consent-body,
+	.consent-footer {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+}

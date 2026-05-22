@@ -4,17 +4,17 @@
 
 - [Filter Hooks](#filter-hooks)
   - [TOC](#toc)
-  - [`Publish_With_AI/template_args`](#Publish_With_AItemplate_args)
-- [`Publish_With_AI/template_file_names`](#Publish_With_AItemplate_file_names)
-  - [`Publish_With_AI/located_template`](#Publish_With_AIlocated_template)
-  - [`Publish_With_AI/template_paths`](#Publish_With_AItemplate_paths)
+  - [`publish_with_ai/template_args`](#Publish_With_AItemplate_args)
+- [`publish_with_ai/template_file_names`](#Publish_With_AItemplate_file_names)
+  - [`publish_with_ai/located_template`](#Publish_With_AIlocated_template)
+  - [`publish_with_ai/template_paths`](#Publish_With_AItemplate_paths)
 
-## `Publish_With_AI/template_args`
+## `publish_with_ai/template_args`
 
 Filters the arguments passed to a template part.
 
 ```php
-apply_filters( 'Publish_With_AI/template_args', array $args, string $slug, ?string $name );
+apply_filters( 'publish_with_ai/template_args', array $args, string $slug, ?string $name );
 ```
 
 ### Parameters
@@ -23,12 +23,12 @@ apply_filters( 'Publish_With_AI/template_args', array $args, string $slug, ?stri
 - `$slug (string)`: Template slug.
 - `$name (string|null)`: Optional. Template variation name.
 
-## `Publish_With_AI/template_file_names`
+## `publish_with_ai/template_file_names`
 
 Filters the list of template file names to locate.
 
 ```php
-apply_filters( 'Publish_With_AI/template_file_names', array $templates, string $slug, ?string $name );
+apply_filters( 'publish_with_ai/template_file_names', array $templates, string $slug, ?string $name );
 ```
 
 ### Parameters
@@ -37,12 +37,12 @@ apply_filters( 'Publish_With_AI/template_file_names', array $templates, string $
 - `$slug (string)`: Template slug.
 - `$name (string|null)`: Optional. Template variation name.
 
-## `Publish_With_AI/located_template`
+## `publish_with_ai/located_template`
 
 Filters the located template path.
 
 ```php
-apply_filters( 'Publish_With_AI/located_template', string|false $template, string[] $templates );
+apply_filters( 'publish_with_ai/located_template', string|false $template, string[] $templates );
 ```
 
 ### Parameters
@@ -50,12 +50,12 @@ apply_filters( 'Publish_With_AI/located_template', string|false $template, strin
 - `$template (string|false)`: Full path to the located template, or false if not found.
 - `$templates (string[])`: Template files that were searched for.
 
-## `Publish_With_AI/template_paths`
+## `publish_with_ai/template_paths`
 
 Filters the list of paths to search for templates.
 
 ```php
-apply_filters( 'Publish_With_AI/template_paths', array $paths );
+apply_filters( 'publish_with_ai/template_paths', array $paths );
 ```
 
 ### Parameters

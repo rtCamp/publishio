@@ -29,6 +29,7 @@ final class Example_REST_Controller extends Abstract_REST_Controller {
 	 */
 	public function register_routes(): void {
 		register_rest_route(
+			// @phpstan-ignore argument.type
 			$this->namespace . $this->version,
 			'/' . $this->rest_base,
 			[

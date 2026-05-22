@@ -4,12 +4,12 @@
  *
  * Codes are stored keyed by their SHA-256 hash and consumed once.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token
+ * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token;
+namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
 
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
 

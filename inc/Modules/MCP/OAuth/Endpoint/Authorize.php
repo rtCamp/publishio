@@ -21,7 +21,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint;
 use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token\Auth_Code_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
 
 /**
  * Class - Authorize
@@ -296,9 +296,7 @@ class Authorize extends Abstract_REST_Controller {
 		$client      = Client_Registry::get_client();
 		$client_name = $client ? $client['client_name'] : $params['client_id']; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_name   = get_bloginfo( 'name' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$nonce       = wp_create_nonce( 'pwai_oauth_consent' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-
-		$action_url = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$action_url  = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		// Build hidden fields for all OAuth params.
 		$hidden_fields = ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
@@ -327,7 +325,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		add_filter(
 			'rest_pre_serve_request',
-			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $nonce, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
+			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
 				include $template; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
 				return true;
 			}

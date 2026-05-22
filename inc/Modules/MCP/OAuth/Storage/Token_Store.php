@@ -5,12 +5,12 @@
  * Tokens are stored in {prefix}pwai_oauth_tokens and looked up by
  * hash for fast, indexed access.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token
+ * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token;
+namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
 
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
 
@@ -32,14 +32,7 @@ class Token_Store {
 	public static function create_table(): void {
 		global $wpdb;
 
-		$table_name = self::table_name();
-
-		// Check if the table already exists to avoid unnecessary work.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
-			return;
-		}
-
+		$table_name      = self::table_name();
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE {$table_name} (
@@ -56,8 +49,7 @@ class Token_Store {
 			PRIMARY KEY (id),
 			UNIQUE KEY access_token_hash (access_token_hash),
 			UNIQUE KEY refresh_token_hash (refresh_token_hash),
-			KEY user_id (user_id),
-			KEY client_id (client_id)
+			KEY user_refresh (user_id, refresh_expires_at)
 		) {$charset_collate};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -136,7 +128,6 @@ class Token_Store {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'SELECT user_id, client_id, scope, resource, access_expires_at FROM %i WHERE access_token_hash = %s',
 				self::table_name(),
 				$hash
@@ -179,7 +170,6 @@ class Token_Store {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'SELECT id, user_id, client_id, scope, resource, refresh_expires_at FROM %i WHERE refresh_token_hash = %s',
 				self::table_name(),
 				$hash
@@ -242,7 +232,6 @@ class Token_Store {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'SELECT client_id, scope, resource, created_at, refresh_expires_at FROM %i WHERE user_id = %d AND refresh_expires_at > %d ORDER BY created_at DESC',
 				self::table_name(),
 				$user_id,
@@ -267,7 +256,6 @@ class Token_Store {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'DELETE FROM %i WHERE user_id = %d AND refresh_expires_at < %d',
 				self::table_name(),
 				$user_id,

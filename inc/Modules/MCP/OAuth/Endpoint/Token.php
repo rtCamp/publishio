@@ -18,8 +18,8 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint;
 use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token\Auth_Code_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token\Token_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - Token

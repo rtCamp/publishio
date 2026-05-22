@@ -11,7 +11,6 @@
  *   $scopes        string  Comma-separated scope string.
  *   $action_url    string  Form action URL.
  *   $hidden_fields string  Pre-rendered hidden input fields (unescaped).
- *   $nonce         string  wp_create_nonce value.
  *   $css_url       string  URL to the consent stylesheet.
  *   $resource_url  string  MCP resource URL.
  *   $server_name   string  MCP server display name.
@@ -34,15 +33,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @var string $css_url
  * @var string $action_url
  * @var string $hidden_fields
- * @var string $nonce
  * @var string $server_name
  * @var string $resource_url
  */
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html <?php language_attributes(); ?>>
 <head>
-	<meta charset="utf-8" />
+	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title><?php echo esc_html( sprintf( 'Authorize %s — %s', $client_name, $site_name ) ); ?></title>
 	<link rel="stylesheet" href="<?php echo esc_url( $css_url ); ?>" /> <?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet ?>
@@ -69,7 +67,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<div class="section-label"><?php esc_html_e( 'Signed in as', 'rtcamp-publish-with-ai' ); ?></div>
 				<div class="user-info">
 					<div class="user-avatar" aria-hidden="true">
-						<?php echo esc_html( mb_strtoupper( mb_substr( $display_name, 0, 1 ) ) ); ?>
+						<?php echo get_avatar( $user_email, 36, '', esc_attr( $display_name ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</div>
 					<div class="user-details">
 						<div class="user-name"><?php echo esc_html( $display_name ); ?></div>
@@ -105,7 +103,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="consent-footer">
 			<?php echo $hidden_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( $nonce ); ?>" />
+			<?php wp_nonce_field( 'pwai_oauth_consent', '_wpnonce', false ); ?>
 			<div class="buttons">
 				<button type="submit" name="consent" value="deny" class="btn btn-deny">
 					<?php esc_html_e( 'Deny', 'rtcamp-publish-with-ai' ); ?>

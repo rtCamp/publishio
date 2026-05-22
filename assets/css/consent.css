@@ -113,6 +113,7 @@ body {
 	width: 36px;
 	height: 36px;
 	border-radius: 50%;
+	overflow: hidden;
 	background: #2271b1;
 	color: #fff;
 	display: flex;

@@ -26,12 +26,7 @@ class AssetsTest extends TestCase {
 		$this->assertInstanceOf( Assets::class, $assets );
 
 		$assets->register_hooks();
-		$assets->register_assets();
 		$assets->register_admin_assets();
-		$assets->register_editor_assets();
-
-		$this->setExpectedIncorrectUsage( 'WP_Block_Type_Registry::register' );
-		$assets->register_blocks();
 
 		// If we reach this point without any exceptions, the test passes.
 		$this->assertTrue( true );

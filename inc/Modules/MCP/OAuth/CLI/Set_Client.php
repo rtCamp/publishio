@@ -34,6 +34,8 @@ final class Set_Client implements CLI_Command {
 	}
 
 	/**
+	 * Set the OAuth client credentials.
+	 *
 	 * ## OPTIONS
 	 *
 	 * --client_id=<client_id>

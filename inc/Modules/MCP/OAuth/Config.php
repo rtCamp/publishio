@@ -13,15 +13,15 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
  * Class - Config
  */
 class Config {
-	public const MCP_ROUTE_NAMESPACE  = 'mcp';
-	public const MCP_ROUTE            = 'mcp-adapter-default-server';
-	public const OAUTH_REST_NAMESPACE = 'pwai-oauth/v1';
-	public const ACCESS_TOKEN_TTL     = 3600;
-	public const REFRESH_TOKEN_TTL    = 2592000;
-	public const AUTH_CODE_TTL        = 120;
-	public const CLIENT_OPTION_KEY    = 'pwai_oauth_client';
-	public const SUPPORTED_SCOPES         = [ 'mcp:read', 'mcp:write' ];
-	public const ALLOWED_CLIENT_ORIGINS   = [ 'claude.ai', 'chatgpt.com', 'chat.openai.com' ];
+	public const MCP_ROUTE_NAMESPACE    = 'mcp';
+	public const MCP_ROUTE              = 'mcp-adapter-default-server';
+	public const OAUTH_REST_NAMESPACE   = 'pwai-oauth/v1';
+	public const ACCESS_TOKEN_TTL       = 3600;
+	public const REFRESH_TOKEN_TTL      = 2592000;
+	public const AUTH_CODE_TTL          = 120;
+	public const CLIENT_OPTION_KEY      = 'pwai_oauth_client';
+	public const SUPPORTED_SCOPES       = [ 'mcp:read', 'mcp:write' ];
+	public const ALLOWED_CLIENT_ORIGINS = [ 'claude.ai', 'chatgpt.com', 'chat.openai.com' ];
 
 	/**
 	 * Get the default MCP endpoint path.

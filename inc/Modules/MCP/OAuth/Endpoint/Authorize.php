@@ -327,7 +327,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		add_filter(
 			'rest_pre_serve_request',
-			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $nonce, $server_name, $resource_url, $scopes ) { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,Generic.CodeAnalysis.UnusedFunctionParameter
+			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $nonce, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
 				include $template; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
 				return true;
 			}

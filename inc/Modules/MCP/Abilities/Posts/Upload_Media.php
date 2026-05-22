@@ -167,7 +167,7 @@ class Upload_Media {
 		];
 
 		if ( ! $image_type || ! isset( $allowed[ $image_type ] ) ) {
-			unlink( $tmp_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
+			unlink( $tmp_file ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
 			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'rtcamp-publish-with-ai' ) );
 		}
 
@@ -179,7 +179,7 @@ class Upload_Media {
 		$attachment_id = media_handle_sideload( $file_array, $post_id, $title ?: null );
 
 		if ( file_exists( $tmp_file ) ) {
-			unlink( $tmp_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
+			unlink( $tmp_file ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
 		}
 
 		return $attachment_id;

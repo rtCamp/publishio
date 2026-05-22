@@ -34,6 +34,8 @@ final class Remove_Client implements CLI_Command {
 	}
 
 	/**
+	 * Remove the OAuth client.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *   wp rtcamp-publish-with-ai oauth remove-client

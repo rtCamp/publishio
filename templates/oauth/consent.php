@@ -98,7 +98,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p class="scope-note">
 					<?php
 					// translators: %s: client application name wrapped in <strong>.
-					printf( esc_html__( '%s will have access based on your WordPress role and capabilities.', 'rtcamp-publish-with-ai' ), '<strong>' . esc_html( $client_name ) . '</strong>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					printf( esc_html__( '%s will have access based on your WordPress role and capabilities.', 'rtcamp-publish-with-ai' ), '<strong>' . esc_html( $client_name ) . '</strong>' );
 					?>
 				</p>
 			</div>

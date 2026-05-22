@@ -34,6 +34,8 @@ final class Get_Client implements CLI_Command {
 	}
 
 	/**
+	 * Show the current OAuth client (without the secret hash).
+	 *
 	 * ## EXAMPLES
 	 *
 	 *   wp rtcamp-publish-with-ai oauth get-client

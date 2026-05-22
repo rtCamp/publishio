@@ -143,8 +143,7 @@ class Bearer_Token_Auth {
 	private function get_matched_mcp_path(): ?string {
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 
-		// Strip query string for path matching.
-		$request_path = untrailingslashit( (string) strtok( $request_uri, '?' ) );
+		$request_path = untrailingslashit( (string) wp_parse_url( $request_uri, PHP_URL_PATH ) );
 
 		foreach ( Config::get_all_mcp_endpoint_paths() as $endpoint_path ) {
 			$expected_path = untrailingslashit( (string) wp_parse_url( rest_url( $endpoint_path ), PHP_URL_PATH ) );

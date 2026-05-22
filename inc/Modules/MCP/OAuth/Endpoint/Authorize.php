@@ -244,6 +244,11 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_redirect_uri', 'The redirect_uri is not registered for this client.', [ 'status' => 400 ] );
 		}
 
+		$redirect_host = (string) wp_parse_url( $params['redirect_uri'], PHP_URL_HOST );
+		if ( ! in_array( $redirect_host, Config::ALLOWED_CLIENT_ORIGINS, true ) ) {
+			return new \WP_Error( 'unauthorized_client', 'This client is not permitted to use this authorization server.', [ 'status' => 403 ] );
+		}
+
 		if ( empty( $params['code_challenge'] ) ) {
 			return new \WP_Error( 'invalid_request', 'PKCE code_challenge is required.', [ 'status' => 400 ] );
 		}
@@ -256,16 +261,17 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_request', 'state parameter is required.', [ 'status' => 400 ] );
 		}
 
-		// If a resource indicator was supplied it must match a registered protected endpoint.
-		if ( ! empty( $params['resource'] ) ) {
-			$valid_resources = array_map(
-				static fn ( string $path ) => untrailingslashit( rest_url( $path ) ),
-				Config::get_all_mcp_endpoint_paths()
-			);
+		if ( empty( $params['resource'] ) ) {
+			return new \WP_Error( 'invalid_target', 'The resource parameter is required.', [ 'status' => 400 ] );
+		}
 
-			if ( ! in_array( untrailingslashit( $params['resource'] ), $valid_resources, true ) ) {
-				return new \WP_Error( 'invalid_target', 'The resource parameter does not identify a known protected resource.', [ 'status' => 400 ] );
-			}
+		$valid_resources = array_map(
+			static fn ( string $path ) => untrailingslashit( rest_url( $path ) ),
+			Config::get_all_mcp_endpoint_paths()
+		);
+
+		if ( ! in_array( untrailingslashit( $params['resource'] ), $valid_resources, true ) ) {
+			return new \WP_Error( 'invalid_target', 'The resource parameter does not identify a known protected resource.', [ 'status' => 400 ] );
 		}
 
 		return null;
@@ -321,7 +327,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		add_filter(
 			'rest_pre_serve_request',
-			static function ( $_served ) use ( $template ) { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,Generic.CodeAnalysis.UnusedFunctionParameter
+			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $nonce, $server_name, $resource_url, $scopes ) { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,Generic.CodeAnalysis.UnusedFunctionParameter
 				include $template; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
 				return true;
 			}

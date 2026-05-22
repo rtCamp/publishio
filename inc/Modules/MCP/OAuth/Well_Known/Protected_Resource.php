@@ -102,7 +102,7 @@ class Protected_Resource implements Registrable {
 		return [
 			'resource'                 => untrailingslashit( $resource_url ),
 			'authorization_servers'    => [ Config::get_issuer_url() ],
-			'scopes_supported'         => [ 'mcp:read', 'mcp:write' ],
+			'scopes_supported'         => Config::SUPPORTED_SCOPES,
 			'bearer_methods_supported' => [ 'header' ],
 		];
 	}

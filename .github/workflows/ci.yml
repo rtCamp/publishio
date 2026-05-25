@@ -39,9 +39,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        # Omit this or set it to true if later steps in this job need authenticated git operations (for example, in private repositories).
-        with:
-          persist-credentials: true
+        # Comment this out on private repositories to allow sharing of credentials with subsequent jobs.
+        # with:
+        #  persist-credentials: false
 
       - name: Detect file changes
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
@@ -53,22 +53,22 @@ jobs:
               - 'composer.*'
             phpcs:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-phpcs-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-phpcs.yml' # Update this if using public reusable workflow
               - '.phpcs.xml.dist'
             phpstan:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-phpstan-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-phpstan.yml' # Update this if using public reusable workflow
               - 'phpstan.neon.dist'
             phpunit:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-phpunit-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-phpunit.yml' # Update this if using public reusable workflow
               - 'tests/**/*.php'
               - 'phpunit.xml.dist'
               - 'package*.json'
               - '.wp-env.test.json'
             js:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-lint-css-js-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-lint-css-js.yml' # Update this if using public reusable workflow
               - '.nvmrc'
               - '**.cjs'
               - '**.js'
@@ -89,12 +89,12 @@ jobs:
               - '.stylelint.config.js'
             e2e:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-e2e-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-e2e.yml' # Update this if using public reusable workflow
               - 'tests/e2e/**/*'
               - 'playwright.config.ts'
             jest:
               - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-jest-public.yml' # Update this if using private reusable workflow
+              - '.github/workflows/reusable-jest.yml' # Update this if using public reusable workflow
               - 'tests/js/**/*'
               - 'src/**/__tests__/**/*'
               - 'src/**/*.test.ts'

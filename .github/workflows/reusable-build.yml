@@ -23,7 +23,9 @@ jobs:
       contents: read
 
     env:
-      WP_ENV_HOME: /tmp/wp-env
+      # Per-job subdir under the shared /tmp/wp-env mount keeps concurrent jobs on the
+      # same self-hosted host from colliding on wp-env's md5(project_path) instance dir.
+      WP_ENV_HOME: /tmp/wp-env/${{ github.run_id }}-${{ github.run_attempt }}-build
 
     timeout-minutes: 30
 
@@ -33,6 +35,7 @@ jobs:
           sudo apt update && sudo apt install -y acl
           sudo setfacl -R -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
           sudo setfacl -R -d -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
+          mkdir -p "$WP_ENV_HOME"
 
       - name: Configure Docker group permissions
         run: |
@@ -135,5 +138,5 @@ jobs:
           sudo rm -rf /github/workflow/* || true
           sudo rm -rf /github/workflow/.* 2>/dev/null || true
 
-          # Empty the wp-env directory
-          sudo rm -rf /tmp/wp-env/* || true
+          # Empty only this job's wp-env directory, not the shared parent.
+          sudo rm -rf "$WP_ENV_HOME" || true

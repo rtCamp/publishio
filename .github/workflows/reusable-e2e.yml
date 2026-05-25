@@ -28,8 +28,9 @@ jobs:
     timeout-minutes: 30
 
     env:
-      WP_ENV_PORT: 8889
-      WP_ENV_HOME: /tmp/wp-env
+      # Per-job subdir under the shared /tmp/wp-env mount keeps concurrent jobs on the
+      # same self-hosted host from colliding on wp-env's md5(project_path) instance dir.
+      WP_ENV_HOME: /tmp/wp-env/${{ github.run_id }}-${{ github.run_attempt }}-e2e
       PLAYWRIGHT_BROWSERS_PATH: /tmp/playwright-cache
 
     steps:
@@ -38,6 +39,7 @@ jobs:
           sudo apt update && sudo apt install -y acl socat
           sudo setfacl -R -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env /tmp/playwright-cache
           sudo setfacl -R -d -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env /tmp/playwright-cache
+          mkdir -p "$WP_ENV_HOME"
 
       - name: Configure Docker group permissions
         run: |
@@ -103,7 +105,23 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 3
-          command: npm run wp-env:test start -- --update
+          command: npm run wp-env:test start -- --update --auto-port
+
+      - name: Capture resolved wp-env port
+        run: |
+          # --auto-port may have picked a port other than the .wp-env.test.json default.
+          # Read the resolved port from `wp-env status --json` and propagate it so socat,
+          # WP_BASE_URL (Playwright), and any later step agree on the same port.
+          STATUS_JSON=$(npx wp-env --config=.wp-env.test.json status --json)
+          PORT=$(echo "$STATUS_JSON" | jq -r '.ports.tests // .ports.development')
+          if [ -z "$PORT" ] || [ "$PORT" = "null" ]; then
+            echo "ERROR: could not resolve wp-env port from status output:"
+            echo "$STATUS_JSON"
+            exit 1
+          fi
+          echo "Resolved wp-env port: $PORT"
+          echo "WP_ENV_PORT=$PORT" >> "$GITHUB_ENV"
+          echo "WP_BASE_URL=http://localhost:$PORT" >> "$GITHUB_ENV"
 
       - name: Install Playwright dependencies
         run: |
@@ -162,6 +180,6 @@ jobs:
           sudo rm -rf /github/workflow/* || true
           sudo rm -rf /github/workflow/.* 2>/dev/null || true
 
-          # Empty the wp-env directory
-          sudo rm -rf /tmp/wp-env/* || true
+          # Empty only this job's wp-env directory, not the shared parent.
+          sudo rm -rf "$WP_ENV_HOME" || true
           sudo rm -rf /tmp/playwright-cache/* || true

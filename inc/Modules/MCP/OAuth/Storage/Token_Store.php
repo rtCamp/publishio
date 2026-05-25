@@ -59,14 +59,14 @@ class Token_Store {
 	/**
 	 * Issue a new access token and refresh token for a user.
 	 *
-	 * @param int    $user_id   The WordPress user ID.
-	 * @param string $client_id The OAuth client ID.
-	 * @param string $scope     The granted scope.
+	 * @param int    $user_id            The WordPress user ID.
+	 * @param string $client_id          The OAuth client ID.
+	 * @param string $scope              The granted scope.
 	 * @param string $resource_indicator The resource the token is bound to.
 	 *
-	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}
+	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|null
 	 */
-	public static function issue( int $user_id, string $client_id, string $scope, string $resource_indicator ): array {
+	public static function issue( int $user_id, string $client_id, string $scope, string $resource_indicator ): ?array {
 		global $wpdb;
 
 		$access_token  = wp_generate_password( 64, false );
@@ -74,31 +74,27 @@ class Token_Store {
 		$now           = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->insert(
+		$inserted = $wpdb->insert(
 			self::table_name(),
 			[
 				'user_id'            => $user_id,
 				'client_id'          => $client_id,
-				'access_token_hash'  => wp_hash( $access_token, 'auth', 'sha256' ),
-				'refresh_token_hash' => wp_hash( $refresh_token, 'auth', 'sha256' ),
+				'access_token_hash'  => wp_hash( $access_token ),
+				'refresh_token_hash' => wp_hash( $refresh_token ),
 				'scope'              => $scope,
 				'resource'           => $resource_indicator,
 				'access_expires_at'  => $now + Config::get_access_token_ttl(),
 				'refresh_expires_at' => $now + Config::get_refresh_token_ttl(),
 				'created_at'         => $now,
 			],
-			[
-				'%d',
-				'%s',
-				'%s',
-				'%s',
-				'%s',
-				'%s',
-				'%d',
-				'%d',
-				'%d',
-			]
+			[ '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d' ]
 		);
+
+		if ( false === $inserted ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'publish-with-ai: Token_Store::issue() DB insert failed — ' . $wpdb->last_error );
+			return null;
+		}
 
 		// Prune expired rows for this user to keep the table tidy.
 		self::prune_expired_for_user( $user_id );
@@ -122,7 +118,7 @@ class Token_Store {
 	public static function validate_access_token( string $access_token ): ?array {
 		global $wpdb;
 
-		$hash = wp_hash( $access_token, 'auth', 'sha256' );
+		$hash = wp_hash( $access_token );
 		$now  = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -164,7 +160,7 @@ class Token_Store {
 	public static function refresh( string $refresh_token, string $client_id ): ?array {
 		global $wpdb;
 
-		$hash = wp_hash( $refresh_token, 'auth', 'sha256' );
+		$hash = wp_hash( $refresh_token );
 		$now  = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

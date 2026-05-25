@@ -15,7 +15,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Transport;
 
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Token\Token_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - Bearer_Token_Auth

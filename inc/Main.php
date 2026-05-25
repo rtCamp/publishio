@@ -30,6 +30,7 @@ final class Main {
 		Modules\Settings\Settings::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
+		Modules\MCP\Server\Server::class,
 	];
 
 	/**

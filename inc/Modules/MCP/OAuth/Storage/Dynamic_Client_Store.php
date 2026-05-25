@@ -113,12 +113,11 @@ class Dynamic_Client_Store {
 	public static function get_by_client_id( string $client_id ): ?array {
 		global $wpdb;
 
-		$table = self::table_name();
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM `{$table}` WHERE client_id = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT * FROM %i WHERE client_id = %s',
+				self::table_name(),
 				$client_id
 			),
 			ARRAY_A

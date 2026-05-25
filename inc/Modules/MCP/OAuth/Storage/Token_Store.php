@@ -118,14 +118,14 @@ class Token_Store {
 	public static function validate_access_token( string $access_token ): ?array {
 		global $wpdb;
 
-		$hash  = wp_hash( $access_token, 'auth', 'sha256' );
-		$now   = time();
-		$table = self::table_name();
+		$hash = wp_hash( $access_token, 'auth', 'sha256' );
+		$now  = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT user_id, client_id, scope, resource, access_expires_at FROM `{$table}` WHERE access_token_hash = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT user_id, client_id, scope, resource, access_expires_at FROM %i WHERE access_token_hash = %s',
+				self::table_name(),
 				$hash
 			),
 			ARRAY_A
@@ -160,14 +160,14 @@ class Token_Store {
 	public static function refresh( string $refresh_token, string $client_id ): array|false|null {
 		global $wpdb;
 
-		$hash  = wp_hash( $refresh_token, 'auth', 'sha256' );
-		$now   = time();
-		$table = self::table_name();
+		$hash = wp_hash( $refresh_token, 'auth', 'sha256' );
+		$now  = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, user_id, client_id, scope, resource, refresh_expires_at FROM `{$table}` WHERE refresh_token_hash = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT id, user_id, client_id, scope, resource, refresh_expires_at FROM %i WHERE refresh_token_hash = %s',
+				self::table_name(),
 				$hash
 			),
 			ARRAY_A
@@ -230,12 +230,11 @@ class Token_Store {
 
 		$now = time();
 
-		$table = self::table_name();
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT client_id, scope, resource, created_at, refresh_expires_at FROM `{$table}` WHERE user_id = %d AND refresh_expires_at > %d ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT client_id, scope, resource, created_at, refresh_expires_at FROM %i WHERE user_id = %d AND refresh_expires_at > %d ORDER BY created_at DESC',
+				self::table_name(),
 				$user_id,
 				$now
 			),
@@ -255,12 +254,11 @@ class Token_Store {
 
 		$now = time();
 
-		$table = self::table_name();
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM `{$table}` WHERE user_id = %d AND refresh_expires_at < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'DELETE FROM %i WHERE user_id = %d AND refresh_expires_at < %d',
+				self::table_name(),
 				$user_id,
 				$now
 			)

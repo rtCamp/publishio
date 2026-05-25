@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 30
 
     env:
+      WP_ENV_PORT: 8889
       WP_ENV_HOME: /tmp/wp-env
       PLAYWRIGHT_BROWSERS_PATH: /tmp/playwright-cache
 
@@ -97,15 +98,6 @@ jobs:
 
           cat .wp-env.test.json
 
-      - name: Find free port for wp-env
-        run: |
-          for port in $(seq 8000 9000); do
-            docker ps --format '{{.Ports}}' | grep -q ":$port->" || { FREE_PORT=$port; break; }
-          done
-          echo "WP_ENV_PORT=$FREE_PORT" >> $GITHUB_ENV
-          echo "Assigned wp-env port: $FREE_PORT"
-          jq --argjson port "$FREE_PORT" '.port = $port' .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
-
       - name: Start the Docker testing environment
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         with:
@@ -123,7 +115,7 @@ jobs:
           # Forward localhost traffic from the CI container to the Host machine
           # where the WordPress Docker container is actually listening.
           # This ensures Playwright and WordPress both agree the domain is "localhost:8889".
-          if docker ps --format '{{.Ports}}' | grep -q ":${WP_ENV_PORT}->"; then
+          if ss -tlnp | grep -q ":${WP_ENV_PORT} "; then
             echo "ERROR: Port ${WP_ENV_PORT} already in use"
             exit 1
           fi

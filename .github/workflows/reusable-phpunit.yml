@@ -116,15 +116,6 @@ jobs:
 
           cat .wp-env.test.json
 
-      - name: Find free port for wp-env
-        run: |
-          for port in $(seq 8000 9000); do
-            docker ps --format '{{.Ports}}' | grep -q ":$port->" || { FREE_PORT=$port; break; }
-          done
-          echo "WP_ENV_PORT=$FREE_PORT" >> $GITHUB_ENV
-          echo "Assigned wp-env port: $FREE_PORT"
-          jq --argjson port "$FREE_PORT" '.port = $port' .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
-
       - name: Start the Docker testing environment
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         with:
@@ -132,9 +123,9 @@ jobs:
           max_attempts: 3
           command: |
             if [ "${{ inputs.coverage }}" == "true" ]; then
-              npm run wp-env:test start -- --xdebug=coverage --update --debug
+              npm run wp-env:test start -- --xdebug=coverage --update --debug --auto-port
             else
-              npm run wp-env:test start -- --update
+              npm run wp-env:test start -- --update --auto-port
             fi
 
       - name: Log versions

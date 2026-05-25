@@ -95,21 +95,12 @@ jobs:
 
           cat .wp-env.json
 
-      - name: Find free port for wp-env
-        run: |
-          for port in $(seq 8000 9000); do
-            docker ps --format '{{.Ports}}' | grep -q ":$port->" || { FREE_PORT=$port; break; }
-          done
-          echo "WP_ENV_PORT=$FREE_PORT" >> $GITHUB_ENV
-          echo "Assigned wp-env port: $FREE_PORT"
-          jq --argjson port "$FREE_PORT" '.port = $port' .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
-
       - name: Start the Docker testing environment
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
-          command: npm run wp-env start -- --update
+          command: npm run wp-env start -- --update --auto-port
 
       - name: Generate Translation files
         run: npm run i18n:make-pot

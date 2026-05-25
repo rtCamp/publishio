@@ -98,7 +98,7 @@ jobs:
       - name: Find free port for wp-env
         run: |
           for port in $(seq 8000 9000); do
-            ss -tln | grep -q ":$port " || { FREE_PORT=$port; break; }
+            (echo > /dev/tcp/localhost/$port) 2>/dev/null || { FREE_PORT=$port; break; }
           done
           echo "WP_ENV_PORT=$FREE_PORT" >> $GITHUB_ENV
           echo "Assigned wp-env port: $FREE_PORT"

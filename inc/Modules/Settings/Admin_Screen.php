@@ -27,6 +27,7 @@ final class Admin_Screen implements Registrable {
 	 */
 	public function register_hooks(): void {
 		add_action( 'admin_menu', [ $this, 'register_screen' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_menu_icon' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( RTCAMP_PUBLISH_WITH_AI_FILE ), [ $this, 'add_action_links' ], 2 );
 	}
 
@@ -52,7 +53,7 @@ final class Admin_Screen implements Registrable {
 	 */
 	public function register_screen(): void {
 		// First, the page.
-		$hook_suffix = add_options_page(
+		$hook_suffix = add_menu_page(
 			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
 			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
 			'manage_options',
@@ -76,19 +77,35 @@ final class Admin_Screen implements Registrable {
 	}
 
 	/**
-	 * Enqueue and localize scripts.
+	 * Enqueue the menu icon stylesheet on all admin pages and set the icon URL via CSS variable.
+	 */
+	public function enqueue_menu_icon(): void {
+		wp_enqueue_style( Assets::ADMIN_MENU_ICON_HANDLE );
+		wp_add_inline_style(
+			Assets::ADMIN_MENU_ICON_HANDLE,
+			sprintf(
+				'#toplevel_page_%s { --rtpwai-menu-icon-url: url("%s"); }',
+				esc_attr( self::SCREEN_ID ),
+				esc_url( plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ) )
+			)
+		);
+	}
+
+	/**
+	 * Enqueue scripts and styles for the admin screen.
 	 *
 	 * @internal Used by register_screen().
 	 */
 	public function enqueue_scripts(): void {
-		wp_localize_script( Assets::ADMIN_HANDLE, 'publishWithAIAdmin', self::get_localized_data() );
+		wp_localize_script( Assets::ADMIN_HANDLE, 'PublishWithAIAdmin', self::get_localized_data() );
 		wp_enqueue_script( Assets::ADMIN_HANDLE );
+		wp_enqueue_style( Assets::ADMIN_HANDLE );
 	}
 
 	/**
 	 * Localize plugin data for script access.
 	 *
-	 * Will be available via window.publishWithAIAdmin.
+	 * Will be available via window.PublishWithAIAdmin.
 	 *
 	 * @return array<string, mixed>
 	 */

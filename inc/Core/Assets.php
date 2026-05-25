@@ -26,7 +26,8 @@ final class Assets implements Registrable {
 	/**
 	 * Asset handles
 	 */
-	public const ADMIN_HANDLE = self::PREFIX . 'admin';
+	public const ADMIN_HANDLE           = self::PREFIX . 'admin';
+	public const ADMIN_MENU_ICON_HANDLE = self::PREFIX . 'admin-menu-icon';
 
 	/**
 	 * Assets to defer for better performance.
@@ -64,6 +65,9 @@ final class Assets implements Registrable {
 		// Register admin script and style.
 		$this->register_script( self::ADMIN_HANDLE, 'admin' );
 		$this->register_style( self::ADMIN_HANDLE, 'admin' );
+
+		// Register menu icon style (CSS-only entry, loaded on all admin pages).
+		$this->register_style( self::ADMIN_MENU_ICON_HANDLE, 'admin-menu-icon' );
 	}
 
 	/**

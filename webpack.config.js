@@ -20,6 +20,10 @@ const path = require( 'path' );
  */
 const scriptEntries = {
 	admin: path.resolve( process.cwd(), 'src/admin/index.ts' ),
+	'admin-menu-icon': path.resolve(
+		process.cwd(),
+		'src/admin/styles/menu-icon.scss'
+	),
 };
 
 const scriptConfig = {

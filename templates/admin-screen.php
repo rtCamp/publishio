@@ -9,8 +9,4 @@ declare(strict_types = 1);
 
 ?>
 
-<div class="wrap">
-	<h1><?php esc_html_e( 'Publish with AI', 'rtcamp-publish-with-ai' ); ?></h1>
-
-	<div class="rtpwai-content"></div>
-</div>
+<div class="rtpwai-admin-screen-root"></div>

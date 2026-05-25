@@ -18,29 +18,8 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Resources\Content_Generation_Gu
  * Class - Server
  */
 class Server implements Registrable {
-	private const SERVER_ID = 'rt-publish-with-ai';
-
-	private const TOOLS = [
-		'rtpwai/get-patterns',
-		'rtpwai/get-pattern',
-		'rtpwai/get-pattern-schema',
-		'rtpwai/apply-pattern-schema',
-		'rtpwai/get-custom-blocks',
-		'rtpwai/get-block',
-		'rtpwai/render-block',
-		'rtpwai/create-post',
-		'rtpwai/get-post',
-		'rtpwai/update-post',
-		'rtpwai/set-featured-image',
-		'rtpwai/append-blocks',
-		'rtpwai/insert-blocks-at',
-		'rtpwai/append-pattern',
-		'rtpwai/insert-pattern-at',
-		'rtpwai/delete-block-at',
-		'rtpwai/search-posts',
-		'rtpwai/search-attachments',
-		'rtpwai/upload-media',
-	];
+	private const SERVER_ID      = 'rt-publish-with-ai';
+	private const ABILITY_PREFIX = 'rtpwai/';
 
 	/**
 	 * {@inheritDoc}
@@ -68,8 +47,25 @@ class Server implements Registrable {
 			[ HttpTransport::class ],
 			ErrorLogMcpErrorHandler::class,
 			null,
-			self::TOOLS,
+			$this->get_tools(),
 			$resources,
 		);
+	}
+
+	/**
+	 * Discover all abilities registered under the rtpwai/ namespace.
+	 *
+	 * @return string[]
+	 */
+	private function get_tools(): array {
+		$tools = [];
+
+		foreach ( wp_get_abilities() as $ability ) {
+			if ( str_starts_with( $ability->get_name(), self::ABILITY_PREFIX ) ) {
+				$tools[] = $ability->get_name();
+			}
+		}
+
+		return $tools;
 	}
 }

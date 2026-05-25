@@ -3,7 +3,7 @@
  * Hooks into the MCP Adapter transport to authenticate via Bearer tokens.
  *
  * This bridges the OAuth module with the mcp-adapter plugin by:
- * 1. Intercepting REST authentication for MCP routes
+ * 1. Intercepting REST authentication for MCP routes.
  * 2. Validating Bearer tokens and setting the current WP user
  * 3. Adding WWW-Authenticate headers on 401 responses
  *

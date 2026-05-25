@@ -71,13 +71,20 @@ class Token extends Abstract_REST_Controller {
 	private function handle_authorization_code( \WP_REST_Request $request ) {
 		$code          = (string) $request->get_param( 'code' );
 		$client_id     = (string) $request->get_param( 'client_id' );
-		$client_secret = (string) $request->get_param( 'client_secret' );
 		$redirect_uri  = (string) $request->get_param( 'redirect_uri' );
 		$code_verifier = (string) $request->get_param( 'code_verifier' );
 
-		// Validate client credentials.
-		if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
-			return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
+		// Public clients (registered via DCR) authenticate via PKCE — no secret needed.
+		// Confidential clients (legacy, manually configured) require client_secret.
+		if ( Client_Registry::is_public_client( $client_id ) ) {
+			if ( ! Client_Registry::client_exists( $client_id ) ) {
+				return $this->error_response( 'invalid_client', 'Unknown client.', 401 );
+			}
+		} else {
+			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
+			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
+				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
+			}
 		}
 
 		// Consume the auth code (one-time use).
@@ -110,6 +117,10 @@ class Token extends Abstract_REST_Controller {
 			$code_data['resource']
 		);
 
+		if ( null === $tokens ) {
+			return $this->error_response( 'server_error', 'Failed to issue tokens. Please try again.', 500 );
+		}
+
 		return $this->token_response( $tokens );
 	}
 
@@ -123,10 +134,16 @@ class Token extends Abstract_REST_Controller {
 	private function handle_refresh_token( \WP_REST_Request $request ) {
 		$refresh_token = (string) $request->get_param( 'refresh_token' );
 		$client_id     = (string) $request->get_param( 'client_id' );
-		$client_secret = (string) $request->get_param( 'client_secret' );
 
-		if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
-			return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
+		if ( Client_Registry::is_public_client( $client_id ) ) {
+			if ( ! Client_Registry::client_exists( $client_id ) ) {
+				return $this->error_response( 'invalid_client', 'Unknown client.', 401 );
+			}
+		} else {
+			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
+			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
+				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
+			}
 		}
 
 		$tokens = Token_Store::refresh( $refresh_token, $client_id );

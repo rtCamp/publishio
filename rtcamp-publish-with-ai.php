@@ -20,6 +20,7 @@
  * Requires PHP:      8.2
  * Requires at least: 7.0
  * Tested up to:      7.0.0
+ * Requires Plugins:  ai
  */
 
 declare( strict_types = 1 );

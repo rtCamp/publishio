@@ -20,7 +20,7 @@ class Append_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/append-pattern',
+			'rtpwai/append-pattern',
 			[
 				'label'               => __( 'Append Pattern to Page', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

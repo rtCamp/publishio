@@ -19,9 +19,9 @@ use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
  * Class - Settings_Page
  */
 class Settings_Page {
-	private const PAGE_SLUG    = 'pwai-oauth';
-	private const OPTION_GROUP = 'pwai_oauth_settings';
-	private const NONCE_ACTION = 'pwai_oauth_save_client';
+	private const PAGE_SLUG    = 'rtpwai-oauth';
+	private const OPTION_GROUP = 'rtpwai_oauth_settings';
+	private const NONCE_ACTION = 'rtpwai_oauth_save_client';
 
 	/**
 	 * Register hooks.
@@ -48,11 +48,11 @@ class Settings_Page {
 	 * Handle form submission.
 	 */
 	public function handle_save(): void {
-		if ( ! isset( $_POST['pwai_oauth_nonce'] ) ) {
+		if ( ! isset( $_POST['rtpwai_oauth_nonce'] ) ) {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pwai_oauth_nonce'] ) ), self::NONCE_ACTION ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rtpwai_oauth_nonce'] ) ), self::NONCE_ACTION ) ) {
 			return;
 		}
 
@@ -112,7 +112,7 @@ class Settings_Page {
 			<h1><?php esc_html_e( 'MCP OAuth Client Settings', 'rtcamp-publish-with-ai' ); ?></h1>
 
 			<form method="post" action="">
-				<?php wp_nonce_field( self::NONCE_ACTION, 'pwai_oauth_nonce' ); ?>
+				<?php wp_nonce_field( self::NONCE_ACTION, 'rtpwai_oauth_nonce' ); ?>
 
 				<table class="form-table" role="presentation">
 					<tr>

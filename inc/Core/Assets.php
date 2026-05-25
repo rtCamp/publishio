@@ -21,7 +21,7 @@ final class Assets implements Registrable {
 	/**
 	 * Prefix for all asset handles.
 	 */
-	private const PREFIX = 'pwai-';
+	private const PREFIX = 'rtpwai-';
 
 	/**
 	 * Asset handles

@@ -18,7 +18,7 @@ class Delete_Block_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/delete-block-at',
+			'rtpwai/delete-block-at',
 			[
 				'label'               => __( 'Delete Block at Position', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

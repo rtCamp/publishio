@@ -18,7 +18,7 @@ class Get_Post {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-post',
+			'rtpwai/get-post',
 			[
 				'label'               => __( 'Get Post or Page', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

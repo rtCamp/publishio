@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Patterns
  */
 class Patterns {
-	public const SLUG = 'pwai-patterns';
+	public const SLUG = 'rtpwai-patterns';
 
 	/**
 	 * Register the category.

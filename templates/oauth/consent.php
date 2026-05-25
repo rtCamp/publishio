@@ -103,7 +103,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="consent-footer">
 			<?php echo $hidden_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<?php wp_nonce_field( 'pwai_oauth_consent', '_wpnonce', false ); ?>
+			<?php wp_nonce_field( 'rtpwai_oauth_consent', '_wpnonce', false ); ?>
 			<div class="buttons">
 				<button type="submit" name="consent" value="deny" class="btn btn-deny">
 					<?php esc_html_e( 'Deny', 'rtcamp-publish-with-ai' ); ?>

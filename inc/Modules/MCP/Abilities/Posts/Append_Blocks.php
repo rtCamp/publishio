@@ -18,7 +18,7 @@ class Append_Blocks {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/append-blocks',
+			'rtpwai/append-blocks',
 			[
 				'label'               => __( 'Append Blocks to Post', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Posts
  */
 class Posts {
-	public const SLUG = 'pwai-content';
+	public const SLUG = 'rtpwai-content';
 
 	/**
 	 * Register the category.

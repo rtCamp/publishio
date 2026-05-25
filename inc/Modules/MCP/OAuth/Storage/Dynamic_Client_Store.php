@@ -17,7 +17,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
  * Class - Dynamic_Client_Store
  */
 class Dynamic_Client_Store {
-	private const TABLE_SUFFIX = 'pwai_oauth_clients';
+	private const TABLE_SUFFIX = 'rtpwai_oauth_clients';
 
 	/**
 	 * Get the full table name.

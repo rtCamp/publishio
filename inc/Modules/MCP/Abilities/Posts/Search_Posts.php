@@ -18,7 +18,7 @@ class Search_Posts {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/search-posts',
+			'rtpwai/search-posts',
 			[
 				'label'               => __( 'Search Posts and Pages', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

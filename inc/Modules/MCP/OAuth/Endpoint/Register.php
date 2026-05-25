@@ -9,7 +9,7 @@
  * Only public clients (token_endpoint_auth_method=none) are accepted via this
  * endpoint; PKCE (S256) serves as the proof of possession instead.
  *
- * Registered at: POST /wp-json/pwai-oauth/v1/register
+ * Registered at: POST /wp-json/rtpwai-oauth/v1/register
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
  */

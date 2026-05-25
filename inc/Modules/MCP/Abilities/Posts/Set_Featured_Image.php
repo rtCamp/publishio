@@ -18,7 +18,7 @@ class Set_Featured_Image {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/set-featured-image',
+			'rtpwai/set-featured-image',
 			[
 				'label'               => __( 'Set Featured Image for Post or Page', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

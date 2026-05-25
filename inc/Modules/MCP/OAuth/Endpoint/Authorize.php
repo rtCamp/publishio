@@ -8,8 +8,8 @@
  * 3. Shows a consent screen
  * 4. On approval, issues an auth code and redirects back
  *
- * Registered at: GET /wp-json/pwai-oauth/v1/authorize
- *                POST /wp-json/pwai-oauth/v1/authorize (consent form submit)
+ * Registered at: GET /wp-json/rtpwai-oauth/v1/authorize
+ *                POST /wp-json/rtpwai-oauth/v1/authorize (consent form submit)
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
  */
@@ -61,7 +61,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Only act on the authorize endpoint.
 		// GET: shows consent screen (no state change — safe).
-		// POST: protected by wp_verify_nonce('pwai_oauth_consent').
+		// POST: protected by wp_verify_nonce('rtpwai_oauth_consent').
 		$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$expected     = '/' . rest_get_url_prefix() . '/' . Config::OAUTH_REST_NAMESPACE . '/authorize';
@@ -164,7 +164,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Verify nonce.
 		$nonce = $request->get_param( '_wpnonce' );
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'pwai_oauth_consent' ) ) {
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'rtpwai_oauth_consent' ) ) {
 			return new \WP_Error( 'invalid_nonce', 'Invalid or expired form submission.', [ 'status' => 403 ] );
 		}
 

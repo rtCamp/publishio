@@ -18,7 +18,7 @@ class Insert_Blocks_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/insert-blocks-at',
+			'rtpwai/insert-blocks-at',
 			[
 				'label'               => __( 'Insert Blocks at Position in Post', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,

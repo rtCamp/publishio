@@ -85,6 +85,6 @@ class Admin_ScreenTest extends TestCase {
 		$output = (string) ob_get_clean();
 
 		$this->assertStringContainsString( '<div class="wrap">', $output );
-		$this->assertStringContainsString( 'pwai-content', $output );
+		$this->assertStringContainsString( 'rtpwai-content', $output );
 	}
 }

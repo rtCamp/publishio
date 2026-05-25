@@ -8,12 +8,15 @@ on:
         required: true
         type: string
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   phpstan:
     name: PHPStan Static Analysis
-    runs-on: ubuntu-24.04
+    runs-on: [public-repo]
+    container:
+      image: ghcr.io/actions/actions-runner@sha256:1ad983536759ceec39ed75a2c8f007ca8c37b66eee35ed86f13623b29a4db97d # v2.333.0
     timeout-minutes: 20
 
     steps:
@@ -21,7 +24,9 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          persist-credentials: false
+
+      - name: Configure Git for Safe Directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Set up PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
@@ -54,3 +59,19 @@ jobs:
         with:
           path: tests/_output
           key: phpstan-result-cache-${{ runner.os }}-date-${{ steps.get-date.outputs.date }}
+
+      - name: Cleanup Workspace & Home to avoid pollution
+        if: always()
+        run: |
+          # Wipes the actual code, build artifacts, and hidden files
+          sudo rm -rf ./* .[!.]* 2>/dev/null || true
+
+          # Deletes everything inside _temp EXCEPT the locked mount points
+          sudo find /__w/_temp/ -mindepth 1 -maxdepth 1 ! -name '_github_home' ! -name '_github_workflow' -exec rm -rf {} +
+
+          # Empties the contents of the locked directories without deleting the folders themselves
+          sudo rm -rf /github/home/* || true
+          sudo rm -rf /github/home/.* 2>/dev/null || true
+
+          sudo rm -rf /github/workflow/* || true
+          sudo rm -rf /github/workflow/.* 2>/dev/null || true

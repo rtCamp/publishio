@@ -59,14 +59,14 @@ class Token_Store {
 	/**
 	 * Issue a new access token and refresh token for a user.
 	 *
-	 * @param int    $user_id   The WordPress user ID.
-	 * @param string $client_id The OAuth client ID.
-	 * @param string $scope     The granted scope.
+	 * @param int    $user_id            The WordPress user ID.
+	 * @param string $client_id          The OAuth client ID.
+	 * @param string $scope              The granted scope.
 	 * @param string $resource_indicator The resource the token is bound to.
 	 *
-	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}
+	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|null
 	 */
-	public static function issue( int $user_id, string $client_id, string $scope, string $resource_indicator ): array {
+	public static function issue( int $user_id, string $client_id, string $scope, string $resource_indicator ): ?array {
 		global $wpdb;
 
 		$access_token  = wp_generate_password( 64, false );
@@ -74,7 +74,7 @@ class Token_Store {
 		$now           = time();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->insert(
+		$inserted = $wpdb->insert(
 			self::table_name(),
 			[
 				'user_id'            => $user_id,
@@ -87,18 +87,14 @@ class Token_Store {
 				'refresh_expires_at' => $now + Config::get_refresh_token_ttl(),
 				'created_at'         => $now,
 			],
-			[
-				'%d',
-				'%s',
-				'%s',
-				'%s',
-				'%s',
-				'%s',
-				'%d',
-				'%d',
-				'%d',
-			]
+			[ '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d' ]
 		);
+
+		if ( false === $inserted ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'publish-with-ai: Token_Store::issue() DB insert failed — ' . $wpdb->last_error );
+			return null;
+		}
 
 		// Prune expired rows for this user to keep the table tidy.
 		self::prune_expired_for_user( $user_id );
@@ -159,9 +155,9 @@ class Token_Store {
 	 * @param string $refresh_token The plain-text refresh token.
 	 * @param string $client_id     The client ID (must match).
 	 *
-	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|null
+	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|false|null
 	 */
-	public static function refresh( string $refresh_token, string $client_id ): ?array {
+	public static function refresh( string $refresh_token, string $client_id ): array|false|null {
 		global $wpdb;
 
 		$hash = wp_hash( $refresh_token, 'auth', 'sha256' );
@@ -189,7 +185,13 @@ class Token_Store {
 			return null; // Expired.
 		}
 
-		// Delete the old token row before issuing new tokens (rotation).
+		// Issue new tokens first; only remove the old row if issuance succeeds.
+		$new_tokens = self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
+		if ( null === $new_tokens ) {
+			// DB failure — old token is still valid; signal server_error to caller.
+			return false;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->delete(
 			self::table_name(),
@@ -197,8 +199,7 @@ class Token_Store {
 			[ '%d' ]
 		);
 
-		// Issue fresh tokens.
-		return self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
+		return $new_tokens;
 	}
 
 	/**

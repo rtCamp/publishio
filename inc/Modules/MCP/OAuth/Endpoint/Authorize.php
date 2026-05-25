@@ -22,6 +22,7 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controlle
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Dynamic_Client_Store;
 
 /**
  * Class - Authorize
@@ -293,8 +294,13 @@ class Authorize extends Abstract_REST_Controller {
 	 */
 	private function render_consent_screen( array $params ): \WP_REST_Response {
 		$user        = wp_get_current_user();
-		$client      = Client_Registry::get_client();
-		$client_name = $client ? $client['client_name'] : $params['client_id']; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$legacy      = Client_Registry::get_client();
+		$dyn_client  = $legacy && $legacy['client_id'] === $params['client_id']
+			? null
+			: Dynamic_Client_Store::get_by_client_id( $params['client_id'] );
+		$client_name = $legacy && $legacy['client_id'] === $params['client_id'] // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+			? $legacy['client_name']
+			: ( $dyn_client ? $dyn_client['client_name'] : $params['client_id'] );
 		$site_name   = get_bloginfo( 'name' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$action_url  = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 

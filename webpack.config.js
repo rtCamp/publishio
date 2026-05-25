@@ -38,6 +38,9 @@ const plugins = defaultConfig.plugins.filter(
 	( plugin ) => plugin.constructor.name !== 'RtlCssPlugin'
 );
 
+const SITE_URL = process.env.SITE_URL;
+const SITE_HOSTNAME = new URL( SITE_URL ).hostname;
+
 const scriptConfig = {
 	...defaultConfig,
 
@@ -47,6 +50,18 @@ const scriptConfig = {
 		...scriptEntries,
 	},
 
+	devServer: {
+		...defaultConfig.devServer,
+		allowedHosts: SITE_HOSTNAME,
+		proxy: [
+			{
+				context: [ '/build' ],
+				target: SITE_URL,
+				pathRewrite: { '^/build': '' },
+			},
+		],
+	},
+
 	resolve: {
 		...defaultConfig.resolve,
 		extensions: [ '.tsx', '.ts', '.jsx', '.js' ],
@@ -54,6 +69,11 @@ const scriptConfig = {
 			...( defaultConfig.resolve?.alias || {} ),
 			'@': path.resolve( import.meta.dirname, 'src' ),
 		},
+	},
+
+	optimization: {
+		...defaultConfig.optimization,
+		runtimeChunk: false,
 	},
 
 	module: {

@@ -18,9 +18,24 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
  */
 final class Admin_Screen implements Registrable {
 	/**
-	 * The screen ID for the settings page.
+	 * The screen ID for the main (guide) page.
 	 */
 	public const SCREEN_ID = 'rtcamp-publish-with-ai';
+
+	/**
+	 * The screen ID for the clients sub-page.
+	 */
+	public const CLIENTS_SCREEN_ID = 'rtcamp-publish-with-ai-clients';
+
+	/**
+	 * Hook suffix returned by add_menu_page() for the guide page.
+	 */
+	private string $guide_hook = '';
+
+	/**
+	 * Hook suffix returned by add_submenu_page() for the clients page.
+	 */
+	private string $clients_hook = '';
 
 	/**
 	 * {@inheritDoc}
@@ -28,6 +43,8 @@ final class Admin_Screen implements Registrable {
 	public function register_hooks(): void {
 		add_action( 'admin_menu', [ $this, 'register_screen' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_menu_icon' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'maybe_enqueue_page_assets' ], 20 );
+		add_filter( 'admin_body_class', [ $this, 'add_admin_body_class' ] );
 		add_filter( 'plugin_action_links_' . plugin_basename( RTCAMP_PUBLISH_WITH_AI_FILE ), [ $this, 'add_action_links' ], 2 );
 	}
 
@@ -52,7 +69,6 @@ final class Admin_Screen implements Registrable {
 	 * Hook the settings screen into the Admin menu.
 	 */
 	public function register_screen(): void {
-		// First, the page.
 		$hook_suffix = add_menu_page(
 			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
 			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
@@ -61,19 +77,79 @@ final class Admin_Screen implements Registrable {
 			[ $this, 'render_screen' ]
 		);
 
-		// Then, load the screen.
 		if ( false !== $hook_suffix ) {
-			add_action( "load-{$hook_suffix}", [ $this, 'enqueue_scripts' ], 10, 0 );
+			$this->guide_hook = $hook_suffix;
+		}
+
+		// Override the auto-generated first submenu entry with a "Guide" label.
+		add_submenu_page(
+			self::SCREEN_ID,
+			__( 'Guide', 'rtcamp-publish-with-ai' ),
+			__( 'Guide', 'rtcamp-publish-with-ai' ),
+			'manage_options',
+			self::SCREEN_ID,
+			[ $this, 'render_screen' ]
+		);
+
+		$clients_hook = add_submenu_page(
+			self::SCREEN_ID,
+			__( 'Clients', 'rtcamp-publish-with-ai' ),
+			__( 'Clients', 'rtcamp-publish-with-ai' ),
+			'edit_posts',
+			self::CLIENTS_SCREEN_ID,
+			[ $this, 'render_clients_screen' ]
+		);
+
+		if ( false !== $clients_hook ) {
+			$this->clients_hook = $clients_hook;
 		}
 	}
 
 	/**
-	 * Render the admin screen.
+	 * Enqueue page-specific scripts and styles based on the current admin page.
 	 *
-	 * @internal Used by register_screen().
+	 * Runs at priority 20 on admin_enqueue_scripts, after assets are registered at priority 10.
+	 *
+	 * @param string $hook_suffix The hook suffix of the current admin page.
+	 */
+	public function maybe_enqueue_page_assets( string $hook_suffix ): void {
+		if ( $this->guide_hook && $hook_suffix === $this->guide_hook ) {
+			$this->enqueue_scripts();
+		} elseif ( $this->clients_hook && $hook_suffix === $this->clients_hook ) {
+			$this->enqueue_clients_scripts();
+		}
+	}
+
+	/**
+	 * Enqueue scripts and styles for the guide screen.
+	 */
+	private function enqueue_scripts(): void {
+		wp_localize_script( Assets::ADMIN_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
+		wp_enqueue_script( Assets::ADMIN_HANDLE );
+		wp_enqueue_style( Assets::ADMIN_HANDLE );
+	}
+
+	/**
+	 * Enqueue scripts and styles for the clients screen.
+	 */
+	private function enqueue_clients_scripts(): void {
+		wp_localize_script( Assets::ADMIN_CLIENTS_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
+		wp_enqueue_script( Assets::ADMIN_CLIENTS_HANDLE );
+		wp_enqueue_style( Assets::ADMIN_CLIENTS_HANDLE );
+	}
+
+	/**
+	 * Render the guide (main) admin screen.
 	 */
 	public function render_screen(): void {
 		Templates::get_template_part( 'admin-screen' );
+	}
+
+	/**
+	 * Render the clients admin screen.
+	 */
+	public function render_clients_screen(): void {
+		Templates::get_template_part( 'clients-screen' );
 	}
 
 	/**
@@ -92,14 +168,22 @@ final class Admin_Screen implements Registrable {
 	}
 
 	/**
-	 * Enqueue scripts and styles for the admin screen.
+	 * Add a shared body class to all plugin admin pages for consistent full-screen styling.
 	 *
-	 * @internal Used by register_screen().
+	 * @param string $classes Space-separated list of body classes.
 	 */
-	public function enqueue_scripts(): void {
-		wp_localize_script( Assets::ADMIN_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
-		wp_enqueue_script( Assets::ADMIN_HANDLE );
-		wp_enqueue_style( Assets::ADMIN_HANDLE );
+	public function add_admin_body_class( string $classes ): string {
+		$screen = get_current_screen();
+
+		if ( null === $screen ) {
+			return $classes;
+		}
+
+		if ( str_contains( $screen->id, self::SCREEN_ID ) ) {
+			$classes .= ' rtpwai-admin-page';
+		}
+
+		return $classes;
 	}
 
 	/**
@@ -112,6 +196,12 @@ final class Admin_Screen implements Registrable {
 	private function get_localized_data(): array {
 		return [
 			'pluginVersion' => RTCAMP_PUBLISH_WITH_AI_VERSION,
+			'logoUrl'       => plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+			'providerLogos' => [
+				'claude' => plugins_url( 'assets/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'openai' => plugins_url( 'assets/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'other'  => plugins_url( 'assets/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+			],
 		];
 	}
 }

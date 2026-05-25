@@ -1,8 +1,6 @@
-body {
-	--rtcamp-publish-with-ai-primary-color: #0073aa;
-}
+@import "@wordpress/dataviews/build-style/style.css";
 
-.toplevel_page_rtcamp-publish-with-ai {
+.rtpwai-admin-page {
 
 	#wpcontent {
 		padding: 0;
@@ -12,5 +10,62 @@ body {
 
 	#wpbody-content {
 		padding-bottom: 0;
+	}
+}
+
+.rtpwai-header-content {
+	view-transition-name: admin-header-content;
+}
+
+.rtpwai-header-actions {
+	view-transition-name: admin-header-actions;
+}
+
+/* Suppress default root crossfade — only named elements animate */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+	mix-blend-mode: normal;
+}
+
+@keyframes rtpwai-slide-in {
+
+	from {
+		opacity: 0;
+		transform: translateX(8px);
+	}
+}
+
+@keyframes rtpwai-slide-out {
+
+	to {
+		opacity: 0;
+		transform: translateX(-8px);
+	}
+}
+
+:root[data-guide-transition="open"] {
+
+	&::view-transition-old(admin-header-content),
+	&::view-transition-old(admin-header-actions) {
+		animation: 150ms ease-out both rtpwai-slide-out;
+	}
+
+	&::view-transition-new(admin-header-content),
+	&::view-transition-new(admin-header-actions) {
+		animation: 150ms ease-out both rtpwai-slide-in;
+	}
+}
+
+:root[data-guide-transition="close"] {
+
+	&::view-transition-old(admin-header-content),
+	&::view-transition-old(admin-header-actions) {
+		animation: 150ms ease-out both rtpwai-slide-in reverse;
+	}
+
+	&::view-transition-new(admin-header-content),
+	&::view-transition-new(admin-header-actions) {
+		animation: 150ms ease-out both rtpwai-slide-out reverse;
 	}
 }

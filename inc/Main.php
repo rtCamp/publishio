@@ -28,6 +28,7 @@ final class Main {
 		Modules\CLI::class,
 		Modules\Settings\Admin_Screen::class,
 		Modules\Settings\Settings::class,
+		Modules\Settings\Clients\REST_Controller::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 	];

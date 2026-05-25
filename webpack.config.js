@@ -16,7 +16,11 @@ import path from 'path';
  * Blocks are handled separately via the `--package-manifest` flag in @wordpress/scripts
  */
 const scriptEntries = {
-	admin: path.resolve( import.meta.dirname, 'src/admin/index.tsx' ),
+	admin: path.resolve( import.meta.dirname, 'src/admin/guide/index.tsx' ),
+	'admin-clients': path.resolve(
+		import.meta.dirname,
+		'src/admin/clients/index.tsx'
+	),
 	'admin-menu-icon': path.resolve(
 		import.meta.dirname,
 		'src/admin/styles/menu-icon.scss'

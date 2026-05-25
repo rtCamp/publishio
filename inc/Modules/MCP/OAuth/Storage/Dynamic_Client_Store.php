@@ -94,19 +94,43 @@ class Dynamic_Client_Store {
 	}
 
 	/**
-	 * Delete a dynamic client registration by its client_id.
+	 * Return all registered clients, newest first.
 	 *
-	 * @param string $client_id The client ID to remove.
+	 * @return array<int, array<string, mixed>>
 	 */
-	public static function delete( string $client_id ): void {
+	public static function all(): array {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->delete(
-			self::table_name(),
-			[ 'client_id' => $client_id ],
-			[ '%s' ]
+		$rows = $wpdb->get_results(
+			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
 		);
+
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+
+		return array_map( [ self::class, 'parse_row' ], $rows );
+	}
+
+	/**
+	 * Look up a dynamic client by its numeric DB id.
+	 *
+	 * @param int $id The DB primary key.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public static function get_by_id( int $id ): ?array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$row = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', self::table_name(), $id ),
+			ARRAY_A
+		);
+
+		return is_array( $row ) ? self::parse_row( $row ) : null;
 	}
 
 	/**
@@ -143,11 +167,87 @@ class Dynamic_Client_Store {
 			return null;
 		}
 
-		$row['redirect_uris']      = json_decode( (string) $row['redirect_uris'], true ) ?? [];
-		$row['is_public']          = (bool) $row['is_public'];
-		$row['client_secret_hash'] = ! empty( $row['client_secret_hash'] ) ? $row['client_secret_hash'] : null;
+		return self::parse_row( $row, true );
+	}
 
-		/** @var array{client_id: string, is_public: bool, client_secret_hash: string|null, redirect_uris: string[], client_name: string, grant_types: string, response_types: string, scope: string, registered_at: int} $row */
+	/**
+	 * Update mutable fields of an existing client.
+	 *
+	 * Immutable fields (client_id, is_public, client_secret_hash, registered_at) are ignored.
+	 *
+	 * @param int                  $id   The DB primary key.
+	 * @param array<string, mixed> $data Fields to update.
+	 */
+	public static function update( int $id, array $data ): bool {
+		global $wpdb;
+
+		$fields  = [];
+		$formats = [];
+
+		if ( isset( $data['client_name'] ) ) {
+			$fields['client_name'] = sanitize_text_field( (string) $data['client_name'] );
+			$formats[]             = '%s';
+		}
+
+		if ( isset( $data['redirect_uris'] ) && is_array( $data['redirect_uris'] ) ) {
+			$fields['redirect_uris'] = wp_json_encode( array_map( 'esc_url_raw', $data['redirect_uris'] ) );
+			$formats[]               = '%s';
+		}
+
+		if ( isset( $data['grant_types'] ) && is_array( $data['grant_types'] ) ) {
+			$fields['grant_types'] = implode( ' ', array_map( 'sanitize_key', $data['grant_types'] ) );
+			$formats[]             = '%s';
+		}
+
+		if ( isset( $data['scope'] ) ) {
+			$fields['scope'] = sanitize_text_field( (string) $data['scope'] );
+			$formats[]       = '%s';
+		}
+
+		if ( empty( $fields ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->update( self::table_name(), $fields, [ 'id' => $id ], $formats, [ '%d' ] );
+
+		return false !== $result;
+	}
+
+	/**
+	 * Delete a client by its numeric DB id.
+	 *
+	 * @param int $id The DB primary key.
+	 */
+	public static function delete( int $id ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->delete( self::table_name(), [ 'id' => $id ], [ '%d' ] );
+
+		return false !== $result && $result > 0;
+	}
+
+	/**
+	 * Normalise a raw DB row into consistent PHP types.
+	 *
+	 * @param array<string, mixed> $row             Raw row from wpdb.
+	 * @param bool                 $keep_secret_hash Preserve client_secret_hash (needed internally for auth).
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function parse_row( array $row, bool $keep_secret_hash = false ): array {
+		$row['id']            = (int) $row['id'];
+		$row['is_public']     = (bool) $row['is_public'];
+		$row['redirect_uris'] = json_decode( (string) $row['redirect_uris'], true ) ?? [];
+		$row['registered_at'] = (int) $row['registered_at'];
+
+		if ( ! $keep_secret_hash ) {
+			unset( $row['client_secret_hash'] );
+		} else {
+			$row['client_secret_hash'] = ! empty( $row['client_secret_hash'] ) ? $row['client_secret_hash'] : null;
+		}
+
 		return $row;
 	}
 }

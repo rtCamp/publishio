@@ -27,6 +27,7 @@ final class Assets implements Registrable {
 	 * Asset handles
 	 */
 	public const ADMIN_HANDLE           = self::PREFIX . 'admin';
+	public const ADMIN_CLIENTS_HANDLE   = self::PREFIX . 'admin-clients';
 	public const ADMIN_MENU_ICON_HANDLE = self::PREFIX . 'admin-menu-icon';
 
 	/**
@@ -34,7 +35,7 @@ final class Assets implements Registrable {
 	 */
 	private const DEFERRED_ASSETS = [
 		self::ADMIN_HANDLE,
-		// Add other handles as needed.
+		self::ADMIN_CLIENTS_HANDLE,
 	];
 
 	/**
@@ -62,11 +63,15 @@ final class Assets implements Registrable {
 	 * Assets are registered once centrally, and enqueued in the modules that need them.
 	 */
 	public function register_admin_assets(): void {
-		// Register admin script and style.
+		// Guide page (main menu).
 		$this->register_script( self::ADMIN_HANDLE, 'admin' );
-		$this->register_style( self::ADMIN_HANDLE, 'admin' );
+		$this->register_style( self::ADMIN_HANDLE, 'admin', [ 'wp-components' ] );
 
-		// Register menu icon style (CSS-only entry, loaded on all admin pages).
+		// Clients page (sub-menu).
+		$this->register_script( self::ADMIN_CLIENTS_HANDLE, 'admin-clients' );
+		$this->register_style( self::ADMIN_CLIENTS_HANDLE, 'admin-clients', [ 'wp-components' ] );
+
+		// Menu icon style (CSS-only entry, loaded on all admin pages).
 		$this->register_style( self::ADMIN_MENU_ICON_HANDLE, 'admin-menu-icon' );
 	}
 

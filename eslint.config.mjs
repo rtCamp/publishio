@@ -66,6 +66,9 @@ export default [
 						'**/@(webpack|jest|babel|playwright).config.@(j|t)s',
 						'**/scripts/**',
 						'**/tests/**',
+						// @wordpress/* packages are provided by WordPress at runtime;
+						// they only need to be devDependencies for types and build.
+						'**/src/**',
 					],
 				},
 			],

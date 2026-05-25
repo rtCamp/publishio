@@ -41,7 +41,6 @@ jobs:
     env:
       WP_ENV_PHP_VERSION: ${{ inputs.php-version }}
       WP_ENV_CORE: ${{ inputs.wp-version == 'trunk' && 'WordPress/WordPress' || format('https://wordpress.org/wordpress-{0}.zip', inputs.wp-version) }}
-      WP_ENV_PORT: 8889
       WP_ENV_HOME: /tmp/wp-env
 
     steps:
@@ -116,6 +115,14 @@ jobs:
              .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
 
           cat .wp-env.test.json
+
+      - name: Find free port for wp-env
+        run: |
+          for port in $(seq 8000 9000); do
+            (echo > /dev/tcp/localhost/$port) 2>/dev/null || { FREE_PORT=$port; break; }
+          done
+          echo "WP_ENV_PORT=$FREE_PORT" >> $GITHUB_ENV
+          echo "Assigned wp-env port: $FREE_PORT"
 
       - name: Start the Docker testing environment
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0

@@ -109,7 +109,7 @@ class Apply_Pattern_Schema {
 						return new \WP_Error(
 							'pattern_not_found',
 							sprintf(
-								// translators: %s: pattern name.
+								/* translators: %s: pattern name */
 								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
 								$name
 							)

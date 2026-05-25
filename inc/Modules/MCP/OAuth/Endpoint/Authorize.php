@@ -320,13 +320,11 @@ class Authorize extends Abstract_REST_Controller {
 		$response->header( 'Content-Type', 'text/html; charset=utf-8' );
 		$response->header( 'Cache-Control', 'no-store' );
 
-		// Capture the template output.
-		$template = RTCAMP_PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
-
 		add_filter(
 			'rest_pre_serve_request',
-			static function ( $_served ) use ( $template, $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
-				include $template; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+			// @phpstan-ignore-next-line
+			static function ( $_served ) use ( $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
+				include RTCAMP_PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
 				return true;
 			}
 		);

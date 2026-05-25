@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cd494c50478cde6db271306a737080f4",
+    "content-hash": "72ca7724d4f843f226a1f8d557911e58",
     "packages": [
         {
             "name": "wordpress/mcp-adapter",

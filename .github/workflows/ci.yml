@@ -39,9 +39,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        # Comment this out on private repositories to allow sharing of credentials with subsequent jobs.
-        # with:
-        #  persist-credentials: false
+        # Omit this or set it to true if later steps in this job need authenticated git operations (for example, in private repositories).
+        with:
+          persist-credentials: true
 
       - name: Detect file changes
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
@@ -109,8 +109,8 @@ jobs:
     name: PHPCS
     needs: detect
     if: needs.detect.outputs.php == 'true' || needs.detect.outputs.phpcs == 'true'
-    uses: ./.github/workflows/reusable-phpcs-public.yml
-    # uses: ./.github/workflows/reusable-phpcs.yml
+    # uses: ./.github/workflows/reusable-phpcs-public.yml
+    uses: ./.github/workflows/reusable-phpcs.yml
     permissions:
       contents: read
     with:
@@ -120,8 +120,8 @@ jobs:
     name: PHPStan
     needs: detect
     if: needs.detect.outputs.php == 'true' || needs.detect.outputs.phpstan == 'true'
-    uses: ./.github/workflows/reusable-phpstan-public.yml
-    # uses: ./.github/workflows/reusable-phpstan.yml
+    # uses: ./.github/workflows/reusable-phpstan-public.yml
+    uses: ./.github/workflows/reusable-phpstan.yml
     permissions:
       contents: read
     with:
@@ -131,8 +131,8 @@ jobs:
     name: CSS/JS Lint
     needs: detect
     if: needs.detect.outputs.css == 'true' || needs.detect.outputs.js == 'true'
-    uses: ./.github/workflows/reusable-lint-css-js-public.yml
-    # uses: ./.github/workflows/reusable-lint-css-js.yml
+    # uses: ./.github/workflows/reusable-lint-css-js-public.yml
+    uses: ./.github/workflows/reusable-lint-css-js.yml
     permissions:
       contents: read
 
@@ -140,8 +140,8 @@ jobs:
     name: Jest Unit Tests
     needs: detect
     if: needs.detect.outputs.js == 'true' || needs.detect.outputs.jest == 'true'
-    uses: ./.github/workflows/reusable-jest-public.yml
-    # uses: ./.github/workflows/reusable-jest.yml
+    # uses: ./.github/workflows/reusable-jest-public.yml
+    uses: ./.github/workflows/reusable-jest.yml
     permissions:
       contents: read
     with:
@@ -151,8 +151,8 @@ jobs:
     name: PHPUnit (PHP ${{ matrix.php }}, WP ${{ matrix.wp }})
     needs: [detect, build-plugin-zip]
     if: needs.detect.outputs.php == 'true' || needs.detect.outputs.phpunit == 'true'
-    uses: ./.github/workflows/reusable-phpunit-public.yml
-    # uses: ./.github/workflows/reusable-phpunit.yml
+    # uses: ./.github/workflows/reusable-phpunit-public.yml
+    uses: ./.github/workflows/reusable-phpunit.yml
     permissions:
       contents: read
     strategy:
@@ -177,8 +177,8 @@ jobs:
     needs: [detect, build-plugin-zip]
     # needs: phpstan
     if: needs.detect.outputs.php == 'true' || needs.detect.outputs.e2e == 'true' || needs.detect.outputs.js == 'true' || needs.detect.outputs.css == 'true'
-    uses: ./.github/workflows/reusable-e2e-public.yml
-    # uses: ./.github/workflows/reusable-e2e.yml
+    # uses: ./.github/workflows/reusable-e2e-public.yml
+    uses: ./.github/workflows/reusable-e2e.yml
     permissions:
       contents: read
     with:
@@ -188,8 +188,8 @@ jobs:
     name: Build Plugin Zip
     permissions:
       contents: read
-    uses: ./.github/workflows/reusable-build-public.yml
-    # uses: ./.github/workflows/reusable-build.yml
+    # uses: ./.github/workflows/reusable-build-public.yml
+    uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
       artifact-name: rtcamp-publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
@@ -199,8 +199,8 @@ jobs:
     name: Playground Preview
     needs: build-plugin-zip
     if: github.event_name == 'pull_request'
-    uses: ./.github/workflows/reusable-wp-playground-pr-preview-public.yml
-    # uses: ./.github/workflows/reusable-wp-playground-pr-preview.yml
+    # uses: ./.github/workflows/reusable-wp-playground-pr-preview-public.yml
+    uses: ./.github/workflows/reusable-wp-playground-pr-preview.yml
     permissions:
       actions: read
       contents: write

@@ -17,7 +17,11 @@ Main CI pipeline used to validate code. Based on file changes it calls the follo
 | [`reusable-build.yml`](reusable-build.yml) <br /> [`reusable-build-public.yml`](reusable-build-public.yml)                                                                             | Creates a build zip (used by playground)  |
 | [`reusable-wp-playground-pr-preview.yml`](reusable-wp-playground-pr-preview.yml) <br /> [`reusable-wp-playground-pr-preview-public.yml`](reusable-wp-playground-pr-preview-public.yml) | PR preview environment with wp-playground |
 
-Reusable workflows have a `-public` variant which is used for public GitHub runners. The non-public variants are used for rtCamp's private runners. Ensure that `ci.yml` points to the correct workflows you need, and delete the others.
+Reusable workflows have a `*-public.yml` variant which is used for public GitHub runners and should be used for public repositories. The non-public `*.yml` are meant for private repositories using private runners.
+
+Ensure that `ci.yml` points to the correct workflows you need, and delete the others.
+
+If you are using `ci.yml` in a private repository with rtCamp runners and later steps in the same job need authenticated Git operations, set `persist-credentials: true` in the `actions/checkout` step of `ci.yml`.
 
 ### [`copilot-setup-steps.yml`](copilot-setup-steps.yml)
 

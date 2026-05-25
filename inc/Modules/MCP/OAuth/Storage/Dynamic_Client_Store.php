@@ -94,6 +94,22 @@ class Dynamic_Client_Store {
 	}
 
 	/**
+	 * Delete a dynamic client registration by its client_id.
+	 *
+	 * @param string $client_id The client ID to remove.
+	 */
+	public static function delete( string $client_id ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete(
+			self::table_name(),
+			[ 'client_id' => $client_id ],
+			[ '%s' ]
+		);
+	}
+
+	/**
 	 * Look up a dynamic client by its client_id.
 	 *
 	 * @param string $client_id The client ID.

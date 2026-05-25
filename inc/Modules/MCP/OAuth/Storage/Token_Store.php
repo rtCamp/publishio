@@ -203,6 +203,26 @@ class Token_Store {
 	}
 
 	/**
+	 * Revoke all tokens for a specific client and user.
+	 *
+	 * @param int    $user_id   The WordPress user ID.
+	 * @param string $client_id The OAuth client ID.
+	 */
+	public static function revoke_for_client( int $user_id, string $client_id ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete(
+			self::table_name(),
+			[
+				'user_id'   => $user_id,
+				'client_id' => $client_id,
+			],
+			[ '%d', '%s' ]
+		);
+	}
+
+	/**
 	 * Revoke all tokens for a user.
 	 *
 	 * @param int $user_id The WordPress user ID.

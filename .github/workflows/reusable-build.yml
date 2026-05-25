@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: [public-repo]
+    runs-on: [high-performance]
     container:
       image: ghcr.io/actions/actions-runner@sha256:1ad983536759ceec39ed75a2c8f007ca8c37b66eee35ed86f13623b29a4db97d # v2.333.0
       volumes:

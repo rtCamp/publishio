@@ -84,7 +84,13 @@ class Dynamic_Client_Store {
 			[ '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
-		return $result ? $client_id : null;
+		if ( false === $result ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'publish-with-ai: Dynamic_Client_Store::register() DB insert failed — ' . $wpdb->last_error );
+			return null;
+		}
+
+		return $client_id;
 	}
 
 	/**
@@ -107,11 +113,12 @@ class Dynamic_Client_Store {
 	public static function get_by_client_id( string $client_id ): ?array {
 		global $wpdb;
 
+		$table = self::table_name();
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE client_id = %s',
-				self::table_name(),
+				"SELECT * FROM `{$table}` WHERE client_id = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$client_id
 			),
 			ARRAY_A
@@ -121,8 +128,9 @@ class Dynamic_Client_Store {
 			return null;
 		}
 
-		$row['redirect_uris'] = json_decode( (string) $row['redirect_uris'], true ) ?? [];
-		$row['is_public']     = (bool) $row['is_public'];
+		$row['redirect_uris']      = json_decode( (string) $row['redirect_uris'], true ) ?? [];
+		$row['is_public']          = (bool) $row['is_public'];
+		$row['client_secret_hash'] = ! empty( $row['client_secret_hash'] ) ? $row['client_secret_hash'] : null;
 
 		/** @var array{client_id: string, is_public: bool, client_secret_hash: string|null, redirect_uris: string[], client_name: string, grant_types: string, response_types: string, scope: string, registered_at: int} $row */
 		return $row;

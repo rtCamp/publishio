@@ -79,8 +79,8 @@ class Token_Store {
 			[
 				'user_id'            => $user_id,
 				'client_id'          => $client_id,
-				'access_token_hash'  => wp_hash( $access_token ),
-				'refresh_token_hash' => wp_hash( $refresh_token ),
+				'access_token_hash'  => wp_hash( $access_token, 'auth', 'sha256' ),
+				'refresh_token_hash' => wp_hash( $refresh_token, 'auth', 'sha256' ),
 				'scope'              => $scope,
 				'resource'           => $resource_indicator,
 				'access_expires_at'  => $now + Config::get_access_token_ttl(),
@@ -118,14 +118,14 @@ class Token_Store {
 	public static function validate_access_token( string $access_token ): ?array {
 		global $wpdb;
 
-		$hash = wp_hash( $access_token );
-		$now  = time();
+		$hash  = wp_hash( $access_token, 'auth', 'sha256' );
+		$now   = time();
+		$table = self::table_name();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT user_id, client_id, scope, resource, access_expires_at FROM %i WHERE access_token_hash = %s',
-				self::table_name(),
+				"SELECT user_id, client_id, scope, resource, access_expires_at FROM `{$table}` WHERE access_token_hash = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$hash
 			),
 			ARRAY_A
@@ -155,19 +155,19 @@ class Token_Store {
 	 * @param string $refresh_token The plain-text refresh token.
 	 * @param string $client_id     The client ID (must match).
 	 *
-	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|null
+	 * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int, scope: string}|false|null
 	 */
-	public static function refresh( string $refresh_token, string $client_id ): ?array {
+	public static function refresh( string $refresh_token, string $client_id ): array|false|null {
 		global $wpdb;
 
-		$hash = wp_hash( $refresh_token );
-		$now  = time();
+		$hash  = wp_hash( $refresh_token, 'auth', 'sha256' );
+		$now   = time();
+		$table = self::table_name();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT id, user_id, client_id, scope, resource, refresh_expires_at FROM %i WHERE refresh_token_hash = %s',
-				self::table_name(),
+				"SELECT id, user_id, client_id, scope, resource, refresh_expires_at FROM `{$table}` WHERE refresh_token_hash = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$hash
 			),
 			ARRAY_A
@@ -185,7 +185,13 @@ class Token_Store {
 			return null; // Expired.
 		}
 
-		// Delete the old token row before issuing new tokens (rotation).
+		// Issue new tokens first; only remove the old row if issuance succeeds.
+		$new_tokens = self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
+		if ( null === $new_tokens ) {
+			// DB failure — old token is still valid; signal server_error to caller.
+			return false;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->delete(
 			self::table_name(),
@@ -193,8 +199,7 @@ class Token_Store {
 			[ '%d' ]
 		);
 
-		// Issue fresh tokens.
-		return self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
+		return $new_tokens;
 	}
 
 	/**
@@ -225,11 +230,12 @@ class Token_Store {
 
 		$now = time();
 
+		$table = self::table_name();
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT client_id, scope, resource, created_at, refresh_expires_at FROM %i WHERE user_id = %d AND refresh_expires_at > %d ORDER BY created_at DESC',
-				self::table_name(),
+				"SELECT client_id, scope, resource, created_at, refresh_expires_at FROM `{$table}` WHERE user_id = %d AND refresh_expires_at > %d ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$user_id,
 				$now
 			),
@@ -249,11 +255,12 @@ class Token_Store {
 
 		$now = time();
 
+		$table = self::table_name();
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				'DELETE FROM %i WHERE user_id = %d AND refresh_expires_at < %d',
-				self::table_name(),
+				"DELETE FROM `{$table}` WHERE user_id = %d AND refresh_expires_at < %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$user_id,
 				$now
 			)

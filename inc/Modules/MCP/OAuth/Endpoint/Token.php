@@ -75,12 +75,8 @@ class Token extends Abstract_REST_Controller {
 		$code_verifier = (string) $request->get_param( 'code_verifier' );
 
 		// Public clients (registered via DCR) authenticate via PKCE — no secret needed.
-		// Confidential clients (legacy, manually configured) require client_secret.
-		if ( Client_Registry::is_public_client( $client_id ) ) {
-			if ( ! Client_Registry::client_exists( $client_id ) ) {
-				return $this->error_response( 'invalid_client', 'Unknown client.', 401 );
-			}
-		} else {
+		// is_public_client() already confirms the client exists; confidential clients require client_secret.
+		if ( ! Client_Registry::is_public_client( $client_id ) ) {
 			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
 			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
 				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
@@ -135,11 +131,7 @@ class Token extends Abstract_REST_Controller {
 		$refresh_token = (string) $request->get_param( 'refresh_token' );
 		$client_id     = (string) $request->get_param( 'client_id' );
 
-		if ( Client_Registry::is_public_client( $client_id ) ) {
-			if ( ! Client_Registry::client_exists( $client_id ) ) {
-				return $this->error_response( 'invalid_client', 'Unknown client.', 401 );
-			}
-		} else {
+		if ( ! Client_Registry::is_public_client( $client_id ) ) {
 			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
 			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
 				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
@@ -148,7 +140,11 @@ class Token extends Abstract_REST_Controller {
 
 		$tokens = Token_Store::refresh( $refresh_token, $client_id );
 
-		if ( ! $tokens ) {
+		if ( false === $tokens ) {
+			return $this->error_response( 'server_error', 'Failed to issue tokens. Please try again.', 500 );
+		}
+
+		if ( null === $tokens ) {
 			return $this->error_response( 'invalid_grant', 'Refresh token is invalid or expired.', 400 );
 		}
 

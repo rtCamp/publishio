@@ -120,7 +120,7 @@ class Register extends Abstract_REST_Controller {
 		$requested_scope = isset( $body['scope'] ) ? sanitize_text_field( (string) $body['scope'] ) : '';
 		$granted_scope   = $this->resolve_scope( $requested_scope );
 
-		$sanitized_uris = array_values( array_map( 'esc_url_raw', $redirect_uris ) );
+		$sanitized_uris = array_values( $redirect_uris );
 
 		// Generate a secret for confidential clients; public clients get none.
 		$client_secret      = null;

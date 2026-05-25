@@ -92,7 +92,7 @@ trait AssetLoaderTrait {
 	 * @param string   $handle        Name of the stylesheet. Should be unique.
 	 * @param string   $filename      Path of the stylesheet relative to the css directory,
 	 *                                excluding the .css extension.
-	 * @param string[] $deps          Optional. An array of registered stylesheet handles this stylesheet depends on,  if not set, the version will be inherited from the asset file.
+	 * @param string[] $deps          Optional. An array of registered stylesheet handles this stylesheet depends on.
 	 * @param ?string  $ver           Optional. String specifying style version number, if not set, the version will be inherited from the asset file.
 	 *
 	 * @param string   $media         Optional. The media for which this stylesheet has been defined.
@@ -107,7 +107,6 @@ trait AssetLoaderTrait {
 		}
 
 		$asset_src = sprintf( '%s/%s.css', $this->plugin_url . untrailingslashit( $this->assets_dir ), $filename );
-		$deps      = $deps ?: ( $asset['dependencies'] ?? [] );
 		$version   = $ver ?? $asset['version'];
 
 		// Register as a style.

@@ -9,4 +9,4 @@ declare(strict_types = 1);
 
 ?>
 
-<div class="rtpwai-admin-screen-root"></div>
+<div id="rtpwai-admin-screen-root" class="rtpwai-tailwind"></div>

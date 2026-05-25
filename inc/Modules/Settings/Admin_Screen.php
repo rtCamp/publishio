@@ -97,7 +97,7 @@ final class Admin_Screen implements Registrable {
 	 * @internal Used by register_screen().
 	 */
 	public function enqueue_scripts(): void {
-		wp_localize_script( Assets::ADMIN_HANDLE, 'PublishWithAIAdmin', self::get_localized_data() );
+		wp_localize_script( Assets::ADMIN_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
 		wp_enqueue_script( Assets::ADMIN_HANDLE );
 		wp_enqueue_style( Assets::ADMIN_HANDLE );
 	}
@@ -105,7 +105,7 @@ final class Admin_Screen implements Registrable {
 	/**
 	 * Localize plugin data for script access.
 	 *
-	 * Will be available via window.PublishWithAIAdmin.
+	 * Will be available via window.rtPublishWithAIAdmin.
 	 *
 	 * @return array<string, mixed>
 	 */

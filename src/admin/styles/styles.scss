@@ -1,0 +1,16 @@
+body {
+	--rtcamp-publish-with-ai-primary-color: #0073aa;
+}
+
+.toplevel_page_rtcamp-publish-with-ai {
+
+	#wpcontent {
+		padding: 0;
+		background: #fff;
+		min-height: 100vh;
+	}
+
+	#wpbody-content {
+		padding-bottom: 0;
+	}
+}

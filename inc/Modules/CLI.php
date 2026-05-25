@@ -51,7 +51,6 @@ final class CLI implements Registrable {
 	 */
 	private function get_commands(): array {
 		$commands = [
-			CLI\Healthcheck::class,
 			Set_Client::class,
 			Get_Client::class,
 			Remove_Client::class,

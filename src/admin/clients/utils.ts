@@ -1,34 +1,34 @@
-type Provider = 'claude' | 'openai' | 'other';
+type App = 'claude' | 'openai' | 'other';
 
-const KNOWN_PROVIDERS: Array< {
-	provider: Exclude< Provider, 'other' >;
+const KNOWN_APPS: Array< {
+	app: Exclude< App, 'other' >;
 	domains: string[];
 } > = [
-	{ provider: 'claude', domains: [ 'claude.ai', 'anthropic.com' ] },
-	{ provider: 'openai', domains: [ 'openai.com', 'chatgpt.com' ] },
+	{ app: 'claude', domains: [ 'claude.ai', 'anthropic.com' ] },
+	{ app: 'openai', domains: [ 'openai.com', 'chatgpt.com' ] },
 ];
 
-function matchDomain( hostname: string ): Exclude< Provider, 'other' > | null {
-	for ( const { provider, domains } of KNOWN_PROVIDERS ) {
+function matchDomain( hostname: string ): Exclude< App, 'other' > | null {
+	for ( const { app, domains } of KNOWN_APPS ) {
 		if (
 			domains.some(
 				( d ) => hostname === d || hostname.endsWith( '.' + d )
 			)
 		) {
-			return provider;
+			return app;
 		}
 	}
 	return null;
 }
 
-export function detectProviders( redirectUris: string[] ): Provider[] {
-	const found = new Set< Provider >();
+export function detectApps( redirectUris: string[] ): App[] {
+	const found = new Set< App >();
 
 	for ( const uri of redirectUris ) {
 		try {
 			const hostname = new URL( uri ).hostname.toLowerCase();
-			const provider = matchDomain( hostname );
-			found.add( provider ?? 'other' );
+			const app = matchDomain( hostname );
+			found.add( app ?? 'other' );
 		} catch {
 			found.add( 'other' );
 		}

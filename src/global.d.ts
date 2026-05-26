@@ -5,7 +5,7 @@ interface Window {
 	rtPublishWithAIAdmin?: {
 		pluginVersion: string;
 		logoUrl: string;
-		providerLogos: Record< string, string >;
+		appLogos: Record< string, string >;
 	};
 }
 

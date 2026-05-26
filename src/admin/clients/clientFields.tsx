@@ -10,9 +10,9 @@ import type { Field } from '@wordpress/dataviews';
  * Internal dependencies
  */
 import type { OAuthClient } from './types';
-import { detectProviders, relativeDate } from './utils';
+import { detectApps, relativeDate } from './utils';
 
-const PROVIDER_LABELS: Record< string, string > = {
+const APP_LABELS: Record< string, string > = {
 	claude: 'Claude AI',
 	openai: 'OpenAI',
 	other: 'Other App',
@@ -36,21 +36,19 @@ export const clientFields: Field< OAuthClient >[] = [
 		label: __( 'App', 'rtcamp-publish-with-ai' ),
 		getValue: ( { item } ) => item.redirect_uris.join( ' ' ),
 		render: ( { item } ) => {
-			const logos = window.rtPublishWithAIAdmin?.providerLogos ?? {};
-			const providers = detectProviders( item.redirect_uris );
+			const logos = window.rtPublishWithAIAdmin?.appLogos ?? {};
+			const apps = detectApps( item.redirect_uris );
 			return (
 				<div className="flex items-center gap-1">
-					{ providers.map( ( provider ) =>
-						logos[ provider ] ? (
+					{ apps.map( ( app ) =>
+						logos[ app ] ? (
 							<Tooltip
-								key={ provider }
-								text={ PROVIDER_LABELS[ provider ] ?? provider }
+								key={ app }
+								text={ APP_LABELS[ app ] ?? app }
 							>
 								<img
-									src={ logos[ provider ] }
-									alt={
-										PROVIDER_LABELS[ provider ] ?? provider
-									}
+									src={ logos[ app ] }
+									alt={ APP_LABELS[ app ] ?? app }
 									className="size-6 shrink-0"
 								/>
 							</Tooltip>

@@ -18,7 +18,7 @@ const GUIDES: Guide[] = [
 			'Learn how to set up Claude AI as your publishing assistant.',
 			'rtcamp-publish-with-ai'
 		),
-		provider: 'claude',
+		app: 'claude',
 	},
 	{
 		id: 'openai',
@@ -27,16 +27,16 @@ const GUIDES: Guide[] = [
 			'Learn how to set up OpenAI (ChatGPT) as your publishing assistant.',
 			'rtcamp-publish-with-ai'
 		),
-		provider: 'openai',
+		app: 'openai',
 	},
 	{
 		id: 'other',
 		title: __( 'Other Apps', 'rtcamp-publish-with-ai' ),
 		description: __(
-			'Learn how to connect any compatible AI provider.',
+			'Learn how to connect with any compatible AI app.',
 			'rtcamp-publish-with-ai'
 		),
-		provider: 'other',
+		app: 'other',
 	},
 ];
 
@@ -50,7 +50,7 @@ export function GuideList( { onOpen }: GuideListProps ) {
 			<AdminHeader
 				title={ __( 'Guide', 'rtcamp-publish-with-ai' ) }
 				description={ __(
-					'Step-by-step setup guides for connecting AI providers.',
+					'Step-by-step setup guides for connecting with AI apps.',
 					'rtcamp-publish-with-ai'
 				) }
 			/>

@@ -197,7 +197,7 @@ final class Admin_Screen implements Registrable {
 		return [
 			'pluginVersion' => RTCAMP_PUBLISH_WITH_AI_VERSION,
 			'logoUrl'       => plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-			'providerLogos' => [
+			'appLogos'      => [
 				'claude' => plugins_url( 'assets/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 				'openai' => plugins_url( 'assets/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 				'other'  => plugins_url( 'assets/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),

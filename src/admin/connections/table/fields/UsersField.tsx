@@ -7,7 +7,7 @@ import { ExternalLink, Tooltip } from '@wordpress/components'; // eslint-disable
 /**
  * Internal dependencies
  */
-import type { ConnectionUser } from './types';
+import type { ConnectionUser } from '../../types';
 
 function UserProfileLink( {
 	href,
@@ -26,43 +26,27 @@ function UserProfileLink( {
 	);
 }
 
-interface SingleUserRowProps {
-	user: ConnectionUser;
-	avatarSize?: string;
-	showEmail?: boolean;
-}
-
-function SingleUserRow( {
-	user,
-	avatarSize = 'size-8',
-	showEmail = true,
-}: SingleUserRowProps ) {
+function SingleUserRow( { user }: { user: ConnectionUser } ) {
 	return (
 		<div className="flex items-center gap-2">
 			<img
 				src={ user.avatar_url }
 				alt={ user.name }
-				className={ `${ avatarSize } rounded-full shrink-0` }
+				className="size-8 rounded-full shrink-0"
 			/>
 			<div className="flex flex-col min-w-0">
 				<UserProfileLink href={ user.admin_edit_url }>
 					{ user.name }
 				</UserProfileLink>
-				{ showEmail && (
-					<span className="text-xs text-gray-500 truncate">
-						{ user.email }
-					</span>
-				) }
+				<span className="text-xs text-gray-500 truncate">
+					{ user.email }
+				</span>
 			</div>
 		</div>
 	);
 }
 
-interface MultiUserRowProps {
-	users: ConnectionUser[];
-}
-
-function MultiUserRow( { users }: MultiUserRowProps ) {
+function MultiUserRow( { users }: { users: ConnectionUser[] } ) {
 	const visibleAvatars = users.slice( 0, 2 );
 	const overflowAvatars = users.slice( 2 );
 	const visibleNames = users.slice( 0, 2 );
@@ -124,7 +108,7 @@ interface Props {
 	users: ConnectionUser[];
 }
 
-export function ConnectionFieldUsers( { users }: Props ) {
+export function UsersField( { users }: Props ) {
 	if ( ! users.length ) {
 		return <span className="text-gray-400">—</span>;
 	}

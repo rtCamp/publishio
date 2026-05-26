@@ -1,14 +1,13 @@
 /**
  * Internal dependencies
  */
-import type { OAuthConnection } from './types';
-import { relativeDate } from './utils';
+import { relativeDate } from '../../utils';
 
 interface Props {
-	item: OAuthConnection;
+	item: { last_active_at: number | null };
 }
 
-export function ConnectionFieldLastActive( { item }: Props ) {
+export function LastActiveField( { item }: Props ) {
 	if ( item.last_active_at === null ) {
 		return <span className="text-gray-400">—</span>;
 	}

@@ -10,7 +10,7 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Dynamic_Client_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
@@ -82,7 +82,7 @@ class Profile_Section {
 		}
 
 		Token_Store::revoke_for_client( $user_id, $client_id );
-		Dynamic_Client_Store::delete_by_client_id( $client_id );
+		Client_Store::delete_by_client_id( $client_id );
 
 		$redirect = get_current_user_id() === $user_id
 			? admin_url( 'profile.php?rtpwai_oauth_revoked=client' )

@@ -35,7 +35,7 @@ export function AdminHeader( {
 				{ __( 'Publish with AI', 'rtcamp-publish-with-ai' ) }
 			</span>
 
-			<div className="rtpwai-header-content flex-1 min-w-0 pl-4 border-l border-gray-200">
+			<div className="rtpwai-header-content flex-1 min-w-0 ps-4 border-s border-gray-200">
 				<h1 className="m-0 text-sm font-medium text-gray-900">
 					{ title }
 				</h1>

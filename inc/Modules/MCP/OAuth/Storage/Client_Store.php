@@ -1,10 +1,9 @@
 <?php
 /**
- * Storage for dynamically registered OAuth clients (RFC 7591).
+ * Storage for OAuth clients.
  *
  * Clients registered via the /register endpoint are stored here.
- * Unlike the legacy single-client option, this table supports multiple
- * clients and distinguishes public (PKCE-only) from confidential ones.
+ * Supports multiple clients and distinguishes public (PKCE-only) from confidential ones.
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
  */
@@ -14,9 +13,9 @@ declare( strict_types = 1 );
 namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
 
 /**
- * Class - Dynamic_Client_Store
+ * Class - Client_Store
  */
-class Dynamic_Client_Store {
+class Client_Store {
 	private const TABLE_SUFFIX = 'rtpwai_oauth_clients';
 
 	/**
@@ -39,7 +38,7 @@ class Dynamic_Client_Store {
 		$sql = "CREATE TABLE {$table_name} (
 			id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			client_id          VARCHAR(255)    NOT NULL,
-			is_public          TINYINT(1)      NOT NULL DEFAULT 1,
+			source             VARCHAR(20)     NOT NULL DEFAULT 'dcr',
 			client_secret_hash VARCHAR(255)    NULL DEFAULT NULL,
 			redirect_uris      TEXT            NOT NULL,
 			client_name        VARCHAR(255)    NOT NULL DEFAULT '',
@@ -48,7 +47,8 @@ class Dynamic_Client_Store {
 			scope              VARCHAR(500)    NOT NULL DEFAULT '',
 			registered_at      INT UNSIGNED    NOT NULL,
 			PRIMARY KEY (id),
-			UNIQUE KEY client_id (client_id)
+			UNIQUE KEY client_id (client_id),
+			KEY source (source)
 		) {$charset_collate};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -56,23 +56,25 @@ class Dynamic_Client_Store {
 	}
 
 	/**
-	 * Register a new dynamic client and return its generated client_id.
+	 * Register a new client and return its generated client_id.
 	 *
-	 * @param array<string, mixed> $data Client metadata (is_public, redirect_uris, client_name, grant_types, response_types, scope).
+	 * @param array<string, mixed> $data Client metadata (redirect_uris, client_name, grant_types, response_types, scope, source, client_secret_hash).
 	 *
 	 * @return string|null The generated client_id, or null on failure.
 	 */
 	public static function register( array $data ): ?string {
 		global $wpdb;
 
-		$client_id = 'dyn_' . wp_generate_password( 32, false );
+		$source    = (string) ( $data['source'] ?? 'dcr' );
+		$prefix    = 'cred' === $source ? 'cred_' : 'dcr_';
+		$client_id = $prefix . wp_generate_password( 32, false );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$result = $wpdb->insert(
 			self::table_name(),
 			[
 				'client_id'          => $client_id,
-				'is_public'          => $data['is_public'] ? 1 : 0,
+				'source'             => $source,
 				'client_secret_hash' => $data['client_secret_hash'] ?? null,
 				'redirect_uris'      => wp_json_encode( $data['redirect_uris'] ),
 				'client_name'        => $data['client_name'] ?? '',
@@ -81,12 +83,12 @@ class Dynamic_Client_Store {
 				'scope'              => $data['scope'] ?? '',
 				'registered_at'      => time(),
 			],
-			[ '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		if ( false === $result ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'publish-with-ai: Dynamic_Client_Store::register() DB insert failed — ' . $wpdb->last_error );
+			error_log( 'publish-with-ai: Client_Store::register() DB insert failed — ' . $wpdb->last_error );
 			return null;
 		}
 
@@ -103,7 +105,7 @@ class Dynamic_Client_Store {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC LIMIT 10', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 
@@ -115,7 +117,34 @@ class Dynamic_Client_Store {
 	}
 
 	/**
-	 * Look up a dynamic client by its numeric DB id.
+	 * Return clients filtered by source ('dcr' or 'cred'), newest first.
+	 *
+	 * @param string $source The source value to filter by.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function all_by_source( string $source ): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE source = %s ORDER BY registered_at DESC LIMIT 100',
+				self::table_name(),
+				$source
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+
+		return array_map( [ self::class, 'parse_row' ], $rows );
+	}
+
+	/**
+	 * Look up a client by its numeric DB id.
 	 *
 	 * @param int $id The DB primary key.
 	 *
@@ -134,15 +163,17 @@ class Dynamic_Client_Store {
 	}
 
 	/**
-	 * Look up a dynamic client by its client_id.
+	 * Look up a client by its client_id.
 	 *
 	 * @param string $client_id The client ID.
 	 *
 	 * @return array{
+	 *   id: int,
 	 *   client_id: string,
+	 *   source: string,
 	 *   is_public: bool,
 	 *   client_secret_hash: string|null,
-	 *   redirect_uris: string[],
+	 *   redirect_uris: array<string>,
 	 *   client_name: string,
 	 *   grant_types: string,
 	 *   response_types: string,
@@ -173,7 +204,7 @@ class Dynamic_Client_Store {
 	/**
 	 * Update mutable fields of an existing client.
 	 *
-	 * Immutable fields (client_id, is_public, client_secret_hash, registered_at) are ignored.
+	 * Immutable fields (client_id, client_secret_hash, registered_at) are ignored.
 	 *
 	 * @param int                  $id   The DB primary key.
 	 * @param array<string, mixed> $data Fields to update.
@@ -245,12 +276,13 @@ class Dynamic_Client_Store {
 	/**
 	 * Normalise a raw DB row into consistent PHP types.
 	 *
-	 * @param array<string, mixed> $row             Raw row from wpdb.
+	 * @param array<string, mixed> $row              Raw row from wpdb.
 	 * @param bool                 $keep_secret_hash Preserve client_secret_hash (needed internally for auth).
 	 *
 	 * @return array{
 	 *   id: int,
 	 *   client_id: string,
+	 *   source: string,
 	 *   is_public: bool,
 	 *   client_secret_hash: string|null,
 	 *   redirect_uris: array<string>,
@@ -262,11 +294,14 @@ class Dynamic_Client_Store {
 	 * }
 	 */
 	private static function parse_row( array $row, bool $keep_secret_hash = false ): array {
+		$has_secret = ! empty( $row['client_secret_hash'] );
+
 		return [
 			'id'                 => (int) $row['id'],
 			'client_id'          => (string) $row['client_id'],
-			'is_public'          => (bool) $row['is_public'],
-			'client_secret_hash' => $keep_secret_hash && ! empty( $row['client_secret_hash'] ) ? (string) $row['client_secret_hash'] : null,
+			'source'             => (string) ( $row['source'] ?? 'dcr' ),
+			'is_public'          => ! $has_secret,
+			'client_secret_hash' => $keep_secret_hash && $has_secret ? (string) $row['client_secret_hash'] : null,
 			'redirect_uris'      => json_decode( (string) $row['redirect_uris'], true ) ?? [],
 			'client_name'        => (string) $row['client_name'],
 			'grant_types'        => (string) $row['grant_types'],

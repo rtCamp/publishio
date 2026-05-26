@@ -25,8 +25,9 @@ final class Main {
 	 */
 	private const REGISTRABLE_CLASSES = [
 		Core\Assets::class,
-		Modules\Settings\Admin_Screen::class,
+		Modules\Settings\Menu_Loader::class,
 		Modules\Settings\Connections\REST_Controller::class,
+		Modules\Settings\Credentials\REST_Controller::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 		Modules\MCP\Server\Server::class,
@@ -79,7 +80,7 @@ final class Main {
 	public static function activate(): void {
 		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
-		Modules\MCP\OAuth\Storage\Dynamic_Client_Store::create_table();
+		Modules\MCP\OAuth\Storage\Client_Store::create_table();
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 

@@ -20,7 +20,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint;
 
 use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Dynamic_Client_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
 
 /**
  * Class - Register
@@ -130,9 +130,9 @@ class Register extends Abstract_REST_Controller {
 			$client_secret_hash = wp_hash_password( $client_secret );
 		}
 
-		$client_id = Dynamic_Client_Store::register(
+		$client_id = Client_Store::register(
 			[
-				'is_public'          => $is_public,
+				'source'             => 'dcr',
 				'client_secret_hash' => $client_secret_hash,
 				'redirect_uris'      => $sanitized_uris,
 				'client_name'        => $client_name,

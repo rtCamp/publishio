@@ -19,7 +19,6 @@ class Config {
 	public const ACCESS_TOKEN_TTL       = 3600;
 	public const REFRESH_TOKEN_TTL      = 2592000;
 	public const AUTH_CODE_TTL          = 120;
-	public const CLIENT_OPTION_KEY      = 'rtpwai_oauth_client';
 	public const SUPPORTED_SCOPES       = [ 'mcp:read', 'mcp:write' ];
 	public const ALLOWED_CLIENT_ORIGINS = [ 'claude.ai', 'chatgpt.com', 'chat.openai.com' ];
 

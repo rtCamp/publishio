@@ -1,14 +1,13 @@
 /**
  * Internal dependencies
  */
-import type { OAuthConnection } from './types';
-import { relativeDate } from './utils';
+import { relativeDate } from '../../utils';
 
 interface Props {
-	item: OAuthConnection;
+	item: { registered_at: number };
 }
 
-export function ConnectionFieldRegistered( { item }: Props ) {
+export function RegisteredField( { item }: Props ) {
 	const date = new Date( item.registered_at * 1000 );
 	return (
 		<time dateTime={ date.toISOString() } title={ date.toLocaleString() }>

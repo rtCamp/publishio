@@ -204,6 +204,20 @@ class Token_Store {
 	}
 
 	/**
+	 * Delete all tokens for a client across all users. Used when a client is deleted.
+	 *
+	 * @param string $client_id The OAuth client ID.
+	 *
+	 * @return int|false Number of rows deleted.
+	 */
+	public static function delete_all_for_client( string $client_id ): int|false {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $wpdb->delete( self::table_name(), [ 'client_id' => $client_id ], [ '%s' ] );
+	}
+
+	/**
 	 * Revoke all tokens for a specific client and user.
 	 *
 	 * @param int    $user_id   The WordPress user ID.

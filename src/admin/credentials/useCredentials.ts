@@ -9,19 +9,23 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import type { OAuthConnection } from './types';
-import { connectionsApi } from './api';
+import type {
+	OAuthCredential,
+	CreatedOAuthCredential,
+	OAuthCredentialFormData,
+} from './types';
+import { credentialsApi } from './api';
 
-export const CONNECTIONS_NOTICES_CONTEXT = 'rtpwai/connections';
+export const CREDENTIALS_NOTICES_CONTEXT = 'rtpwai/credentials';
 
 const ERROR_OPTS = {
 	type: 'snackbar' as const,
 	explicitDismiss: true,
-	context: CONNECTIONS_NOTICES_CONTEXT,
+	context: CREDENTIALS_NOTICES_CONTEXT,
 };
 
-export function useConnections() {
-	const [ connections, setConnections ] = useState< OAuthConnection[] >( [] );
+export function useCredentials() {
+	const [ credentials, setCredentials ] = useState< OAuthCredential[] >( [] );
 	const [ isLoading, setIsLoading ] = useState( true );
 
 	const { createErrorNotice } = useDispatch( noticesStore );
@@ -31,18 +35,18 @@ export function useConnections() {
 
 		setIsLoading( true );
 
-		connectionsApi
+		credentialsApi
 			.list()
 			.then( ( data ) => {
 				if ( ! cancelled ) {
-					setConnections( data );
+					setCredentials( data );
 				}
 			} )
 			.catch( () => {
 				if ( ! cancelled ) {
 					createErrorNotice(
 						__(
-							'Failed to load connections.',
+							'Failed to load credentials.',
 							'rtcamp-publish-with-ai'
 						),
 						ERROR_OPTS
@@ -60,15 +64,23 @@ export function useConnections() {
 		};
 	}, [] ); // eslint-disable-line react-hooks/exhaustive-deps
 
+	async function create(
+		data: OAuthCredentialFormData
+	): Promise< CreatedOAuthCredential > {
+		const created = await credentialsApi.create( data );
+		setCredentials( ( prev ) => [ ...prev, created ] );
+		return created;
+	}
+
 	async function remove( id: number ): Promise< number > {
 		try {
-			const result = await connectionsApi.remove( id );
-			setConnections( ( prev ) => prev.filter( ( c ) => c.id !== id ) );
+			const result = await credentialsApi.remove( id );
+			setCredentials( ( prev ) => prev.filter( ( c ) => c.id !== id ) );
 			return result.tokens_deleted;
 		} catch {
 			createErrorNotice(
 				__(
-					'Failed to delete connection. Please try again.',
+					'Failed to delete credential. Please try again.',
 					'rtcamp-publish-with-ai'
 				),
 				ERROR_OPTS
@@ -77,5 +89,5 @@ export function useConnections() {
 		}
 	}
 
-	return { connections, isLoading, remove };
+	return { credentials, isLoading, create, remove };
 }

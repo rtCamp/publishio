@@ -6,8 +6,7 @@ import { Tooltip } from '@wordpress/components';
 /**
  * Internal dependencies
  */
-import type { OAuthConnection } from './types';
-import { detectApps } from './utils';
+import { detectApps } from '../../utils';
 
 const APP_LABELS: Record< string, string > = {
 	claude: 'Claude AI',
@@ -16,10 +15,10 @@ const APP_LABELS: Record< string, string > = {
 };
 
 interface Props {
-	item: OAuthConnection;
+	item: { client_name: string; redirect_uris: string[] };
 }
 
-export function ConnectionFieldName( { item }: Props ) {
+export function NameField( { item }: Props ) {
 	const logos = window.rtPublishWithAIAdmin?.appLogos ?? {};
 	const apps = detectApps( item.redirect_uris );
 
@@ -32,13 +31,13 @@ export function ConnectionFieldName( { item }: Props ) {
 							<img
 								src={ logos[ app ] }
 								alt={ APP_LABELS[ app ] ?? app }
-								className="size-5 shrink-0"
+								className="size-6 shrink-0"
 							/>
 						</Tooltip>
 					) : null
 				) }
 			</div>
-			<span>{ item.client_name }</span>
+			<span className="font-medium">{ item.client_name }</span>
 		</div>
 	);
 }

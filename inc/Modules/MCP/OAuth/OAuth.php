@@ -11,7 +11,6 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
 
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin\Profile_Section;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin\Settings_Page;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Authorize;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Register;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Token;
@@ -35,7 +34,6 @@ final class OAuth implements Registrable {
 		( new Bearer_Token_Auth() )->register();
 
 		if ( is_admin() ) {
-			( new Settings_Page() )->register();
 			( new Profile_Section() )->register();
 		}
 	}

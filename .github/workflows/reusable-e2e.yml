@@ -81,6 +81,10 @@ jobs:
       - name: Build development assets
         run: npm run build:dev
 
+      - name: Pick wp-env port
+        id: pick-port
+        uses: ./.github/actions/find-free-port
+
       - name: Fix wp-env host mapping
         run: |
           # Get the host path for the workspace by inspecting the container's own mounts
@@ -92,10 +96,15 @@ jobs:
 
           echo "Host Workspace: $HOST_WORKSPACE_PATH"
           echo "Plugin Host Path: $PLUGIN_HOST_PATH"
+          echo "Using wp-env port: ${{ steps.pick-port.outputs.port }}"
+
+          echo "WP_ENV_PORT=${{ steps.pick-port.outputs.port }}" >> "$GITHUB_ENV"
+          echo "WP_BASE_URL=http://localhost:${{ steps.pick-port.outputs.port }}" >> "$GITHUB_ENV"
 
           # Update .wp-env.test.json
           jq --arg path "$PLUGIN_HOST_PATH" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path' \
+             --argjson port "${{ steps.pick-port.outputs.port }}" \
+             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
 
           cat .wp-env.test.json
@@ -105,23 +114,7 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 3
-          command: npm run wp-env:test start -- --update --auto-port
-
-      - name: Capture resolved wp-env port
-        run: |
-          # --auto-port may have picked a port other than the .wp-env.test.json default.
-          # Read the resolved port from `wp-env status --json` and propagate it so socat,
-          # WP_BASE_URL (Playwright), and any later step agree on the same port.
-          STATUS_JSON=$(npx wp-env --config=.wp-env.test.json status --json)
-          PORT=$(echo "$STATUS_JSON" | jq -r '.ports.tests // .ports.development')
-          if [ -z "$PORT" ] || [ "$PORT" = "null" ]; then
-            echo "ERROR: could not resolve wp-env port from status output:"
-            echo "$STATUS_JSON"
-            exit 1
-          fi
-          echo "Resolved wp-env port: $PORT"
-          echo "WP_ENV_PORT=$PORT" >> "$GITHUB_ENV"
-          echo "WP_BASE_URL=http://localhost:$PORT" >> "$GITHUB_ENV"
+          command: npm run wp-env:test start -- --update
 
       - name: Install Playwright dependencies
         run: |

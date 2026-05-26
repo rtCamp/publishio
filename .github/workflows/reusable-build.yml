@@ -79,6 +79,10 @@ jobs:
       - name: Build plugin for release
         run: npm run build:prod
 
+      - name: Pick wp-env port
+        id: pick-port
+        uses: ./.github/actions/find-free-port
+
       - name: Fix wp-env host mapping
         run: |
           # Get the host path for the workspace by inspecting the container's own mounts
@@ -90,27 +94,11 @@ jobs:
 
           echo "Host Workspace: $HOST_WORKSPACE_PATH"
           echo "Plugin Host Path: $PLUGIN_HOST_PATH"
-
-          # Find the first available host port in 8888-9000 by inspecting running Docker containers.
-          # Using docker ps via the mounted socket is reliable here because port binding happens
-          # at the host level, so this reflects the true allocation state across concurrent jobs.
-          USED_PORTS=$(docker ps --format '{{.Ports}}' | grep -oP '\d+(?=->)' | sort -un)
-          WP_ENV_PORT=""
-          for PORT in $(seq 8888 9000); do
-            if ! echo "$USED_PORTS" | grep -qx "$PORT"; then
-              WP_ENV_PORT=$PORT
-              break
-            fi
-          done
-          if [ -z "$WP_ENV_PORT" ]; then
-            echo "No available port found in range 8888-9000" >&2
-            exit 1
-          fi
-          echo "Using wp-env port: $WP_ENV_PORT"
+          echo "Using wp-env port: ${{ steps.pick-port.outputs.port }}"
 
           # Update .wp-env.json (default env)
           jq --arg path "$PLUGIN_HOST_PATH" \
-             --argjson port "$WP_ENV_PORT" \
+             --argjson port "${{ steps.pick-port.outputs.port }}" \
              'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
 

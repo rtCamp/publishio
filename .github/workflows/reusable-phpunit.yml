@@ -98,6 +98,10 @@ jobs:
       - name: Build development assets
         run: npm run build:dev
 
+      - name: Pick wp-env port
+        id: pick-port
+        uses: ./.github/actions/find-free-port
+
       - name: Fix wp-env host mapping
         run: |
           # Get the host path for the workspace by inspecting the container's own mounts
@@ -111,10 +115,14 @@ jobs:
           echo "Host Workspace: $HOST_WORKSPACE_PATH"
           echo "Plugin Host Path: $PLUGIN_HOST_PATH"
 
+          echo "WP_ENV_PORT=${{ steps.pick-port.outputs.port }}" >> "$GITHUB_ENV"
+
           # 1. Remove the "plugins" field to prevent broken automatic mounts
           # 2. Add the host mapping
+          # 3. Set the wp-env port to the picked free port
           jq --arg path "$PLUGIN_HOST_PATH" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path' \
+             --argjson port "${{ steps.pick-port.outputs.port }}" \
+             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
 
           cat .wp-env.test.json

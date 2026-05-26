@@ -1,3 +1,11 @@
+export interface ConnectionUser {
+	id: number;
+	name: string;
+	email: string;
+	avatar_url: string;
+	admin_edit_url: string;
+}
+
 export interface OAuthConnection {
 	id: number;
 	client_id: string;
@@ -8,6 +16,7 @@ export interface OAuthConnection {
 	response_types: string;
 	scope: string;
 	registered_at: number;
+	users: ConnectionUser[];
 }
 
 /** Returned once on creation for confidential connections only. */

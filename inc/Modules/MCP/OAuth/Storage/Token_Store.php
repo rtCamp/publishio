@@ -265,6 +265,47 @@ class Token_Store {
 	}
 
 	/**
+	 * Get distinct active user IDs grouped by client_id.
+	 *
+	 * Returns only rows where the refresh token is still valid, so expired
+	 * sessions are excluded. One query regardless of how many clients are passed.
+	 *
+	 * @param string[] $client_ids OAuth client IDs to look up.
+	 *
+	 * @return array<string, int[]> Map of client_id => list of user IDs.
+	 */
+	public static function get_users_by_client_ids( array $client_ids ): array {
+		if ( empty( $client_ids ) ) {
+			return [];
+		}
+
+		global $wpdb;
+
+		$now = time();
+		$sql = sprintf(
+			'SELECT DISTINCT user_id, client_id FROM %%i WHERE client_id IN (%s) AND refresh_expires_at > %%d',
+			implode( ', ', array_fill( 0, count( $client_ids ), '%s' ) )
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results(
+			$wpdb->prepare( $sql, array_merge( [ self::table_name() ], $client_ids, [ $now ] ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+
+		$result = [];
+		foreach ( $rows as $row ) {
+			$result[ $row['client_id'] ][] = (int) $row['user_id'];
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Delete expired token rows for a user.
 	 *
 	 * @param int $user_id The WordPress user ID.

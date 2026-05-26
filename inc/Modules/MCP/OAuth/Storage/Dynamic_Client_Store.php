@@ -103,7 +103,7 @@ class Dynamic_Client_Store {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC LIMIT 10', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 

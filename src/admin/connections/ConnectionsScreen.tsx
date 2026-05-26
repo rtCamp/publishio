@@ -22,10 +22,14 @@ const DEFAULT_VIEW: View = {
 	page: 1,
 	perPage: 10,
 	sort: { field: 'client_name', direction: 'asc' },
-	fields: [ 'client_name', 'client_id', 'registered_at' ],
+	fields: [ 'client_name', 'users', 'registered_at' ],
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
+
+const DEFAULT_CONFIG = {
+	perPageSizes: [ 10 ],
+};
 
 export function ConnectionsScreen() {
 	const { connections, isLoading, error, clearError, save, remove } =
@@ -131,10 +135,13 @@ export function ConnectionsScreen() {
 					data={ processedData }
 					fields={ connectionFields }
 					view={ view }
-					onChangeView={ setView }
+					onChangeView={ ( next ) =>
+						setView( { ...next, page: 1, perPage: 10 } )
+					}
 					actions={ actions }
 					getItemId={ ( item ) => String( item.id ) }
 					isLoading={ isLoading }
+					config={ DEFAULT_CONFIG }
 					paginationInfo={ paginationInfo }
 					defaultLayouts={ DEFAULT_LAYOUTS }
 					empty={

@@ -19,6 +19,7 @@ use WP_REST_Response;
 use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Dynamic_Client_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - REST_Controller
@@ -93,7 +94,47 @@ class REST_Controller extends Abstract_REST_Controller {
 	 * @param \WP_REST_Request $request The request.
 	 */
 	public function get_items( $request ): WP_REST_Response { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
-		return new WP_REST_Response( Dynamic_Client_Store::all(), 200 );
+		$connections = Dynamic_Client_Store::all();
+
+		if ( empty( $connections ) ) {
+			return new WP_REST_Response( [], 200 );
+		}
+
+		// Query 1: all (client_id → user_id) pairs for these connections in one hit.
+		$client_ids      = array_column( $connections, 'client_id' );
+		$users_by_client = Token_Store::get_users_by_client_ids( $client_ids );
+
+		// Collect all distinct user IDs across every connection.
+		$all_user_ids = [];
+		foreach ( $users_by_client as $user_ids ) {
+			$all_user_ids = array_merge( $all_user_ids, $user_ids );
+		}
+		$all_user_ids = array_unique( $all_user_ids );
+
+		// Query 2: batch-load all WP_User objects at once.
+		$user_map = [];
+		if ( ! empty( $all_user_ids ) ) {
+			foreach ( get_users( [ 'include' => $all_user_ids ] ) as $user ) {
+				$user_map[ $user->ID ] = [
+					'id'             => $user->ID,
+					'name'           => $user->display_name,
+					'email'          => $user->user_email,
+					'avatar_url'     => get_avatar_url( $user->ID, [ 'size' => 32 ] ),
+					'admin_edit_url' => admin_url( 'user-edit.php?user_id=' . $user->ID ),
+				];
+			}
+		}
+
+		// Attach resolved users to each connection.
+		foreach ( $connections as &$connection ) {
+			$user_ids            = $users_by_client[ $connection['client_id'] ] ?? [];
+			$connection['users'] = array_values(
+				array_filter( array_map( static fn ( $uid ) => $user_map[ $uid ] ?? null, $user_ids ) )
+			);
+		}
+		unset( $connection );
+
+		return new WP_REST_Response( $connections, 200 );
 	}
 
 	/**

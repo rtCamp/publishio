@@ -1,0 +1,30 @@
+name: Find free port
+description: >
+  Finds the first available host port in 8888-9000 by querying the Docker
+  socket. More reliable than autoPort, which has a race condition under
+  concurrency — two jobs can both see a port as free and both try to bind it.
+  The retry on the wp-env start step handles any residual collision.
+
+outputs:
+  port:
+    description: The available port number
+    value: ${{ steps.find.outputs.port }}
+
+runs:
+  using: composite
+  steps:
+    - id: find
+      shell: bash
+      run: |
+        BOUND=$(docker ps --format '{{.Ports}}' | grep -oP '\d+(?=->)' | sort -un)
+
+        for PORT in $(seq 8888 9000); do
+          if ! echo "$BOUND" | grep -qx "$PORT"; then
+            echo "port=$PORT" >> "$GITHUB_OUTPUT"
+            echo "Found free port: $PORT"
+            exit 0
+          fi
+        done
+
+        echo "No available port in 8888-9000" >&2
+        exit 1

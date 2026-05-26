@@ -3,7 +3,7 @@
 	"core": null,
 	"port": 8889,
 	"testsEnvironment": false,
-	"plugins": [ "." ],
+	"plugins": [ "https://downloads.wordpress.org/plugin/ai.zip", "." ],
 	"config": {
 		"FS_METHOD": "direct",
 		"WP_DEBUG": true,

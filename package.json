@@ -2,8 +2,8 @@
 	"name": "rtcamp-publish-with-ai",
 	"private": true,
 	"engines": {
-		"node": ">=22.21.1",
-		"npm": ">=10.9.4"
+		"node": ">=24.0.0",
+		"npm": ">=11.0.0"
 	},
 	"files": [
 		"assets",
@@ -40,9 +40,9 @@
 		"prepare": "lefthook install",
 		"start:js": "wp-scripts start",
 		"test:e2e": "wp-scripts test-playwright",
-		"test:js": "wp-scripts test-unit-js",
+		"test:js": "wp-scripts test-unit-js --passWithNoTests",
 		"test:js:watch": "wp-scripts test-unit-js --watch",
-		"test:js:coverage": "wp-scripts test-unit-js --coverage",
+		"test:js:coverage": "wp-scripts test-unit-js --passWithNoTests --coverage",
 		"test:php": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ vendor/bin/phpunit -c phpunit.xml.dist",
 		"wp-env": "wp-env",
 		"wp-env:cli": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/",

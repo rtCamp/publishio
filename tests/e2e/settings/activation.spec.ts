@@ -10,27 +10,26 @@ test.describe( 'plugin activation', () => {
 	} ) => {
 		await admin.visitAdminPage( '/plugins.php' );
 
-		const pluginRow = page.locator(
-			'tr[data-plugin="rtcamp-publish-with-ai/rtcamp-publish-with-ai.php"]'
-		);
-		await expect( pluginRow ).toBeVisible();
-
-		const activateLink = pluginRow.locator( 'a', { hasText: 'Activate' } );
+		const activateLink = page.locator( '#activate-publish-with-ai' );
+		await expect( activateLink ).toBeVisible( { timeout: 10000 } );
 		await activateLink.click();
 		await page.waitForLoadState( 'domcontentloaded' );
 
-		await expect(
-			pluginRow.locator( 'a', { hasText: 'Deactivate' } )
-		).toBeVisible( { timeout: 10000 } );
-
-		const deactivateLink = pluginRow.locator( 'a', {
+		const deactivateLink = page.locator( '#deactivate-publish-with-ai', {
 			hasText: 'Deactivate',
 		} );
+		await expect( deactivateLink ).toBeVisible( { timeout: 10000 } );
 		await deactivateLink.click();
 		await page.waitForLoadState( 'domcontentloaded' );
 
-		await expect(
-			pluginRow.locator( 'a', { hasText: 'Activate' } )
-		).toBeVisible( { timeout: 10000 } );
+		const activateLinkAfterDeactivation = page.locator(
+			'#activate-publish-with-ai',
+			{
+				hasText: 'Activate',
+			}
+		);
+		await expect( activateLinkAfterDeactivation ).toBeVisible( {
+			timeout: 10000,
+		} );
 	} );
 } );

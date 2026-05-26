@@ -248,7 +248,7 @@ For more information on using `wp-env`, see the [wp-env documentation](https://d
 - `npm run lint:js:types`: Runs TypeScript's `tsc` to check for type errors.
 - `npm run lint:php`: Runs PHPCS linting on the PHP code.
 - `npm run lint:php:fix`: Autofixes PHPCS linting issues.
-- `npm run lint:php:stan`: Runs PHPStan static analysis on the PHP code.
+- `npm run lint:phpstan`: Runs PHPStan static analysis on the PHP code.
 - `npm run prepare`: Installs git hooks with Lefthook.
 
 #### Building and Watching Assets
@@ -317,7 +317,7 @@ Our specific configuration is defined in the [`phpstan.neon.dist`](../phpstan.ne
 You can run PHPStan using the following command:
 
 ```bash
-npm run lint:php:stan
+npm run lint:phpstan
 ```
 
 #### Prettier

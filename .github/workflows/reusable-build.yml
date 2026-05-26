@@ -23,7 +23,9 @@ jobs:
       contents: read
 
     env:
-      WP_ENV_HOME: /tmp/wp-env
+      # Per-job subdir under the shared /tmp/wp-env mount keeps concurrent jobs on the
+      # same self-hosted host from colliding on wp-env's md5(project_path) instance dir.
+      WP_ENV_HOME: /tmp/wp-env/${{ github.run_id }}-${{ github.run_attempt }}-build
 
     timeout-minutes: 30
 
@@ -33,6 +35,7 @@ jobs:
           sudo apt update && sudo apt install -y acl
           sudo setfacl -R -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
           sudo setfacl -R -d -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
+          mkdir -p "$WP_ENV_HOME"
 
       - name: Configure Docker group permissions
         run: |
@@ -76,6 +79,10 @@ jobs:
       - name: Build plugin for release
         run: npm run build:prod
 
+      - name: Pick wp-env port
+        id: pick-port
+        uses: ./.github/actions/find-free-port
+
       - name: Fix wp-env host mapping
         run: |
           # Get the host path for the workspace by inspecting the container's own mounts
@@ -87,10 +94,12 @@ jobs:
 
           echo "Host Workspace: $HOST_WORKSPACE_PATH"
           echo "Plugin Host Path: $PLUGIN_HOST_PATH"
+          echo "Using wp-env port: ${{ steps.pick-port.outputs.port }}"
 
           # Update .wp-env.json (default env)
           jq --arg path "$PLUGIN_HOST_PATH" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path' \
+             --argjson port "${{ steps.pick-port.outputs.port }}" \
+             '.plugins = ["https://downloads.wordpress.org/plugin/ai.zip"] | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
 
           cat .wp-env.json
@@ -100,7 +109,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 3
-          command: npm run wp-env start -- --update --auto-port
+          command: npm run wp-env start -- --update
 
       - name: Generate Translation files
         run: npm run i18n:make-pot
@@ -135,5 +144,5 @@ jobs:
           sudo rm -rf /github/workflow/* || true
           sudo rm -rf /github/workflow/.* 2>/dev/null || true
 
-          # Empty the wp-env directory
-          sudo rm -rf /tmp/wp-env/* || true
+          # Empty only this job's wp-env directory, not the shared parent.
+          sudo rm -rf "$WP_ENV_HOME" || true

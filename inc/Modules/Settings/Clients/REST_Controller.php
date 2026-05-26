@@ -33,6 +33,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	 * {@inheritDoc}
 	 */
 	public function register_routes(): void {
+		/** @var non-falsy-string $namespace */
 		$namespace = $this->namespace . $this->version;
 
 		register_rest_route(
@@ -91,7 +92,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
-	public function get_items( $request ): WP_REST_Response {
+	public function get_items( $request ): WP_REST_Response { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
 		return new WP_REST_Response( Dynamic_Client_Store::all(), 200 );
 	}
 

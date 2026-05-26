@@ -234,9 +234,9 @@ class AssetLoaderTraitTest extends TestCase {
 	}
 
 	/**
-	 * Tests that register_style uses dependencies and version from the asset file.
+	 * Tests that register_style uses version from the asset file.
 	 */
-	public function test_register_style_uses_asset_dependencies_and_version(): void {
+	public function test_register_style_uses_asset_version(): void {
 		$loader    = new AssetLoaderTraitTestDouble();
 		$asset_dir = sys_get_temp_dir() . '/build';
 		if ( ! is_dir( $asset_dir ) ) {
@@ -253,7 +253,7 @@ class AssetLoaderTraitTest extends TestCase {
 
 		$registered = wp_styles()->registered['test-global-styles'] ?? null;
 		$this->assertNotNull( $registered );
-		$this->assertSame( [ 'wp-components' ], $registered->deps );
+		$this->assertSame( [], $registered->deps );
 		$this->assertSame( '2.1.0', $registered->ver );
 		$this->assertSame( 'all', $registered->args );
 		$this->assertStringContainsString( '/build/global-styles.css', $registered->src );

@@ -54,21 +54,23 @@ class Admin_ScreenTest extends TestCase {
 		$user = self::factory()->user->create( [ 'role' => 'administrator' ] );
 		wp_set_current_user( $user );
 
+		$screen->register_hooks();
 		$screen->register_screen();
-		$hook_suffix = get_plugin_page_hookname( Admin_Screen::SCREEN_ID, 'options-general.php' );
+		$hook_suffix = get_plugin_page_hookname( Admin_Screen::SCREEN_ID, '' );
 
 		// Register the admin scripts so they exist when enqueue_scripts is called.
 		$assets = new Assets();
 		$assets->register_admin_assets();
 
-		do_action( 'load-' . $hook_suffix ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		set_current_screen( $hook_suffix );
+		do_action( 'admin_enqueue_scripts', $hook_suffix );
 
 		global $submenu;
 
-		$this->assertIsArray( $submenu['options-general.php'] ?? null );
+		$this->assertIsArray( $submenu[ Admin_Screen::SCREEN_ID ] ?? null );
 		$this->assertContains(
-			[ 'Publish with AI', 'manage_options', Admin_Screen::SCREEN_ID, 'Publish with AI' ],
-			$submenu['options-general.php'],
+			[ 'Guide', 'manage_options', Admin_Screen::SCREEN_ID, 'Guide' ],
+			$submenu[ Admin_Screen::SCREEN_ID ],
 			'Settings page should be added to the admin menu'
 		);
 		$this->assertTrue( wp_script_is( Assets::ADMIN_HANDLE, 'enqueued' ), 'Admin script should be enqueued' );
@@ -84,7 +86,7 @@ class Admin_ScreenTest extends TestCase {
 		$screen->render_screen();
 		$output = (string) ob_get_clean();
 
-		$this->assertStringContainsString( '<div class="wrap">', $output );
-		$this->assertStringContainsString( 'rtpwai-content', $output );
+		$this->assertStringContainsString( 'rtpwai-admin-screen-root', $output );
+		$this->assertStringContainsString( 'rtpwai-tailwind', $output );
 	}
 }

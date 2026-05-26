@@ -8,6 +8,8 @@ import defaultConfig from '@wordpress/scripts/config/webpack.config.js'; // esli
  */
 import path from 'path';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 /**
  * Define your script entrypoints here.
  *
@@ -42,9 +44,6 @@ const plugins = defaultConfig.plugins.filter(
 	( plugin ) => plugin.constructor.name !== 'RtlCssPlugin'
 );
 
-const SITE_URL = process.env.SITE_URL;
-const SITE_HOSTNAME = new URL( SITE_URL ).hostname;
-
 const scriptConfig = {
 	...defaultConfig,
 
@@ -52,18 +51,6 @@ const scriptConfig = {
 		// WordPress stores them in a function.
 		...defaultConfig.entry,
 		...scriptEntries,
-	},
-
-	devServer: {
-		...defaultConfig.devServer,
-		allowedHosts: SITE_HOSTNAME,
-		proxy: [
-			{
-				context: [ '/build' ],
-				target: SITE_URL,
-				pathRewrite: { '^/build': '' },
-			},
-		],
 	},
 
 	resolve: {
@@ -98,5 +85,31 @@ const scriptConfig = {
 
 	plugins,
 };
+
+/**
+ * In Hot Module Replacement (HMR) mode, we need to allow the dev server to proxy requests to the WordPress site.
+ *
+ * The SITE_URL environment variable should be set to the URL of the WordPress site during development.
+ *
+ * For example: http://localhost:8888
+ *
+ * @see https://webpack.js.org/configuration/dev-server/#devserverproxy
+ */
+if ( isDev && process.env.SITE_URL ) {
+	const SITE_URL = process.env.SITE_URL;
+	const SITE_HOSTNAME = new URL( SITE_URL ).hostname;
+
+	scriptConfig.devServer = {
+		...defaultConfig.devServer,
+		allowedHosts: SITE_HOSTNAME,
+		proxy: [
+			{
+				context: [ '/build' ],
+				target: SITE_URL,
+				pathRewrite: { '^/build': '' },
+			},
+		],
+	};
+}
 
 export default scriptConfig;

@@ -55,7 +55,7 @@ class Server implements Registrable {
 	/**
 	 * Discover all abilities registered under the rtpwai/ namespace.
 	 *
-	 * @return string[]
+	 * @return list<string>
 	 */
 	private function get_tools(): array {
 		$tools = [];

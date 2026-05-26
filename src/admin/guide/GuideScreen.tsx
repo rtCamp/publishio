@@ -19,7 +19,7 @@ export function GuideScreen() {
 	const [ activeGuide, setActiveGuide ] = useState< Guide | null >( null );
 
 	function navigate( guide: Guide | null ) {
-		document.documentElement.dataset.guideTransition = guide
+		document.documentElement.dataset[ 'guideTransition' ] = guide
 			? 'open'
 			: 'close';
 

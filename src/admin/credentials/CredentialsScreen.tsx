@@ -20,16 +20,19 @@ import type {
 import { useCredentials, CREDENTIALS_NOTICES_CONTEXT } from './useCredentials';
 import { CredentialsTable } from './table/CredentialsTable';
 import { CreateCredentialModal } from './CreateCredentialModal';
+import { EditCredentialModal } from './EditCredentialModal';
 import { CredentialCreatedDialog } from './CredentialCreatedDialog';
 
 export function CredentialsScreen() {
-	const { credentials, isLoading, create, remove } = useCredentials();
+	const { credentials, isLoading, create, update, remove } = useCredentials();
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
 
 	const [ isCreateOpen, setIsCreateOpen ] = useState( false );
 	const [ createdCredential, setCreatedCredential ] =
 		useState< CreatedOAuthCredential | null >( null );
+	const [ editingCredential, setEditingCredential ] =
+		useState< OAuthCredential | null >( null );
 
 	const snackbarOpts = {
 		type: 'snackbar' as const,
@@ -51,6 +54,22 @@ export function CredentialsScreen() {
 				errorOpts
 			);
 		}
+	}
+
+	async function handleEdit(
+		credential: OAuthCredential,
+		clientName: string
+	) {
+		await update( credential.id, { client_name: clientName } );
+		setEditingCredential( null );
+		createSuccessNotice(
+			sprintf(
+				/* translators: %s: credential name */
+				__( '"%s" updated.', 'rtcamp-publish-with-ai' ),
+				clientName
+			),
+			snackbarOpts
+		);
 	}
 
 	async function handleDelete( credential: OAuthCredential ) {
@@ -97,6 +116,7 @@ export function CredentialsScreen() {
 			<CredentialsTable
 				credentials={ credentials }
 				isLoading={ isLoading }
+				onEdit={ setEditingCredential }
 				onDelete={ handleDelete }
 			/>
 
@@ -104,6 +124,16 @@ export function CredentialsScreen() {
 				<CreateCredentialModal
 					onSave={ handleCreate }
 					onClose={ () => setIsCreateOpen( false ) }
+				/>
+			) }
+
+			{ editingCredential && (
+				<EditCredentialModal
+					credential={ editingCredential }
+					onSave={ ( data ) =>
+						handleEdit( editingCredential, data.client_name )
+					}
+					onClose={ () => setEditingCredential( null ) }
 				/>
 			) }
 

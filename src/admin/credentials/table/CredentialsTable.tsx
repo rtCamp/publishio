@@ -67,17 +67,24 @@ const credentialFields: Field< OAuthCredential >[] = [
 interface CredentialsTableProps {
 	credentials: OAuthCredential[];
 	isLoading: boolean;
+	onEdit: ( credential: OAuthCredential ) => void;
 	onDelete: ( credential: OAuthCredential ) => Promise< void >;
 }
 
 export function CredentialsTable( {
 	credentials,
 	isLoading,
+	onEdit,
 	onDelete,
 }: CredentialsTableProps ) {
 	const [ view, setView ] = useState< View >( DEFAULT_VIEW );
 
 	const actions: Action< OAuthCredential >[] = [
+		{
+			id: 'edit',
+			label: __( 'Edit', 'rtcamp-publish-with-ai' ),
+			callback: ( [ item ] ) => onEdit( item! ),
+		},
 		{
 			id: 'delete',
 			label: __( 'Delete', 'rtcamp-publish-with-ai' ),

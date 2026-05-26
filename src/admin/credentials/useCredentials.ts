@@ -13,6 +13,7 @@ import type {
 	OAuthCredential,
 	CreatedOAuthCredential,
 	OAuthCredentialFormData,
+	UpdateCredentialPayload,
 } from './types';
 import { credentialsApi } from './api';
 
@@ -72,6 +73,16 @@ export function useCredentials() {
 		return created;
 	}
 
+	async function update(
+		id: number,
+		data: UpdateCredentialPayload
+	): Promise< void > {
+		const updated = await credentialsApi.update( id, data );
+		setCredentials( ( prev ) =>
+			prev.map( ( c ) => ( c.id === id ? { ...c, ...updated } : c ) )
+		);
+	}
+
 	async function remove( id: number ): Promise< number > {
 		try {
 			const result = await credentialsApi.remove( id );
@@ -89,5 +100,5 @@ export function useCredentials() {
 		}
 	}
 
-	return { credentials, isLoading, create, remove };
+	return { credentials, isLoading, create, update, remove };
 }

@@ -20,3 +20,7 @@ export interface OAuthCredentialFormData {
 	client_name: string;
 	redirect_uris: string[];
 }
+
+export interface UpdateCredentialPayload {
+	client_name: string;
+}

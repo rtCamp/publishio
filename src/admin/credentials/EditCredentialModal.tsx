@@ -8,35 +8,30 @@ import {
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
-import type { OAuthCredentialFormData } from './types';
-import { getInvalidUris } from './utils';
+import type { OAuthCredential, UpdateCredentialPayload } from './types';
 import { Notice } from '../shared/Notice';
 
-interface CreateCredentialModalProps {
-	onSave: ( data: OAuthCredentialFormData ) => Promise< void >;
+interface EditCredentialModalProps {
+	credential: OAuthCredential;
+	onSave: ( data: UpdateCredentialPayload ) => Promise< void >;
 	onClose: () => void;
 }
 
-function textToUris( text: string ): string[] {
-	return text
-		.split( '\n' )
-		.map( ( s ) => s.trim() )
-		.filter( Boolean );
-}
-
-export function CreateCredentialModal( {
+export function EditCredentialModal( {
+	credential,
 	onSave,
 	onClose,
-}: CreateCredentialModalProps ) {
-	const [ clientName, setClientName ] = useState( '' );
-	const [ redirectUrisText, setRedirectUrisText ] = useState( '' );
+}: EditCredentialModalProps ) {
+	const [ clientName, setClientName ] = useState( credential.client_name );
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ error, setError ] = useState< string | null >( null );
+
+	const redirectUrisText = credential.redirect_uris.join( '\n' );
 
 	async function handleSave() {
 		if ( ! clientName.trim() ) {
@@ -46,45 +41,15 @@ export function CreateCredentialModal( {
 			return;
 		}
 
-		const uris = textToUris( redirectUrisText );
-
-		if ( uris.length === 0 ) {
-			setError(
-				__(
-					'At least one redirect URL is required.',
-					'rtcamp-publish-with-ai'
-				)
-			);
-			return;
-		}
-
-		const invalidUris = getInvalidUris( uris );
-		if ( invalidUris.length > 0 ) {
-			setError(
-				sprintf(
-					/* translators: %s: comma-separated list of invalid URLs */
-					__(
-						'Invalid redirect URL(s): %s. URLs must use https:// (or http:// for localhost only). Fragments (#) are not allowed.',
-						'rtcamp-publish-with-ai'
-					),
-					invalidUris.join( ', ' )
-				)
-			);
-			return;
-		}
-
 		setIsSaving( true );
 		setError( null );
 
 		try {
-			await onSave( {
-				client_name: clientName.trim(),
-				redirect_uris: uris,
-			} );
+			await onSave( { client_name: clientName.trim() } );
 		} catch {
 			setError(
 				__(
-					'Failed to create credential. Please try again.',
+					'Failed to update credential. Please try again.',
 					'rtcamp-publish-with-ai'
 				)
 			);
@@ -95,7 +60,7 @@ export function CreateCredentialModal( {
 
 	return (
 		<Modal
-			title={ __( 'Add New Credential', 'rtcamp-publish-with-ai' ) }
+			title={ __( 'Edit Credential', 'rtcamp-publish-with-ai' ) }
 			onRequestClose={ onClose }
 			size="medium"
 		>
@@ -111,17 +76,17 @@ export function CreateCredentialModal( {
 					label={ __( 'Client Name', 'rtcamp-publish-with-ai' ) }
 					value={ clientName }
 					onChange={ setClientName }
-					placeholder={ __(
-						'e.g. My Integration',
-						'rtcamp-publish-with-ai'
-					) }
 				/>
 
 				<TextareaControl
 					label={ __( 'Redirect URL(s)', 'rtcamp-publish-with-ai' ) }
-					help={ __( 'One URL per line.', 'rtcamp-publish-with-ai' ) }
+					help={ __(
+						'Redirect URLs cannot be changed after creation.',
+						'rtcamp-publish-with-ai'
+					) }
 					value={ redirectUrisText }
-					onChange={ setRedirectUrisText }
+					onChange={ () => {} }
+					disabled
 					rows={ 3 }
 				/>
 			</div>
@@ -133,7 +98,7 @@ export function CreateCredentialModal( {
 					isBusy={ isSaving }
 					disabled={ isSaving }
 				>
-					{ __( 'Create Credential', 'rtcamp-publish-with-ai' ) }
+					{ __( 'Save Changes', 'rtcamp-publish-with-ai' ) }
 				</Button>
 				<Button
 					variant="tertiary"

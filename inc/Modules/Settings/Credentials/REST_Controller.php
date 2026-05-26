@@ -11,6 +11,7 @@
  * Routes (all require manage_options):
  *   GET    /wp-json/rtpwai/v1/credentials
  *   POST   /wp-json/rtpwai/v1/credentials
+ *   PATCH  /wp-json/rtpwai/v1/credentials/{id}
  *   DELETE /wp-json/rtpwai/v1/credentials/{id}
  *
  * @package rtCamp\Publish_With_AI\Modules\Settings\Credentials
@@ -64,13 +65,31 @@ class REST_Controller extends Abstract_REST_Controller {
 			$namespace,
 			'/' . $this->rest_base . '/(?P<id>\d+)',
 			[
-				'methods'             => \WP_REST_Server::DELETABLE,
-				'callback'            => [ $this, 'delete_item' ],
-				'permission_callback' => [ $this, 'permissions_check' ],
-				'args'                => [
-					'id' => [
-						'type'     => 'integer',
-						'required' => true,
+				[
+					'methods'             => 'PATCH',
+					'callback'            => [ $this, 'update_item' ],
+					'permission_callback' => [ $this, 'permissions_check' ],
+					'args'                => [
+						'id'          => [
+							'type'     => 'integer',
+							'required' => true,
+						],
+						'client_name' => [
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						],
+					],
+				],
+				[
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => [ $this, 'delete_item' ],
+					'permission_callback' => [ $this, 'permissions_check' ],
+					'args'                => [
+						'id' => [
+							'type'     => 'integer',
+							'required' => true,
+						],
 					],
 				],
 			]
@@ -119,13 +138,24 @@ class REST_Controller extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_redirect_uris', __( 'At least one valid redirect URI is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
 		}
 
+		$uri_error = $this->validate_redirect_uris( $redirect_uris );
+		if ( null !== $uri_error ) {
+			return $uri_error;
+		}
+
+		$client_name = sanitize_text_field( (string) $request->get_param( 'client_name' ) );
+
+		if ( '' === $client_name ) {
+			return new \WP_Error( 'invalid_client_name', __( 'Client name is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
+		}
+
 		$secret      = wp_generate_password( 40, false );
 		$secret_hash = wp_hash_password( $secret );
 
 		$client_id = Client_Store::register(
 			[
 				'source'             => 'cred',
-				'client_name'        => sanitize_text_field( (string) $request->get_param( 'client_name' ) ),
+				'client_name'        => $client_name,
 				'redirect_uris'      => $redirect_uris,
 				'client_secret_hash' => $secret_hash,
 				'grant_types'        => [ 'authorization_code', 'refresh_token' ],
@@ -182,10 +212,93 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
+	 * PATCH /credentials/{id} — update the client name of a credential.
+	 *
+	 * @param \WP_REST_Request $request The request.
+	 *
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function update_item( $request ) {
+		$id     = (int) $request->get_param( 'id' );
+		$client = Client_Store::get_by_id( $id );
+
+		if ( null === $client || 'cred' !== $client['source'] ) {
+			return new \WP_Error( 'not_found', __( 'Credential not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
+		}
+
+		$client_name = sanitize_text_field( (string) $request->get_param( 'client_name' ) );
+
+		if ( '' === $client_name ) {
+			return new \WP_Error( 'invalid_client_name', __( 'Client name is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
+		}
+
+		$updated = Client_Store::update( $id, [ 'client_name' => $client_name ] );
+
+		if ( ! $updated ) {
+			return new \WP_Error( 'update_failed', __( 'Failed to update credential.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+		}
+
+		$client = Client_Store::get_by_id( $id );
+
+		if ( null === $client ) {
+			return new \WP_Error( 'update_failed', __( 'Failed to retrieve updated credential.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+		}
+
+		return new WP_REST_Response( $client, 200 );
+	}
+
+	/**
 	 * Only site admins may manage credentials.
 	 */
 	public function permissions_check(): bool {
 		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Validate each redirect URI in the given array.
+	 *
+	 * Rules: must be a valid URL, scheme must be https (or http for localhost),
+	 * and no fragment (#) is allowed (per OAuth 2.0 §3.1.2).
+	 *
+	 * @param string[] $uris Already-sanitized URIs.
+	 *
+	 * @return \WP_Error|null WP_Error on failure, null on success.
+	 */
+	private function validate_redirect_uris( array $uris ): ?\WP_Error {
+		$invalid = [];
+
+		foreach ( $uris as $uri ) {
+			$parsed   = wp_parse_url( $uri );
+			$scheme   = strtolower( $parsed['scheme'] ?? '' );
+			$host     = $parsed['host'] ?? '';
+			$fragment = $parsed['fragment'] ?? '';
+
+			if ( ! empty( $fragment ) ) {
+				$invalid[] = $uri;
+				continue;
+			}
+
+			$is_localhost = in_array( $host, [ 'localhost', '127.0.0.1', '::1' ], true );
+			$valid_scheme = 'https' === $scheme || ( 'http' === $scheme && $is_localhost );
+
+			if ( ! $valid_scheme || empty( $host ) ) {
+				$invalid[] = $uri;
+			}
+		}
+
+		if ( ! empty( $invalid ) ) {
+			return new \WP_Error(
+				'invalid_redirect_uris',
+				sprintf(
+					/* translators: %s: comma-separated list of invalid URIs */
+					__( 'Invalid redirect URI(s): %s. URIs must use https:// (or http:// for localhost only). Fragments (#) are not allowed.', 'rtcamp-publish-with-ai' ),
+					implode( ', ', $invalid )
+				),
+				[ 'status' => 400 ]
+			);
+		}
+
+		return null;
 	}
 
 	/**

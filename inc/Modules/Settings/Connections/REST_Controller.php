@@ -1,19 +1,19 @@
 <?php
 /**
- * REST API endpoints for OAuth client management.
+ * REST API endpoints for OAuth connection management.
  *
  * Routes (all require manage_options):
- *   GET    /wp-json/rtpwai/v1/clients
- *   POST   /wp-json/rtpwai/v1/clients
- *   PUT    /wp-json/rtpwai/v1/clients/{id}
- *   DELETE /wp-json/rtpwai/v1/clients/{id}
+ *   GET    /wp-json/rtpwai/v1/connections
+ *   POST   /wp-json/rtpwai/v1/connections
+ *   PUT    /wp-json/rtpwai/v1/connections/{id}
+ *   DELETE /wp-json/rtpwai/v1/connections/{id}
  *
- * @package rtCamp\Publish_With_AI\Modules\Settings\Clients
+ * @package rtCamp\Publish_With_AI\Modules\Settings\Connections
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\Settings\Clients;
+namespace rtCamp\Publish_With_AI\Modules\Settings\Connections;
 
 use WP_REST_Response;
 use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
@@ -27,7 +27,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected $rest_base = 'clients';
+	protected $rest_base = 'connections';
 
 	/**
 	 * {@inheritDoc}
@@ -88,7 +88,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * GET /clients
+	 * GET /connections
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
@@ -97,9 +97,9 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * POST /clients
+	 * POST /connections
 	 *
-	 * For confidential clients (is_public = false), a client_secret is generated,
+	 * For confidential connections (is_public = false), a client_secret is generated,
 	 * hashed for storage, and returned once in plain text.
 	 *
 	 * @param \WP_REST_Request $request The request.
@@ -133,13 +133,13 @@ class REST_Controller extends Abstract_REST_Controller {
 		);
 
 		if ( null === $client_id ) {
-			return new \WP_Error( 'create_failed', __( 'Failed to create client.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+			return new \WP_Error( 'create_failed', __( 'Failed to create connection.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
 		}
 
 		$client = Dynamic_Client_Store::get_by_client_id( $client_id );
 
 		if ( null === $client ) {
-			return new \WP_Error( 'create_failed', __( 'Failed to retrieve created client.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+			return new \WP_Error( 'create_failed', __( 'Failed to retrieve created connection.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
 		}
 
 		unset( $client['client_secret_hash'] );
@@ -152,7 +152,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * PUT /clients/{id}
+	 * PUT /connections/{id}
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 *
@@ -162,7 +162,7 @@ class REST_Controller extends Abstract_REST_Controller {
 		$id = (int) $request->get_param( 'id' );
 
 		if ( null === Dynamic_Client_Store::get_by_id( $id ) ) {
-			return new \WP_Error( 'not_found', __( 'Client not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'not_found', __( 'Connection not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
 		}
 
 		$data = [];
@@ -191,7 +191,7 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * DELETE /clients/{id}
+	 * DELETE /connections/{id}
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 *
@@ -202,14 +202,14 @@ class REST_Controller extends Abstract_REST_Controller {
 		$deleted = Dynamic_Client_Store::delete( $id );
 
 		if ( ! $deleted ) {
-			return new \WP_Error( 'not_found', __( 'Client not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'not_found', __( 'Connection not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
 		}
 
 		return new WP_REST_Response( null, 204 );
 	}
 
 	/**
-	 * Only site admins may manage OAuth clients.
+	 * Only site admins may manage OAuth connections.
 	 */
 	public function permissions_check(): bool {
 		return current_user_can( 'manage_options' );

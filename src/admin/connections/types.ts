@@ -1,4 +1,4 @@
-export interface OAuthClient {
+export interface OAuthConnection {
 	id: number;
 	client_id: string;
 	client_name: string;
@@ -10,10 +10,12 @@ export interface OAuthClient {
 	registered_at: number;
 }
 
-/** Returned once on creation for confidential clients only. */
-export type CreatedOAuthClient = OAuthClient & { client_secret?: string };
+/** Returned once on creation for confidential connections only. */
+export type CreatedOAuthConnection = OAuthConnection & {
+	client_secret?: string;
+};
 
-export interface OAuthClientFormData {
+export interface OAuthConnectionFormData {
 	client_name: string;
 	redirect_uris: string[];
 	is_public: boolean;

@@ -7,28 +7,28 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import type { OAuthClient } from './types';
+import type { OAuthConnection } from './types';
 
 interface DeleteConfirmDialogProps {
-	client: OAuthClient;
+	connection: OAuthConnection;
 	onConfirm: () => void;
 	onCancel: () => void;
 }
 
 export function DeleteConfirmDialog( {
-	client,
+	connection,
 	onConfirm,
 	onCancel,
 }: DeleteConfirmDialogProps ) {
 	return (
 		<ConfirmDialog isOpen onConfirm={ onConfirm } onCancel={ onCancel }>
 			{ sprintf(
-				/* translators: %s: client name */
+				/* translators: %s: connection name */
 				__(
 					'Are you sure you want to delete "%s"? This action cannot be undone.',
 					'rtcamp-publish-with-ai'
 				),
-				client.client_name
+				connection.client_name
 			) }
 		</ConfirmDialog>
 	);

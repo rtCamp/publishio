@@ -26,16 +26,16 @@ final class Assets implements Registrable {
 	/**
 	 * Asset handles
 	 */
-	public const ADMIN_HANDLE           = self::PREFIX . 'admin';
-	public const ADMIN_CLIENTS_HANDLE   = self::PREFIX . 'admin-clients';
-	public const ADMIN_MENU_ICON_HANDLE = self::PREFIX . 'admin-menu-icon';
+	public const ADMIN_HANDLE             = self::PREFIX . 'admin';
+	public const ADMIN_CONNECTIONS_HANDLE = self::PREFIX . 'admin-connections';
+	public const ADMIN_MENU_ICON_HANDLE   = self::PREFIX . 'admin-menu-icon';
 
 	/**
 	 * Assets to defer for better performance.
 	 */
 	private const DEFERRED_ASSETS = [
 		self::ADMIN_HANDLE,
-		self::ADMIN_CLIENTS_HANDLE,
+		self::ADMIN_CONNECTIONS_HANDLE,
 	];
 
 	/**
@@ -67,9 +67,9 @@ final class Assets implements Registrable {
 		$this->register_script( self::ADMIN_HANDLE, 'admin' );
 		$this->register_style( self::ADMIN_HANDLE, 'admin', [ 'wp-components' ] );
 
-		// Clients page (sub-menu).
-		$this->register_script( self::ADMIN_CLIENTS_HANDLE, 'admin-clients' );
-		$this->register_style( self::ADMIN_CLIENTS_HANDLE, 'admin-clients', [ 'wp-components' ] );
+		// Connections page (sub-menu).
+		$this->register_script( self::ADMIN_CONNECTIONS_HANDLE, 'admin-connections' );
+		$this->register_style( self::ADMIN_CONNECTIONS_HANDLE, 'admin-connections', [ 'wp-components' ] );
 
 		// Menu icon style (CSS-only entry, loaded on all admin pages).
 		$this->register_style( self::ADMIN_MENU_ICON_HANDLE, 'admin-menu-icon' );

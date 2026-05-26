@@ -19,9 +19,9 @@ const isDev = process.env.NODE_ENV === 'development';
  */
 const scriptEntries = {
 	admin: path.resolve( import.meta.dirname, 'src/admin/guide/index.tsx' ),
-	'admin-clients': path.resolve(
+	'admin-connections': path.resolve(
 		import.meta.dirname,
-		'src/admin/clients/index.tsx'
+		'src/admin/connections/index.tsx'
 	),
 	'admin-menu-icon': path.resolve(
 		import.meta.dirname,

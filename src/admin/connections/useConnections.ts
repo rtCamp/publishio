@@ -8,14 +8,14 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import type {
-	OAuthClient,
-	CreatedOAuthClient,
-	OAuthClientFormData,
+	OAuthConnection,
+	CreatedOAuthConnection,
+	OAuthConnectionFormData,
 } from './types';
-import { clientsApi } from './api';
+import { connectionsApi } from './api';
 
-export function useClients() {
-	const [ clients, setClients ] = useState< OAuthClient[] >( [] );
+export function useConnections() {
+	const [ connections, setConnections ] = useState< OAuthConnection[] >( [] );
 	const [ isLoading, setIsLoading ] = useState( true );
 	const [ error, setError ] = useState< string | null >( null );
 
@@ -25,18 +25,18 @@ export function useClients() {
 		setIsLoading( true );
 		setError( null );
 
-		clientsApi
+		connectionsApi
 			.list()
 			.then( ( data ) => {
 				if ( ! cancelled ) {
-					setClients( data );
+					setConnections( data );
 				}
 			} )
 			.catch( () => {
 				if ( ! cancelled ) {
 					setError(
 						__(
-							'Failed to load clients.',
+							'Failed to load connections.',
 							'rtcamp-publish-with-ai'
 						)
 					);
@@ -54,29 +54,29 @@ export function useClients() {
 	}, [] );
 
 	async function save(
-		data: OAuthClientFormData,
+		data: OAuthConnectionFormData,
 		id?: number
-	): Promise< CreatedOAuthClient | OAuthClient > {
+	): Promise< CreatedOAuthConnection | OAuthConnection > {
 		if ( id ) {
-			const updated = await clientsApi.update( id, data );
-			setClients( ( prev ) =>
+			const updated = await connectionsApi.update( id, data );
+			setConnections( ( prev ) =>
 				prev.map( ( c ) => ( c.id === updated.id ? updated : c ) )
 			);
 			return updated;
 		}
 
-		const created = await clientsApi.create( data );
-		setClients( ( prev ) => [ ...prev, created ] );
+		const created = await connectionsApi.create( data );
+		setConnections( ( prev ) => [ ...prev, created ] );
 		return created;
 	}
 
 	async function remove( id: number ): Promise< void > {
-		await clientsApi.remove( id );
-		setClients( ( prev ) => prev.filter( ( c ) => c.id !== id ) );
+		await connectionsApi.remove( id );
+		setConnections( ( prev ) => prev.filter( ( c ) => c.id !== id ) );
 	}
 
 	return {
-		clients,
+		connections,
 		isLoading,
 		error,
 		clearError: () => setError( null ),

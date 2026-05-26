@@ -11,46 +11,38 @@ import type { View, Action } from '@wordpress/dataviews';
  * Internal dependencies
  */
 import { AdminHeader } from '../shared/AdminHeader';
-import type { OAuthClient, OAuthClientFormData } from './types';
-import { useClients } from './useClients';
-import { ClientFormModal } from './ClientFormModal';
+import type { OAuthConnection, OAuthConnectionFormData } from './types';
+import { useConnections } from './useConnections';
+import { ConnectionFormModal } from './ConnectionFormModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { clientFields } from './clientFields';
+import { connectionFields } from './connectionFields';
 
 const DEFAULT_VIEW: View = {
 	type: 'table',
 	page: 1,
 	perPage: 10,
 	sort: { field: 'client_name', direction: 'asc' },
-	fields: [
-		'app',
-		'client_name',
-		'client_id',
-		'is_public',
-		'scope',
-		'registered_at',
-	],
+	fields: [ 'client_name', 'client_id', 'registered_at' ],
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
 
-export function ClientsScreen() {
-	const { clients, isLoading, error, clearError, save, remove } =
-		useClients();
+export function ConnectionsScreen() {
+	const { connections, isLoading, error, clearError, save, remove } =
+		useConnections();
 
 	const [ view, setView ] = useState< View >( DEFAULT_VIEW );
-	const [ editTarget, setEditTarget ] = useState< OAuthClient | null >(
+	const [ editTarget, setEditTarget ] = useState< OAuthConnection | null >(
 		null
 	);
-	const [ deleteTarget, setDeleteTarget ] = useState< OAuthClient | null >(
-		null
-	);
+	const [ deleteTarget, setDeleteTarget ] =
+		useState< OAuthConnection | null >( null );
 	const [ isFormOpen, setIsFormOpen ] = useState( false );
 	const [ newClientSecret, setNewClientSecret ] = useState< string | null >(
 		null
 	);
 
-	const actions: Action< OAuthClient >[] = [
+	const actions: Action< OAuthConnection >[] = [
 		{
 			id: 'edit',
 			label: __( 'Edit', 'rtcamp-publish-with-ai' ),
@@ -68,7 +60,7 @@ export function ClientsScreen() {
 		},
 	];
 
-	async function handleSave( data: OAuthClientFormData ) {
+	async function handleSave( data: OAuthConnectionFormData ) {
 		const result = await save( data, editTarget?.id );
 		if ( 'client_secret' in result && result.client_secret ) {
 			setNewClientSecret( result.client_secret );
@@ -89,17 +81,17 @@ export function ClientsScreen() {
 	}
 
 	const { data: processedData, paginationInfo } = filterSortAndPaginate(
-		clients,
+		connections,
 		view,
-		clientFields
+		connectionFields
 	);
 
 	return (
 		<>
 			<AdminHeader
-				title={ __( 'Clients', 'rtcamp-publish-with-ai' ) }
+				title={ __( 'Connections', 'rtcamp-publish-with-ai' ) }
 				description={ __(
-					'Manage OAuth clients for MCP access.',
+					'Manage OAuth connections for MCP access.',
 					'rtcamp-publish-with-ai'
 				) }
 				actions={
@@ -107,7 +99,7 @@ export function ClientsScreen() {
 						variant="primary"
 						onClick={ () => setIsFormOpen( true ) }
 					>
-						{ __( 'Register Client', 'rtcamp-publish-with-ai' ) }
+						{ __( 'Add Connection', 'rtcamp-publish-with-ai' ) }
 					</Button>
 				}
 			/>
@@ -126,7 +118,7 @@ export function ClientsScreen() {
 				>
 					<strong>
 						{ __(
-							'Client secret (shown once):',
+							'Connection secret (shown once):',
 							'rtcamp-publish-with-ai'
 						) }
 					</strong>{ ' ' }
@@ -137,7 +129,7 @@ export function ClientsScreen() {
 			<div className="p-6">
 				<DataViews
 					data={ processedData }
-					fields={ clientFields }
+					fields={ connectionFields }
 					view={ view }
 					onChangeView={ setView }
 					actions={ actions }
@@ -148,7 +140,7 @@ export function ClientsScreen() {
 					empty={
 						<p className="text-center text-sm text-gray-500 my-20">
 							{ __(
-								'No clients registered yet.',
+								'No connections registered yet.',
 								'rtcamp-publish-with-ai'
 							) }
 						</p>
@@ -157,8 +149,8 @@ export function ClientsScreen() {
 			</div>
 
 			{ isFormOpen && (
-				<ClientFormModal
-					{ ...( editTarget ? { client: editTarget } : {} ) }
+				<ConnectionFormModal
+					{ ...( editTarget ? { connection: editTarget } : {} ) }
 					onSave={ handleSave }
 					onClose={ handleFormClose }
 				/>
@@ -166,7 +158,7 @@ export function ClientsScreen() {
 
 			{ deleteTarget && (
 				<DeleteConfirmDialog
-					client={ deleteTarget }
+					connection={ deleteTarget }
 					onConfirm={ handleDelete }
 					onCancel={ () => setDeleteTarget( null ) }
 				/>

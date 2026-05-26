@@ -18,11 +18,11 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import type { OAuthClient, OAuthClientFormData } from './types';
+import type { OAuthConnection, OAuthConnectionFormData } from './types';
 
-interface ClientFormModalProps {
-	client?: OAuthClient;
-	onSave: ( data: OAuthClientFormData ) => Promise< void >;
+interface ConnectionFormModalProps {
+	connection?: OAuthConnection;
+	onSave: ( data: OAuthConnectionFormData ) => Promise< void >;
 	onClose: () => void;
 }
 
@@ -39,42 +39,44 @@ function textToUris( text: string ): string[] {
 		.filter( Boolean );
 }
 
-export function ClientFormModal( {
-	client,
+export function ConnectionFormModal( {
+	connection,
 	onSave,
 	onClose,
-}: ClientFormModalProps ) {
-	const isEditing = !! client;
+}: ConnectionFormModalProps ) {
+	const isEditing = !! connection;
 
-	const [ clientName, setClientName ] = useState( client?.client_name ?? '' );
-	const [ redirectUrisText, setRedirectUrisText ] = useState(
-		urisToText( client?.redirect_uris ?? [] )
+	const [ clientName, setClientName ] = useState(
+		connection?.client_name ?? ''
 	);
-	const [ isPublic, setIsPublic ] = useState( client?.is_public ?? true );
+	const [ redirectUrisText, setRedirectUrisText ] = useState(
+		urisToText( connection?.redirect_uris ?? [] )
+	);
+	const [ isPublic, setIsPublic ] = useState( connection?.is_public ?? true );
 	const [ scopeRead, setScopeRead ] = useState(
-		client ? client.scope.includes( 'mcp:read' ) : true
+		connection ? connection.scope.includes( 'mcp:read' ) : true
 	);
 	const [ scopeWrite, setScopeWrite ] = useState(
-		client ? client.scope.includes( 'mcp:write' ) : true
+		connection ? connection.scope.includes( 'mcp:write' ) : true
 	);
 	const [ includeRefreshToken, setIncludeRefreshToken ] = useState(
-		client ? client.grant_types.includes( 'refresh_token' ) : false
+		connection ? connection.grant_types.includes( 'refresh_token' ) : false
 	);
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ error, setError ] = useState< string | null >( null );
 
 	const title = isEditing
 		? sprintf(
-				/* translators: %s: client name */
-				__( 'Edit Client: %s', 'rtcamp-publish-with-ai' ),
-				client.client_name
+				/* translators: %s: connection name */
+				__( 'Edit Connection: %s', 'rtcamp-publish-with-ai' ),
+				connection.client_name
 		  )
-		: __( 'Register New Client', 'rtcamp-publish-with-ai' );
+		: __( 'Add New Connection', 'rtcamp-publish-with-ai' );
 
 	async function handleSave() {
 		if ( ! clientName.trim() ) {
 			setError(
-				__( 'Client name is required.', 'rtcamp-publish-with-ai' )
+				__( 'Connection name is required.', 'rtcamp-publish-with-ai' )
 			);
 			return;
 		}
@@ -117,7 +119,7 @@ export function ClientFormModal( {
 		} catch {
 			setError(
 				__(
-					'Failed to save client. Please try again.',
+					'Failed to save connection. Please try again.',
 					'rtcamp-publish-with-ai'
 				)
 			);
@@ -140,7 +142,7 @@ export function ClientFormModal( {
 
 			<div className="flex flex-col gap-4">
 				<TextControl
-					label={ __( 'Client Name', 'rtcamp-publish-with-ai' ) }
+					label={ __( 'Connection Name', 'rtcamp-publish-with-ai' ) }
 					value={ clientName }
 					onChange={ setClientName }
 				/>
@@ -155,7 +157,7 @@ export function ClientFormModal( {
 
 				<SelectControl
 					__next40pxDefaultSize
-					label={ __( 'Client Type', 'rtcamp-publish-with-ai' ) }
+					label={ __( 'Connection Type', 'rtcamp-publish-with-ai' ) }
 					value={ isPublic ? 'public' : 'confidential' }
 					options={ [
 						{
@@ -178,7 +180,7 @@ export function ClientFormModal( {
 					help={
 						isEditing
 							? __(
-									'Client type cannot be changed after creation.',
+									'Connection type cannot be changed after creation.',
 									'rtcamp-publish-with-ai'
 							  )
 							: undefined
@@ -222,7 +224,7 @@ export function ClientFormModal( {
 				>
 					{ isEditing
 						? __( 'Update', 'rtcamp-publish-with-ai' )
-						: __( 'Register', 'rtcamp-publish-with-ai' ) }
+						: __( 'Add', 'rtcamp-publish-with-ai' ) }
 				</Button>
 				<Button
 					variant="tertiary"

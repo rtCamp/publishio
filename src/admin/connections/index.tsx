@@ -6,17 +6,17 @@ import { createRoot, StrictMode } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import { ClientsScreen } from './ClientsScreen';
+import { ConnectionsScreen } from './ConnectionsScreen';
 
 import '../../tailwind.scss';
 import '../styles/styles.scss';
 
-const root = document.querySelector( '#rtpwai-clients-screen-root' );
+const root = document.querySelector( '#rtpwai-connections-screen-root' );
 
 if ( root ) {
 	createRoot( root ).render(
 		<StrictMode>
-			<ClientsScreen />
+			<ConnectionsScreen />
 		</StrictMode>
 	);
 }

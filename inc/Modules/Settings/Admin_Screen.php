@@ -23,9 +23,9 @@ final class Admin_Screen implements Registrable {
 	public const SCREEN_ID = 'rtcamp-publish-with-ai';
 
 	/**
-	 * The screen ID for the clients sub-page.
+	 * The screen ID for the connections sub-page.
 	 */
-	public const CLIENTS_SCREEN_ID = 'rtcamp-publish-with-ai-clients';
+	public const CONNECTIONS_SCREEN_ID = 'rtcamp-publish-with-ai-connections';
 
 	/**
 	 * Hook suffix returned by add_menu_page() for the guide page.
@@ -33,9 +33,9 @@ final class Admin_Screen implements Registrable {
 	private string $guide_hook = '';
 
 	/**
-	 * Hook suffix returned by add_submenu_page() for the clients page.
+	 * Hook suffix returned by add_submenu_page() for the connections page.
 	 */
-	private string $clients_hook = '';
+	private string $connections_hook = '';
 
 	/**
 	 * {@inheritDoc}
@@ -91,17 +91,17 @@ final class Admin_Screen implements Registrable {
 			[ $this, 'render_screen' ]
 		);
 
-		$clients_hook = add_submenu_page(
+		$connections_hook = add_submenu_page(
 			self::SCREEN_ID,
-			__( 'Clients', 'rtcamp-publish-with-ai' ),
-			__( 'Clients', 'rtcamp-publish-with-ai' ),
+			__( 'Connections', 'rtcamp-publish-with-ai' ),
+			__( 'Connections', 'rtcamp-publish-with-ai' ),
 			'edit_posts',
-			self::CLIENTS_SCREEN_ID,
-			[ $this, 'render_clients_screen' ]
+			self::CONNECTIONS_SCREEN_ID,
+			[ $this, 'render_connections_screen' ]
 		);
 
-		if ( false !== $clients_hook ) {
-			$this->clients_hook = $clients_hook;
+		if ( false !== $connections_hook ) {
+			$this->connections_hook = $connections_hook;
 		}
 	}
 
@@ -115,8 +115,8 @@ final class Admin_Screen implements Registrable {
 	public function maybe_enqueue_page_assets( string $hook_suffix ): void {
 		if ( $this->guide_hook && $hook_suffix === $this->guide_hook ) {
 			$this->enqueue_scripts();
-		} elseif ( $this->clients_hook && $hook_suffix === $this->clients_hook ) {
-			$this->enqueue_clients_scripts();
+		} elseif ( $this->connections_hook && $hook_suffix === $this->connections_hook ) {
+			$this->enqueue_connections_scripts();
 		}
 	}
 
@@ -130,12 +130,12 @@ final class Admin_Screen implements Registrable {
 	}
 
 	/**
-	 * Enqueue scripts and styles for the clients screen.
+	 * Enqueue scripts and styles for the connections screen.
 	 */
-	private function enqueue_clients_scripts(): void {
-		wp_localize_script( Assets::ADMIN_CLIENTS_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
-		wp_enqueue_script( Assets::ADMIN_CLIENTS_HANDLE );
-		wp_enqueue_style( Assets::ADMIN_CLIENTS_HANDLE );
+	private function enqueue_connections_scripts(): void {
+		wp_localize_script( Assets::ADMIN_CONNECTIONS_HANDLE, 'rtPublishWithAIAdmin', self::get_localized_data() );
+		wp_enqueue_script( Assets::ADMIN_CONNECTIONS_HANDLE );
+		wp_enqueue_style( Assets::ADMIN_CONNECTIONS_HANDLE );
 	}
 
 	/**
@@ -146,10 +146,10 @@ final class Admin_Screen implements Registrable {
 	}
 
 	/**
-	 * Render the clients admin screen.
+	 * Render the connections admin screen.
 	 */
-	public function render_clients_screen(): void {
-		Templates::get_template_part( 'clients-screen' );
+	public function render_connections_screen(): void {
+		Templates::get_template_part( 'connections-screen' );
 	}
 
 	/**

@@ -22,7 +22,7 @@ const DEFAULT_VIEW: View = {
 	page: 1,
 	perPage: 10,
 	sort: { field: 'client_name', direction: 'asc' },
-	fields: [ 'client_name', 'users', 'registered_at' ],
+	fields: [ 'client_name', 'users', 'registered_at', 'last_active_at' ],
 };
 
 const DEFAULT_LAYOUTS = { table: {} };

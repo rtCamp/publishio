@@ -17,6 +17,7 @@ export interface OAuthConnection {
 	scope: string;
 	registered_at: number;
 	users: ConnectionUser[];
+	last_active_at: number | null;
 }
 
 /** Returned once on creation for confidential connections only. */

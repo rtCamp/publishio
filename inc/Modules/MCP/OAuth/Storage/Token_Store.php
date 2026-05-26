@@ -49,7 +49,8 @@ class Token_Store {
 			PRIMARY KEY (id),
 			UNIQUE KEY access_token_hash (access_token_hash),
 			UNIQUE KEY refresh_token_hash (refresh_token_hash),
-			KEY user_refresh (user_id, refresh_expires_at)
+			KEY user_refresh (user_id, refresh_expires_at),
+			KEY client_refresh (client_id, refresh_expires_at)
 		) {$charset_collate};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -265,16 +266,16 @@ class Token_Store {
 	}
 
 	/**
-	 * Get distinct active user IDs grouped by client_id.
+	 * Get active user IDs and latest token time grouped by client_id.
 	 *
-	 * Returns only rows where the refresh token is still valid, so expired
-	 * sessions are excluded. One query regardless of how many clients are passed.
+	 * Single query returning both the distinct user IDs and MAX(created_at) per
+	 * client. Only rows where the refresh token is still valid are included.
 	 *
 	 * @param string[] $client_ids OAuth client IDs to look up.
 	 *
-	 * @return array<string, int[]> Map of client_id => list of user IDs.
+	 * @return array<string, array{user_ids: int[], last_active_at: int}> Map of client_id => data.
 	 */
-	public static function get_users_by_client_ids( array $client_ids ): array {
+	public static function get_client_token_data( array $client_ids ): array {
 		if ( empty( $client_ids ) ) {
 			return [];
 		}
@@ -283,7 +284,7 @@ class Token_Store {
 
 		$now = time();
 		$sql = sprintf(
-			'SELECT DISTINCT user_id, client_id FROM %%i WHERE client_id IN (%s) AND refresh_expires_at > %%d',
+			'SELECT client_id, GROUP_CONCAT(DISTINCT user_id) AS user_ids, MAX(created_at) AS last_active_at FROM %%i WHERE client_id IN (%s) AND refresh_expires_at > %%d GROUP BY client_id',
 			implode( ', ', array_fill( 0, count( $client_ids ), '%s' ) )
 		);
 
@@ -299,7 +300,10 @@ class Token_Store {
 
 		$result = [];
 		foreach ( $rows as $row ) {
-			$result[ $row['client_id'] ][] = (int) $row['user_id'];
+			$result[ $row['client_id'] ] = [
+				'user_ids'       => array_map( 'intval', explode( ',', $row['user_ids'] ) ),
+				'last_active_at' => (int) $row['last_active_at'],
+			];
 		}
 
 		return $result;

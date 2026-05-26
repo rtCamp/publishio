@@ -100,14 +100,14 @@ class REST_Controller extends Abstract_REST_Controller {
 			return new WP_REST_Response( [], 200 );
 		}
 
-		// Query 1: all (client_id → user_id) pairs for these connections in one hit.
-		$client_ids      = array_column( $connections, 'client_id' );
-		$users_by_client = Token_Store::get_users_by_client_ids( $client_ids );
+		// Query 1: user IDs + last active time per client, all in one hit.
+		$client_ids = array_column( $connections, 'client_id' );
+		$token_data = Token_Store::get_client_token_data( $client_ids );
 
 		// Collect all distinct user IDs across every connection.
 		$all_user_ids = [];
-		foreach ( $users_by_client as $user_ids ) {
-			$all_user_ids = array_merge( $all_user_ids, $user_ids );
+		foreach ( $token_data as $data ) {
+			$all_user_ids = array_merge( $all_user_ids, $data['user_ids'] );
 		}
 		$all_user_ids = array_unique( $all_user_ids );
 
@@ -125,12 +125,14 @@ class REST_Controller extends Abstract_REST_Controller {
 			}
 		}
 
-		// Attach resolved users to each connection.
+		// Attach resolved users and last_active_at to each connection.
 		foreach ( $connections as &$connection ) {
-			$user_ids            = $users_by_client[ $connection['client_id'] ] ?? [];
-			$connection['users'] = array_values(
+			$data                         = $token_data[ $connection['client_id'] ] ?? null;
+			$user_ids                     = $data['user_ids'] ?? [];
+			$connection['users']          = array_values(
 				array_filter( array_map( static fn ( $uid ) => $user_map[ $uid ] ?? null, $user_ids ) )
 			);
+			$connection['last_active_at'] = $data ? $data['last_active_at'] : null;
 		}
 		unset( $connection );
 

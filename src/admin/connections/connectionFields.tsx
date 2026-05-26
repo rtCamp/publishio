@@ -11,6 +11,7 @@ import type { OAuthConnection } from './types';
 import { ConnectionFieldName } from './ConnectionFieldName';
 import { ConnectionFieldUsers } from './ConnectionFieldUsers';
 import { ConnectionFieldRegistered } from './ConnectionFieldRegistered';
+import { ConnectionFieldLastActive } from './ConnectionFieldLastActive';
 
 export const connectionFields: Field< OAuthConnection >[] = [
 	{
@@ -32,6 +33,16 @@ export const connectionFields: Field< OAuthConnection >[] = [
 		getValue: ( { item } ) => item.users.map( ( u ) => u.name ).join( ' ' ),
 		enableGlobalSearch: true,
 		render: ( { item } ) => <ConnectionFieldUsers users={ item.users } />,
+	},
+	{
+		id: 'last_active_at',
+		label: __( 'Last Active', 'rtcamp-publish-with-ai' ),
+		enableSorting: true,
+		getValue: ( { item } ) =>
+			item.last_active_at
+				? new Date( item.last_active_at * 1000 ).toISOString()
+				: '',
+		render: ( { item } ) => <ConnectionFieldLastActive item={ item } />,
 	},
 	{
 		id: 'registered_at',

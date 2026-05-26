@@ -123,15 +123,12 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          # Forward localhost traffic from the CI container to the Host machine
-          # where the WordPress Docker container is actually listening.
-          # This ensures Playwright and WordPress both agree the domain is "localhost:8889".
-          if ss -tlnp | grep -q ":${WP_ENV_PORT} "; then
-            echo "ERROR: Port ${WP_ENV_PORT} already in use"
-            exit 1
-          fi
-
-          socat TCP4-LISTEN:${WP_ENV_PORT},fork,bind=127.0.0.1 TCP4:host.docker.internal:${WP_ENV_PORT} &
+          # wp-env containers run on the host Docker daemon (via socket mount), so WordPress
+          # binds to the host — not localhost inside this runner container. socat forwards
+          # localhost:${WP_ENV_PORT} inside the container to the host's bridge gateway IP,
+          # so Playwright and WordPress both agree on the same "localhost" origin.
+          HOST_IP=$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}')
+          socat TCP4-LISTEN:${WP_ENV_PORT},fork,bind=127.0.0.1 TCP4:${HOST_IP}:${WP_ENV_PORT} &
           SOCAT_PID=$!
 
           sleep 2

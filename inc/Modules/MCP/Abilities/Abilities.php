@@ -32,7 +32,6 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Search_Posts;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Update_Post;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Upload_Media;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Resources\Content_Generation_Guide;
 
 /**
  * Class - Abilities
@@ -44,7 +43,6 @@ final class Abilities implements Registrable {
 	public function register_hooks(): void {
 		add_action( 'wp_abilities_api_categories_init', [ $this, 'register_categories' ] );
 		add_action( 'wp_abilities_api_init', [ $this, 'register_abilities' ] );
-		add_filter( 'mcp_adapter_default_server_config', [ $this, 'register_resources' ] );
 	}
 
 	/**
@@ -99,24 +97,5 @@ final class Abilities implements Registrable {
 		foreach ( $abilities as $ability ) {
 			$ability->register();
 		}
-	}
-
-	/**
-	 * Register MCP resources.
-	 *
-	 * @param array<string, mixed> $config MCP server config.
-	 *
-	 * @return array<string, mixed>
-	 */
-	public function register_resources( array $config ): array {
-		$resources = [
-			new Content_Generation_Guide(),
-		];
-
-		foreach ( $resources as $resource ) {
-			$config = $resource->add_resource( $config );
-		}
-
-		return $config;
 	}
 }

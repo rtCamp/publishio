@@ -91,9 +91,27 @@ jobs:
           echo "Host Workspace: $HOST_WORKSPACE_PATH"
           echo "Plugin Host Path: $PLUGIN_HOST_PATH"
 
+          # Find the first available host port in 8888-9000 by inspecting running Docker containers.
+          # Using docker ps via the mounted socket is reliable here because port binding happens
+          # at the host level, so this reflects the true allocation state across concurrent jobs.
+          USED_PORTS=$(docker ps --format '{{.Ports}}' | grep -oP '\d+(?=->)' | sort -un)
+          WP_ENV_PORT=""
+          for PORT in $(seq 8888 9000); do
+            if ! echo "$USED_PORTS" | grep -qx "$PORT"; then
+              WP_ENV_PORT=$PORT
+              break
+            fi
+          done
+          if [ -z "$WP_ENV_PORT" ]; then
+            echo "No available port found in range 8888-9000" >&2
+            exit 1
+          fi
+          echo "Using wp-env port: $WP_ENV_PORT"
+
           # Update .wp-env.json (default env)
           jq --arg path "$PLUGIN_HOST_PATH" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path' \
+             --argjson port "$WP_ENV_PORT" \
+             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
 
           cat .wp-env.json

@@ -123,9 +123,9 @@ jobs:
           max_attempts: 3
           command: |
             if [ "${{ inputs.coverage }}" == "true" ]; then
-              npm run wp-env:test start -- --xdebug=coverage --update --debug --auto-port
+              npm run wp-env:test start -- --xdebug=coverage --update --debug
             else
-              npm run wp-env:test start -- --update --auto-port
+              npm run wp-env:test start -- --update
             fi
 
       - name: Log versions

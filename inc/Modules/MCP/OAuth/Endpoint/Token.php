@@ -105,6 +105,12 @@ class Token extends Abstract_REST_Controller {
 			return $this->error_response( 'invalid_grant', 'PKCE verification failed.', 400 );
 		}
 
+		// If the client sends a resource parameter (RFC 8707), it must match what was authorized.
+		$resource = (string) ( $request->get_param( 'resource' ) ?? '' );
+		if ( '' !== $resource && $resource !== $code_data['resource'] ) {
+			return $this->error_response( 'invalid_target', 'resource does not match the authorization request.', 400 );
+		}
+
 		// Issue tokens.
 		$tokens = Token_Store::issue(
 			$code_data['user_id'],

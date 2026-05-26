@@ -122,7 +122,7 @@ jobs:
           # 3. Set the wp-env port to the picked free port
           jq --arg path "$PLUGIN_HOST_PATH" \
              --argjson port "${{ steps.pick-port.outputs.port }}" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
+             '.plugins = ["https://downloads.wordpress.org/plugin/ai.zip"] | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.test.json > .wp-env.test.json.tmp && mv .wp-env.test.json.tmp .wp-env.test.json
 
           cat .wp-env.test.json

@@ -99,7 +99,7 @@ jobs:
           # Update .wp-env.json (default env)
           jq --arg path "$PLUGIN_HOST_PATH" \
              --argjson port "${{ steps.pick-port.outputs.port }}" \
-             'del(.plugins) | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
+             '.plugins = ["https://downloads.wordpress.org/plugin/ai.zip"] | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
              .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
 
           cat .wp-env.json

@@ -13,14 +13,46 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
  * Class - Config
  */
 class Config {
-	public const MCP_ROUTE_NAMESPACE    = 'mcp';
-	public const MCP_ROUTE              = 'rt-publish-with-ai';
-	public const OAUTH_REST_NAMESPACE   = 'rtpwai-oauth/v1';
-	public const ACCESS_TOKEN_TTL       = 3600;
-	public const REFRESH_TOKEN_TTL      = 2592000;
-	public const AUTH_CODE_TTL          = 120;
-	public const SUPPORTED_SCOPES       = [ 'mcp:read', 'mcp:write' ];
-	public const ALLOWED_CLIENT_ORIGINS = [ 'claude.ai', 'chatgpt.com', 'chat.openai.com' ];
+	public const MCP_ROUTE_NAMESPACE  = 'mcp';
+	public const MCP_ROUTE            = 'rt-publish-with-ai';
+	public const OAUTH_REST_NAMESPACE = 'rtpwai-oauth/v1';
+	public const ACCESS_TOKEN_TTL     = 3600;
+	public const REFRESH_TOKEN_TTL    = 2592000;
+	public const AUTH_CODE_TTL        = 120;
+	public const SUPPORTED_SCOPES     = [ 'mcp:read', 'mcp:write' ];
+
+	/**
+	 * Local/loopback hostnames that are blocked in production.
+	 */
+	private const LOCAL_HOSTS = [ 'localhost', '127.0.0.1', '::1' ];
+
+	/**
+	 * Validate a redirect URI for use as an OAuth redirect target.
+	 *
+	 * Production rules: must use https and must not point at a local/loopback host.
+	 * WP_DEBUG mode: local hosts and http are permitted (for local dev tools).
+	 *
+	 * @param string $uri The redirect URI to validate.
+	 */
+	public static function is_redirect_uri_allowed( string $uri ): bool {
+		$scheme = (string) wp_parse_url( $uri, PHP_URL_SCHEME );
+		$host   = strtolower( (string) wp_parse_url( $uri, PHP_URL_HOST ) );
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$is_debug = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$is_local = in_array( $host, self::LOCAL_HOSTS, true )
+			|| str_ends_with( $host, '.local' )
+			|| str_ends_with( $host, '.localhost' );
+
+		if ( $is_local ) {
+			return $is_debug;
+		}
+
+		return 'https' === $scheme;
+	}
 
 	/**
 	 * Get the default MCP endpoint path.

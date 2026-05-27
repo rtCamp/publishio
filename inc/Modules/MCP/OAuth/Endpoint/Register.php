@@ -65,8 +65,7 @@ class Register extends Abstract_REST_Controller {
 				return $this->registration_error( 'invalid_redirect_uri', 'Each redirect_uri must be a string.', 400 );
 			}
 
-			$host = (string) wp_parse_url( $uri, PHP_URL_HOST );
-			if ( ! in_array( $host, Config::ALLOWED_CLIENT_ORIGINS, true ) ) {
+			if ( ! Config::is_redirect_uri_allowed( $uri ) ) {
 				return $this->registration_error(
 					'invalid_redirect_uri',
 					sprintf( 'redirect_uri "%s" is not permitted on this server.', $uri ),

@@ -245,8 +245,7 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_redirect_uri', 'The redirect_uri is not registered for this client.', [ 'status' => 400 ] );
 		}
 
-		$redirect_host = (string) wp_parse_url( $params['redirect_uri'], PHP_URL_HOST );
-		if ( ! in_array( $redirect_host, Config::ALLOWED_CLIENT_ORIGINS, true ) ) {
+		if ( ! Config::is_redirect_uri_allowed( $params['redirect_uri'] ) ) {
 			return new \WP_Error( 'unauthorized_client', 'This client is not permitted to use this authorization server.', [ 'status' => 403 ] );
 		}
 

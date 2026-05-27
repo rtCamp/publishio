@@ -45,16 +45,20 @@ class Microlink_Provider {
 	 * @return string|\WP_Error Raw binary PNG on success, WP_Error on failure.
 	 */
 	public function capture( string $url, string $selector ): string|\WP_Error {
-		$query = http_build_query(
-			[
-				'url'                        => $url,
-				'screenshot'                 => 'true',
-				'element'                    => $selector,
-				'viewport.width'             => '1440',
-				'viewport.height'            => '900',
-				'viewport.deviceScaleFactor' => '1',
-			]
-		);
+		$params = [
+			'url'                        => $url,
+			'screenshot'                 => 'true',
+			'viewport.width'             => '1440',
+			'viewport.height'            => '900',
+			'viewport.deviceScaleFactor' => '1',
+		];
+
+		// 'element' is a Microlink Pro feature — omit on the free tier.
+		if ( '' !== $this->api_key ) {
+			$params['element'] = $selector;
+		}
+
+		$query = http_build_query( $params );
 
 		$headers = [ 'Accept' => 'application/json' ];
 
@@ -83,7 +87,7 @@ class Microlink_Provider {
 				__( 'Microlink API returned HTTP %d.', 'rtcamp-publish-with-ai' ),
 				$code
 			);
-			return new \WP_Error( 'microlink_failed', $message );
+			return new \WP_Error( 'microlink_failed', $message, $body['errors'] ?? null );
 		}
 
 		$image_response = wp_remote_get( // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get

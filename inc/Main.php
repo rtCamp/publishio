@@ -31,6 +31,7 @@ final class Main {
 		Modules\Screenshot\Settings::class,
 		Modules\Screenshot\REST_Controller::class,
 		Modules\Screenshot\Preview_Endpoint::class,
+		Modules\Screenshot\Screenshot_Image_Endpoint::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 		Modules\MCP\Server\Server::class,
@@ -59,6 +60,9 @@ final class Main {
 		register_activation_hook( RTCAMP_PUBLISH_WITH_AI_FILE, [ self::class, 'activate' ] );
 		register_deactivation_hook( RTCAMP_PUBLISH_WITH_AI_FILE, [ self::class, 'deactivate' ] );
 
+		// Run schema migrations when the plugin version changes.
+		add_action( 'plugins_loaded', [ self::class, 'maybe_upgrade' ] );
+
 		// Do other stuff here like dep-checking, telemetry, etc.
 	}
 
@@ -81,10 +85,28 @@ final class Main {
 	 * @internal description
 	 */
 	public static function activate(): void {
-		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
+		self::run_migrations();
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+	}
+
+	/**
+	 * Runs schema migrations when the stored plugin version is older than the current one.
+	 */
+	public static function maybe_upgrade(): void {
+		$stored = (string) get_option( 'publish_with_ai_version', '0.0.0' );
+
+		if ( version_compare( $stored, RTCAMP_PUBLISH_WITH_AI_VERSION, '<' ) ) {
+			self::run_migrations();
+		}
+	}
+
+	/**
+	 * Create / update all DB tables and record the current version.
+	 */
+	private static function run_migrations(): void {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
-		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
 	}
 
 	/**

@@ -25,6 +25,11 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
  */
 class Preview_Endpoint implements Registrable {
 	/**
+	 * Transient key prefix for pre-rendered preview HTML.
+	 */
+	public const HTML_PREFIX = 'rtpwai_preview_html_';
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
@@ -76,7 +81,12 @@ class Preview_Endpoint implements Registrable {
 			exit;
 		}
 
-		$html = $this->fetch_page_html( $data['post_id'], $data['user_id'] );
+		// Use pre-rendered HTML cached by the MCP tool before Microlink was called.
+		// Falls back to a live loopback request if the cache is missing.
+		$cached = get_transient( self::HTML_PREFIX . $token );
+		delete_transient( self::HTML_PREFIX . $token );
+
+		$html = false !== $cached ? $cached : self::fetch_page_html( $data['post_id'], $data['user_id'] );
 
 		if ( is_wp_error( $html ) ) {
 			status_header( 500 );
@@ -100,7 +110,7 @@ class Preview_Endpoint implements Registrable {
 	 *
 	 * @return string|\WP_Error Rendered HTML or error.
 	 */
-	private function fetch_page_html( int $post_id, int $user_id ): string|\WP_Error {
+	public static function fetch_page_html( int $post_id, int $user_id ): string|\WP_Error {
 		// Switch user so get_preview_post_link() generates a nonce for the right user.
 		wp_set_current_user( $user_id );
 

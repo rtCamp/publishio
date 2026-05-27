@@ -10,7 +10,9 @@ declare( strict_types = 1 );
 namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Preview;
 
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Preview as Preview_Category;
+use rtCamp\Publish_With_AI\Modules\Screenshot\Preview_Endpoint;
 use rtCamp\Publish_With_AI\Modules\Screenshot\Screenshot_Client;
+use rtCamp\Publish_With_AI\Modules\Screenshot\Screenshot_Image_Endpoint;
 use rtCamp\Publish_With_AI\Modules\Screenshot\Settings;
 use rtCamp\Publish_With_AI\Modules\Screenshot\Token_Store;
 
@@ -27,7 +29,7 @@ class Screenshot_Post {
 			[
 				'label'               => __( 'Screenshot Page or Post', 'rtcamp-publish-with-ai' ),
 				'category'            => Preview_Category::SLUG,
-				'description'         => __( 'Captures a screenshot of a page or post and returns it as an inline image. Requires screenshot provider to be configured in Settings → Screenshots. Returns not_supported when the feature is disabled or misconfigured.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Captures a screenshot of a page or post. Returns a screenshot_url — embed it in your response as ![Screenshot](screenshot_url) so the user sees it inline. Requires screenshot provider to be configured in Settings → Screenshots. Returns not_supported when the feature is disabled or misconfigured.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
@@ -69,7 +71,18 @@ class Screenshot_Post {
 						return new \WP_Error( 'not_authenticated', __( 'No authenticated user for preview.', 'rtcamp-publish-with-ai' ) );
 					}
 
-					$token       = Token_Store::create( $post_id, $user_id );
+					$token = Token_Store::create( $post_id, $user_id );
+
+					// Pre-render the HTML here so the preview endpoint can serve it
+					// instantly when Microlink visits — no loopback inside Microlink's timeout.
+					$html = Preview_Endpoint::fetch_page_html( $post_id, $user_id );
+
+					if ( is_wp_error( $html ) ) {
+						return $html;
+					}
+
+					set_transient( Preview_Endpoint::HTML_PREFIX . $token, $html, 15 * MINUTE_IN_SECONDS );
+
 					$preview_url = rest_url( 'rtpwai/v1/preview' ) . '?token=' . rawurlencode( $token );
 
 					$image = Screenshot_Client::capture( $preview_url, $selector );
@@ -78,11 +91,16 @@ class Screenshot_Post {
 						return $image;
 					}
 
-					return [
-						'type'     => 'image',
-						'results'  => $image,
-						'mimeType' => 'image/png',
-					];
+					$image_token = wp_generate_uuid4();
+					set_transient(
+						Screenshot_Image_Endpoint::TRANSIENT_PREFIX . $image_token,
+						base64_encode( $image ),
+						Screenshot_Image_Endpoint::TTL
+					);
+
+					$screenshot_url = rest_url( 'rtpwai/v1/screenshot-image' ) . '?token=' . rawurlencode( $image_token );
+
+					return [ 'screenshot_url' => $screenshot_url ];
 				},
 				'meta'                => [
 					'show_in_rest' => true,

@@ -107,6 +107,7 @@ final class Main {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
 		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 
 	/**

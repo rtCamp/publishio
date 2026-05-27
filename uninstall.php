@@ -44,6 +44,7 @@ function run_uninstaller(): void {
 
 /**
  * The (site-specific) uninstall function.
+ * TODO: Do we need this??
  */
 function uninstall(): void {
 	// Add additional uninstall routines here.
@@ -91,7 +92,7 @@ function delete_tables(): void {
 	];
 
 	foreach ( $tables as $table ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$wpdb->query( 'DROP TABLE IF EXISTS ' . $table );
 	}
 }

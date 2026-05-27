@@ -18,8 +18,8 @@ Hand-written pattern markup drifts from the design system. One-shot drafts produ
 - **Append, don't rewrite.** Each section is added to the end of existing content via the site's append/update mechanism — never regenerate the whole document.
 - **Discover before planning.** Fetch all available patterns from the site every time. Don't rely on memory.
 - **Resolve media before content.** Identify every image/video, search the library, ask for uploads if missing. Don't proceed until resolved.
-- **Draft content in chat first.** Show prose, headlines, and CTA labels for approval *before* touching schemas or WordPress.
-- **Disclose dropped content.** When the user provides reference material (e.g., a Google Doc, brief, or URL), explicitly list any sections, points, or details you are *not* including in the draft and explain why (pattern slot limits, relevance, length constraints). Get acknowledgement before proceeding.
+- **Draft content in chat first.** Show prose, headlines, and CTA labels for approval _before_ touching schemas or WordPress.
+- **Disclose dropped content.** When the user provides reference material (e.g., a Google Doc, brief, or URL), explicitly list any sections, points, or details you are _not_ including in the draft and explain why (pattern slot limits, relevance, length constraints). Get acknowledgement before proceeding.
 - **No custom HTML** outside standard block markup.
 - **Share links as clickable** — never inside code blocks.
 
@@ -31,12 +31,13 @@ The only acceptable way to place a pattern. Applies to posts and landing pages a
 
 1. **Fetch the pattern schema** — the authoritative description of attributes (text, image refs, links, button labels, repeating-item counts).
 2. **Fetch the full pattern content** to understand its structure, slot sizes, and default copy. This tells you how much content each slot actually shows. If a slot is too small for the user's content, pick a different pattern.
-3. **Identify changeable attributes.** You change *values only*: text, image IDs/URLs, link hrefs, button labels, and (where supported) the count of repeating items. You do **not** touch markup structure, CSS classes, inline styles, spacing, or colors. If the user wants something not in the schema, say so and propose a different pattern.
+3. **Identify changeable attributes.** You change _values only_: text, image IDs/URLs, link hrefs, button labels, and (where supported) the count of repeating items. You do **not** touch markup structure, CSS classes, inline styles, spacing, or colors. If the user wants something not in the schema, say so and propose a different pattern.
 4. **Fill the schema with new content** and append the result to the draft. The rendered output comes from the filled schema — never hand-written.
 
 **Repeating items**: if a pattern's schema marks a group as repeatable, it does **not** automatically mean you can add or remove items. Some repeaters contain items with intentionally different styles, sizes, or layouts (e.g., alternating card orientations, a hero item followed by smaller cards). Changing the count in these cases will break the design.
 
 Before adding or removing items from a repeatable group:
+
 1. Fetch the pattern's rendered HTML to see how each item is actually styled. If items have different visual treatments (varying sizes, alternating layouts, unique backgrounds), the count must stay as-is.
 2. Only modify the count when all items are visually uniform — same size, same style, same layout.
 3. Content length per item must stay visually balanced (no single card with one word next to cards with full paragraphs).
@@ -80,7 +81,7 @@ No complex or custom blocks are allowed. If it's not a basic prose block, it can
 Pattern-only. No exception for "just a paragraph of text" — find the text-content pattern, or surface that none fits.
 
 1. Ask: purpose, audience, primary CTA, sections needed, reference pages?
-2. Fetch **all** available patterns **and their full content**. Review each pattern's slot sizes, item counts, and content lengths so you know what fits *before* planning.
+2. Fetch **all** available patterns **and their full content**. Review each pattern's slot sizes, item counts, and content lengths so you know what fits _before_ planning.
 3. Using the fetched pattern inventory, match user requirements to patterns. Check candidate patterns' content to confirm slot sizes (headline length, body length, image aspect, item count, repeatable ranges).
 4. Propose a section plan: pattern name, attributes to change, content sized to fit. If reference material was provided, list what is included and **what is being dropped or condensed**, with reasons. Get **explicit approval**.
 5. Resolve media — list every image/video by section, search the library, ask for uploads. Don't proceed until done.

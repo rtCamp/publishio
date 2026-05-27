@@ -12,7 +12,8 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Server;
 use WP\MCP\Infrastructure\ErrorHandling\ErrorLogMcpErrorHandler;
 use WP\MCP\Transport\HttpTransport;
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Resources\Content_Generation_Guide;
+use rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval\App as Pattern_Approval_App;
+use rtCamp\Publish_With_AI\Modules\MCP\Resources\Content_Guide\Content_Guide;
 
 /**
  * Class - Server
@@ -34,9 +35,6 @@ class Server implements Registrable {
 	 * @param \WP\MCP\Core\McpAdapter $adapter The MCP Adapter instance.
 	 */
 	public function create( \WP\MCP\Core\McpAdapter $adapter ): void {
-		$guide_config = ( new Content_Generation_Guide() )->add_resource( [] );
-		$resources    = $guide_config['resources'] ?? [];
-
 		$adapter->create_server(
 			self::SERVER_ID,
 			'mcp',
@@ -48,8 +46,19 @@ class Server implements Registrable {
 			ErrorLogMcpErrorHandler::class,
 			null,
 			$this->get_tools(),
-			$resources,
+			$this->get_resources(),
 		);
+	}
+
+	/**
+	 * Build the list of MCP resources for this server.
+	 *
+	 * @return list<\WP\McpSchema\Server\Resources\DTO\Resource>
+	 */
+	private function get_resources(): array {
+		$config = ( new Content_Guide() )->add_resource( [] );
+		$config = ( new Pattern_Approval_App() )->add_resource( $config );
+		return $config['resources'] ?? [];
 	}
 
 	/**

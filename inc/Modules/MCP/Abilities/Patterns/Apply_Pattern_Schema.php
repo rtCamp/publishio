@@ -25,13 +25,13 @@ class Apply_Pattern_Schema {
 				'description'         => __( 'Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the modified block markup with the new content applied. Only content (text, links, images, labels) is replaced — layout and styles are preserved. Optionally renders the result to HTML for previewing the final output.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
-					'required'             => [ 'name', 'schema' ],
+					'required'             => [ 'pattern_name', 'schema' ],
 					'properties'           => [
-						'name'   => [
+						'pattern_name' => [
 							'type'        => 'string',
 							'description' => 'Fully-qualified pattern name (e.g. theme-slug/hero-section).',
 						],
-						'schema' => [
+						'schema'       => [
 							'type'        => 'array',
 							'description' => 'The filled content schema — same structure returned by get-pattern-schema with values updated to desired content. For repeatable entries, return fewer items to reduce count. Can be an empty array to use the pattern as-is.',
 							'minItems'    => 0,
@@ -65,7 +65,7 @@ class Apply_Pattern_Schema {
 								],
 							],
 						],
-						'render' => [
+						'render'       => [
 							'type'        => 'boolean',
 							'description' => 'When true, also returns the rendered HTML output alongside the block markup. Useful for previewing how the pattern will actually look.',
 							'default'     => false,
@@ -91,11 +91,11 @@ class Apply_Pattern_Schema {
 					return current_user_can( 'edit_posts' );
 				},
 				'execute_callback'    => static function ( array $input ) {
-					$name   = sanitize_text_field( $input['name'] ?? '' );
-					$schema = $input['schema'] ?? [];
-					$render = ! empty( $input['render'] );
+					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
+					$schema       = $input['schema'] ?? [];
+					$render       = ! empty( $input['render'] );
 
-					if ( ! $name ) {
+					if ( ! $pattern_name ) {
 						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'rtcamp-publish-with-ai' ) );
 					}
 
@@ -105,18 +105,18 @@ class Apply_Pattern_Schema {
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
 
-					if ( ! $registry->is_registered( $name ) ) {
+					if ( ! $registry->is_registered( $pattern_name ) ) {
 						return new \WP_Error(
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
 								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
-								$name
+								$pattern_name
 							)
 						);
 					}
 
-					$pattern = $registry->get_registered( $name );
+					$pattern = $registry->get_registered( $pattern_name );
 					$content = $pattern['content'] ?? '';
 
 					if ( empty( $content ) ) {

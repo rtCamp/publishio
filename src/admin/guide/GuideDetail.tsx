@@ -9,10 +9,24 @@ import { __ } from '@wordpress/i18n';
  */
 import { AdminHeader } from '../shared/AdminHeader';
 import type { Guide } from './types';
+import { ClaudeGuide } from './ClaudeGuide';
+import { OpenAIGuide } from './OpenAIGuide';
+import { OtherAppsGuide } from './OtherAppsGuide';
 
 interface GuideDetailProps {
 	guide: Guide;
 	onBack: () => void;
+}
+
+function GuideContent( { guide }: { guide: Guide } ) {
+	switch ( guide.app ) {
+		case 'claude':
+			return <ClaudeGuide />;
+		case 'openai':
+			return <OpenAIGuide />;
+		case 'other':
+			return <OtherAppsGuide />;
+	}
 }
 
 export function GuideDetail( { guide, onBack }: GuideDetailProps ) {
@@ -27,9 +41,7 @@ export function GuideDetail( { guide, onBack }: GuideDetailProps ) {
 					</Button>
 				}
 			/>
-			<p className="p-6 text-sm text-gray-400 italic">
-				{ __( 'Steps coming soon.', 'rtcamp-publish-with-ai' ) }
-			</p>
+			<GuideContent guide={ guide } />
 		</>
 	);
 }

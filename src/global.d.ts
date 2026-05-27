@@ -6,6 +6,15 @@ interface Window {
 		pluginVersion: string;
 		logoUrl: string;
 		appLogos: Record< string, string >;
+		mcpServerUrl: string;
+		guideImages: {
+			claude: {
+				connectorMenu: string;
+				connectorForm: string;
+				clickConnect: string;
+				consent: string;
+			};
+		};
 	};
 }
 

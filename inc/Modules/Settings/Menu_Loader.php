@@ -15,6 +15,7 @@ namespace rtCamp\Publish_With_AI\Modules\Settings;
 
 use rtCamp\Publish_With_AI\Core\Assets;
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config as MCP_Config;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Connections_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Credentials_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Guide_Page;
@@ -154,6 +155,15 @@ final class Menu_Loader implements Registrable {
 				'claude' => plugins_url( 'assets/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 				'openai' => plugins_url( 'assets/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 				'other'  => plugins_url( 'assets/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+			],
+			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
+			'guideImages'   => [
+				'claude' => [
+					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
+					'connectorForm' => plugins_url( 'assets/images/guide/claude/step-connector-form.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
+					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
+					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				],
 			],
 		];
 	}

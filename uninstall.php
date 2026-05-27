@@ -49,6 +49,7 @@ function uninstall(): void {
 	// Add additional uninstall routines here.
 	delete_options();
 	delete_transients();
+	delete_tables();
 }
 
 /**
@@ -71,11 +72,27 @@ function delete_options(): void {
 function delete_transients(): void {
 	$transients = [
 		// Add more transients as needed.
-		'@todo',
 	];
 
 	foreach ( $transients as $transient ) {
 		delete_transient( $transient );
+	}
+}
+
+/**
+ * Drops the OAuth client and token tables.
+ */
+function delete_tables(): void {
+	global $wpdb;
+
+	$tables = [
+		$wpdb->prefix . 'rtpwai_oauth_tokens',
+		$wpdb->prefix . 'rtpwai_oauth_clients',
+	];
+
+	foreach ( $tables as $table ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( 'DROP TABLE IF EXISTS ' . $table );
 	}
 }
 

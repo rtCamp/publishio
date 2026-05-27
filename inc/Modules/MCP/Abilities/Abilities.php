@@ -26,11 +26,16 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Append_Pattern;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Create_Post;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Delete_Block_At;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Get_Post;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Get_Post_Terms;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Get_Taxonomy_Terms;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Get_Yoast_Meta;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Insert_Blocks_At;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Insert_Pattern_At;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Search_Attachments;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Search_Posts;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Featured_Image;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Post_Terms;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Update_Post;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Upload_Media;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Preview\Screenshot_Post;
@@ -96,6 +101,11 @@ final class Abilities implements Registrable {
 			new Search_Attachments(),
 			new Upload_Media(),
 			new Screenshot_Post(),
+			new Get_Taxonomy_Terms(),
+			new Get_Post_Terms(),
+			new Set_Post_Terms(),
+			new Get_Yoast_Meta(),
+			new Set_Yoast_Meta(),
 		];
 
 		foreach ( $abilities as $ability ) {

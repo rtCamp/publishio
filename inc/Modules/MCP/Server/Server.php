@@ -41,7 +41,7 @@ class Server implements Registrable {
 			self::SERVER_ID,
 			'mcp',
 			self::SERVER_ID,
-			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
+			__( 'Publish With AI — rtCamp', 'rtcamp-publish-with-ai' ),
 			__( 'MCP server for the Publish with AI plugin.', 'rtcamp-publish-with-ai' ),
 			RTCAMP_PUBLISH_WITH_AI_VERSION,
 			[ HttpTransport::class ],

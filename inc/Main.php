@@ -30,6 +30,7 @@ final class Main {
 		Modules\Settings\Credentials\REST_Controller::class,
 		Modules\Screenshot\Settings::class,
 		Modules\Screenshot\REST_Controller::class,
+		Modules\Screenshot\Preview_Endpoint::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 		Modules\MCP\Server\Server::class,

@@ -16,6 +16,7 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Blocks\Render_Block;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks as Blocks_Category;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns as Patterns_Category;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts as Posts_Category;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Preview as Preview_Category;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Apply_Pattern_Schema;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Get_Pattern;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Get_Pattern_Schema;
@@ -32,6 +33,7 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Search_Posts;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Update_Post;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Upload_Media;
+use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Preview\Screenshot_Post;
 
 /**
  * Class - Abilities
@@ -57,6 +59,7 @@ final class Abilities implements Registrable {
 			new Patterns_Category(),
 			new Blocks_Category(),
 			new Posts_Category(),
+			new Preview_Category(),
 		];
 
 		foreach ( $categories as $category ) {
@@ -92,6 +95,7 @@ final class Abilities implements Registrable {
 			new Search_Posts(),
 			new Search_Attachments(),
 			new Upload_Media(),
+			new Screenshot_Post(),
 		];
 
 		foreach ( $abilities as $ability ) {

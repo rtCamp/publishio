@@ -28,6 +28,19 @@ export function EditCredentialModal( {
 	onClose,
 }: EditCredentialModalProps ) {
 	const [ clientName, setClientName ] = useState( credential.client_name );
+	const [ clientUri, setClientUri ] = useState( credential.client_uri ?? '' );
+	const [ logoUri, setLogoUri ] = useState( credential.logo_uri ?? '' );
+	const [ tosUri, setTosUri ] = useState( credential.tos_uri ?? '' );
+	const [ policyUri, setPolicyUri ] = useState( credential.policy_uri ?? '' );
+	const [ contacts, setContacts ] = useState(
+		( credential.contacts ?? [] ).join( ', ' )
+	);
+	const [ softwareId, setSoftwareId ] = useState(
+		credential.software_id ?? ''
+	);
+	const [ softwareVersion, setSoftwareVersion ] = useState(
+		credential.software_version ?? ''
+	);
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ error, setError ] = useState< string | null >( null );
 
@@ -45,7 +58,21 @@ export function EditCredentialModal( {
 		setError( null );
 
 		try {
-			await onSave( { client_name: clientName.trim() } );
+			await onSave( {
+				client_name: clientName.trim(),
+				client_uri: clientUri.trim() || undefined,
+				logo_uri: logoUri.trim() || undefined,
+				tos_uri: tosUri.trim() || undefined,
+				policy_uri: policyUri.trim() || undefined,
+				contacts: contacts.trim()
+					? contacts
+							.split( ',' )
+							.map( ( s ) => s.trim() )
+							.filter( Boolean )
+					: undefined,
+				software_id: softwareId.trim() || undefined,
+				software_version: softwareVersion.trim() || undefined,
+			} );
 		} catch {
 			setError(
 				__(
@@ -65,7 +92,10 @@ export function EditCredentialModal( {
 			size="medium"
 		>
 			{ error && (
-				<Notice status="error" className="mb-4">
+				<Notice
+					status="error"
+					className="mb-4 sticky top-0 z-10 shadow"
+				>
 					{ error }
 				</Notice>
 			) }
@@ -89,6 +119,125 @@ export function EditCredentialModal( {
 					disabled
 					rows={ 3 }
 				/>
+
+				<details
+					className="border border-gray-200 rounded-md"
+					open={
+						!! (
+							credential.client_uri ||
+							credential.logo_uri ||
+							credential.tos_uri ||
+							credential.policy_uri
+						)
+					}
+				>
+					<summary className="px-3 py-2 cursor-pointer text-sm font-medium text-gray-600 select-none">
+						{ __( 'Advanced', 'rtcamp-publish-with-ai' ) }
+					</summary>
+					<div className="flex flex-col gap-4 px-3 pb-3 pt-2">
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Website URL',
+								'rtcamp-publish-with-ai'
+							) }
+							help={ __(
+								'Homepage of the application.',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ clientUri }
+							onChange={ setClientUri }
+							placeholder="https://example.com"
+							type="url"
+						/>
+						<div>
+							<TextControl
+								__next40pxDefaultSize
+								label={ __(
+									'Logo URL',
+									'rtcamp-publish-with-ai'
+								) }
+								help={ __(
+									'Shown on the consent screen.',
+									'rtcamp-publish-with-ai'
+								) }
+								value={ logoUri }
+								onChange={ setLogoUri }
+								placeholder="https://example.com/logo.png"
+								type="url"
+							/>
+							{ logoUri && (
+								<img
+									src={ logoUri }
+									alt={ __(
+										'Logo preview',
+										'rtcamp-publish-with-ai'
+									) }
+									className="mt-2 h-12 max-w-[120px] w-auto rounded object-contain"
+								/>
+							) }
+						</div>
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Terms of Service URL',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ tosUri }
+							onChange={ setTosUri }
+							placeholder="https://example.com/terms"
+							type="url"
+						/>
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Privacy Policy URL',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ policyUri }
+							onChange={ setPolicyUri }
+							placeholder="https://example.com/privacy"
+							type="url"
+						/>
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Contact Email(s)',
+								'rtcamp-publish-with-ai'
+							) }
+							help={ __(
+								'Comma-separated email addresses.',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ contacts }
+							onChange={ setContacts }
+							placeholder="admin@example.com"
+						/>
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Software ID',
+								'rtcamp-publish-with-ai'
+							) }
+							help={ __(
+								'Unique identifier for the software (e.g. UUID).',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ softwareId }
+							onChange={ setSoftwareId }
+						/>
+						<TextControl
+							__next40pxDefaultSize
+							label={ __(
+								'Software Version',
+								'rtcamp-publish-with-ai'
+							) }
+							value={ softwareVersion }
+							onChange={ setSoftwareVersion }
+							placeholder="1.0.0"
+						/>
+					</div>
+				</details>
 			</div>
 
 			<div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">

@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { useState } from '@wordpress/element';
 import { Button } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -8,10 +9,11 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies
  */
 import type { OAuthCredential } from './types';
+import { Notice } from '../shared/Notice';
 
 interface DeleteCredentialDialogProps {
 	credential: OAuthCredential;
-	onConfirm: () => void;
+	onConfirm: () => Promise< void >;
 	onCancel: undefined | ( () => void );
 }
 
@@ -20,8 +22,33 @@ export function DeleteCredentialDialog( {
 	onConfirm,
 	onCancel = () => {},
 }: DeleteCredentialDialogProps ) {
+	const [ isDeleting, setIsDeleting ] = useState( false );
+	const [ error, setError ] = useState< string | null >( null );
+
+	async function handleConfirm() {
+		setIsDeleting( true );
+		setError( null );
+		try {
+			await onConfirm();
+		} catch {
+			setError(
+				__(
+					'Failed to delete credential. Please try again.',
+					'rtcamp-publish-with-ai'
+				)
+			);
+		} finally {
+			setIsDeleting( false );
+		}
+	}
+
 	return (
 		<>
+			{ error && (
+				<Notice status="error" className="mb-4">
+					{ error }
+				</Notice>
+			) }
 			<p className="text-sm text-gray-700 mt-0">
 				{ sprintf(
 					/* translators: %s: credential name */
@@ -46,10 +73,20 @@ export function DeleteCredentialDialog( {
 			</p>
 
 			<div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
-				<Button variant="primary" isDestructive onClick={ onConfirm }>
+				<Button
+					variant="primary"
+					isDestructive
+					isBusy={ isDeleting }
+					disabled={ isDeleting }
+					onClick={ handleConfirm }
+				>
 					{ __( 'Delete Credential', 'rtcamp-publish-with-ai' ) }
 				</Button>
-				<Button variant="tertiary" onClick={ onCancel }>
+				<Button
+					variant="tertiary"
+					onClick={ onCancel }
+					disabled={ isDeleting }
+				>
 					{ __( 'Cancel', 'rtcamp-publish-with-ai' ) }
 				</Button>
 			</div>

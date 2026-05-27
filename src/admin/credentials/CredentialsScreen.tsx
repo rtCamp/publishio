@@ -34,8 +34,7 @@ export function CredentialsScreen() {
 		update,
 		remove,
 	} = useCredentials();
-	const { createSuccessNotice, createErrorNotice } =
-		useDispatch( noticesStore );
+	const { createSuccessNotice } = useDispatch( noticesStore );
 
 	const [ isCreateOpen, setIsCreateOpen ] = useState( false );
 	const [ createdCredential, setCreatedCredential ] =
@@ -47,22 +46,11 @@ export function CredentialsScreen() {
 		type: 'snackbar' as const,
 		context: CREDENTIALS_NOTICES_CONTEXT,
 	};
-	const errorOpts = { ...snackbarOpts, explicitDismiss: true };
 
 	async function handleCreate( data: OAuthCredentialFormData ) {
-		try {
-			const created = await create( data );
-			setIsCreateOpen( false );
-			setCreatedCredential( created );
-		} catch {
-			createErrorNotice(
-				__(
-					'Failed to create credential. Please try again.',
-					'rtcamp-publish-with-ai'
-				),
-				errorOpts
-			);
-		}
+		const created = await create( data );
+		setIsCreateOpen( false );
+		setCreatedCredential( created );
 	}
 
 	async function handleEdit(

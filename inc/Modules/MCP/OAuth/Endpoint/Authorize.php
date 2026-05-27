@@ -296,6 +296,10 @@ class Authorize extends Abstract_REST_Controller {
 		$user        = wp_get_current_user();
 		$client      = Client_Store::get_by_client_id( $params['client_id'] );
 		$client_name = $client ? $client['client_name'] : $params['client_id']; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$client_uri  = $client['client_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$logo_uri    = $client['logo_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$tos_uri     = $client['tos_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$policy_uri  = $client['policy_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_name   = get_bloginfo( 'name' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$action_url  = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
@@ -314,8 +318,11 @@ class Authorize extends Abstract_REST_Controller {
 		$user_email   = $user->user_email; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$css_url      = RTCAMP_PUBLISH_WITH_AI_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_url     = home_url( '/' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$resource_url = $params['resource'];
-		$server_name  = $this->get_server_name_from_adapter( $resource_url ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+
+		$resource_url       = $params['resource'];
+		$_server            = $this->find_server_by_resource_url( $resource_url );
+		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'rtcamp-publish-with-ai' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$server_description = $_server ? $_server->get_server_description() : ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$response = new \WP_REST_Response( null, 200 );
 		$response->header( 'Content-Type', 'text/html; charset=utf-8' );
@@ -324,7 +331,7 @@ class Authorize extends Abstract_REST_Controller {
 		add_filter(
 			'rest_pre_serve_request',
 			// @phpstan-ignore-next-line
-			static function ( $_served ) use ( $client_name, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
+			static function ( $_served ) use ( $client_name, $client_uri, $logo_uri, $tos_uri, $policy_uri, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $server_description, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
 				include RTCAMP_PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
 				return true;
 			}
@@ -334,18 +341,18 @@ class Authorize extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * Look up the server name from the MCP Adapter registry by resource URL.
+	 * Locate a registered MCP server that matches the given resource URL path.
 	 *
 	 * @param string $resource_url The full resource URL.
 	 */
-	private function get_server_name_from_adapter( string $resource_url ): string {
+	private function find_server_by_resource_url( string $resource_url ): ?\WP\MCP\Core\McpServer {
 		if ( empty( $resource_url ) || ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
-			return __( 'MCP Server', 'rtcamp-publish-with-ai' );
+			return null;
 		}
 
 		$path = wp_parse_url( $resource_url, PHP_URL_PATH );
 		if ( ! $path ) {
-			return __( 'MCP Server', 'rtcamp-publish-with-ai' );
+			return null;
 		}
 
 		$adapter = \WP\MCP\Core\McpAdapter::instance();
@@ -354,10 +361,10 @@ class Authorize extends Abstract_REST_Controller {
 			$server_path = $server->get_server_route_namespace() . '/' . $server->get_server_route();
 
 			if ( str_ends_with( rtrim( $path, '/' ), $server_path ) ) {
-				return $server->get_server_name();
+				return $server;
 			}
 		}
 
-		return __( 'MCP Server', 'rtcamp-publish-with-ai' );
+		return null;
 	}
 }

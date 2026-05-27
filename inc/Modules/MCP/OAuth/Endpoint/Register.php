@@ -116,6 +116,32 @@ class Register extends Abstract_REST_Controller {
 
 		$client_name = isset( $body['client_name'] ) ? sanitize_text_field( (string) $body['client_name'] ) : '';
 
+		// Optional RFC 7591 URI fields — must be https:// if provided.
+		$uri_fields = [];
+		foreach ( [ 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri' ] as $field ) {
+			if ( ! empty( $body[ $field ] ) && is_string( $body[ $field ] ) ) {
+				$sanitized            = esc_url_raw( $body[ $field ] );
+				$uri_fields[ $field ] = str_starts_with( $sanitized, 'https://' ) ? $sanitized : null;
+			} else {
+				$uri_fields[ $field ] = null;
+			}
+		}
+
+		// contacts: array of strings (email addresses), max 10.
+		$contacts = [];
+		if ( isset( $body['contacts'] ) && is_array( $body['contacts'] ) ) {
+			foreach ( array_slice( $body['contacts'], 0, 10 ) as $contact ) {
+				if ( is_string( $contact ) && ! empty( $contact ) ) {
+					$contacts[] = sanitize_text_field( $contact );
+				}
+			}
+		}
+
+		$software_id      = ! empty( $body['software_id'] ) && is_string( $body['software_id'] )
+			? sanitize_text_field( $body['software_id'] ) : null;
+		$software_version = ! empty( $body['software_version'] ) && is_string( $body['software_version'] )
+			? sanitize_text_field( $body['software_version'] ) : null;
+
 		// Validate and normalise scope.
 		$requested_scope = isset( $body['scope'] ) ? sanitize_text_field( (string) $body['scope'] ) : '';
 		$granted_scope   = $this->resolve_scope( $requested_scope );
@@ -139,6 +165,13 @@ class Register extends Abstract_REST_Controller {
 				'grant_types'        => $grant_types,
 				'response_types'     => $response_types,
 				'scope'              => $granted_scope,
+				'client_uri'         => $uri_fields['client_uri'],
+				'logo_uri'           => $uri_fields['logo_uri'],
+				'tos_uri'            => $uri_fields['tos_uri'],
+				'policy_uri'         => $uri_fields['policy_uri'],
+				'contacts'           => $contacts,
+				'software_id'        => $software_id,
+				'software_version'   => $software_version,
 			]
 		);
 
@@ -155,6 +188,13 @@ class Register extends Abstract_REST_Controller {
 			'grant_types'                => $grant_types,
 			'response_types'             => $response_types,
 			'scope'                      => $granted_scope,
+			'client_uri'                 => $uri_fields['client_uri'],
+			'logo_uri'                   => $uri_fields['logo_uri'],
+			'tos_uri'                    => $uri_fields['tos_uri'],
+			'policy_uri'                 => $uri_fields['policy_uri'],
+			'contacts'                   => $contacts,
+			'software_id'                => $software_id,
+			'software_version'           => $software_version,
 		];
 
 		// Return the plaintext secret once — it cannot be retrieved again.

@@ -15,6 +15,13 @@ export interface OAuthConnection {
 	grant_types: string;
 	response_types: string;
 	scope: string;
+	client_uri: string | null;
+	logo_uri: string | null;
+	tos_uri: string | null;
+	policy_uri: string | null;
+	contacts: string[];
+	software_id: string | null;
+	software_version: string | null;
 	registered_at: number;
 	users: ConnectionUser[];
 	last_active_at: number | null;

@@ -46,6 +46,13 @@ class Client_Store {
 			grant_types        VARCHAR(500)    NOT NULL DEFAULT 'authorization_code',
 			response_types     VARCHAR(500)    NOT NULL DEFAULT 'code',
 			scope              VARCHAR(500)    NOT NULL DEFAULT '',
+			client_uri         VARCHAR(2048)   NULL DEFAULT NULL,
+			logo_uri           VARCHAR(2048)   NULL DEFAULT NULL,
+			tos_uri            VARCHAR(2048)   NULL DEFAULT NULL,
+			policy_uri         VARCHAR(2048)   NULL DEFAULT NULL,
+			contacts           TEXT            NULL DEFAULT NULL,
+			software_id        VARCHAR(255)    NULL DEFAULT NULL,
+			software_version   VARCHAR(255)    NULL DEFAULT NULL,
 			registered_at      INT UNSIGNED    NOT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY client_id (client_id),
@@ -82,9 +89,16 @@ class Client_Store {
 				'grant_types'        => implode( ' ', $data['grant_types'] ?? [ 'authorization_code' ] ),
 				'response_types'     => implode( ' ', $data['response_types'] ?? [ 'code' ] ),
 				'scope'              => $data['scope'] ?? '',
+				'client_uri'         => $data['client_uri'] ?? null,
+				'logo_uri'           => $data['logo_uri'] ?? null,
+				'tos_uri'            => $data['tos_uri'] ?? null,
+				'policy_uri'         => $data['policy_uri'] ?? null,
+				'contacts'           => isset( $data['contacts'] ) ? wp_json_encode( $data['contacts'] ) : null,
+				'software_id'        => $data['software_id'] ?? null,
+				'software_version'   => $data['software_version'] ?? null,
 				'registered_at'      => time(),
 			],
-			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		if ( false === $result ) {
@@ -259,6 +273,27 @@ class Client_Store {
 			$formats[]       = '%s';
 		}
 
+		foreach ( [ 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri' ] as $uri_field ) {
+			if ( array_key_exists( $uri_field, $data ) ) {
+				$fields[ $uri_field ] = ! empty( $data[ $uri_field ] ) ? esc_url_raw( (string) $data[ $uri_field ] ) : null;
+				$formats[]            = '%s';
+			}
+		}
+
+		if ( array_key_exists( 'contacts', $data ) ) {
+			$fields['contacts'] = is_array( $data['contacts'] ) && ! empty( $data['contacts'] )
+				? wp_json_encode( $data['contacts'] )
+				: null;
+			$formats[]          = '%s';
+		}
+
+		foreach ( [ 'software_id', 'software_version' ] as $str_field ) {
+			if ( array_key_exists( $str_field, $data ) ) {
+				$fields[ $str_field ] = ! empty( $data[ $str_field ] ) ? sanitize_text_field( (string) $data[ $str_field ] ) : null;
+				$formats[]            = '%s';
+			}
+		}
+
 		if ( empty( $fields ) ) {
 			return false;
 		}
@@ -314,6 +349,13 @@ class Client_Store {
 	 *   grant_types: string,
 	 *   response_types: string,
 	 *   scope: string,
+	 *   client_uri: string|null,
+	 *   logo_uri: string|null,
+	 *   tos_uri: string|null,
+	 *   policy_uri: string|null,
+	 *   contacts: array<string>,
+	 *   software_id: string|null,
+	 *   software_version: string|null,
 	 *   registered_at: int,
 	 * }
 	 */
@@ -331,6 +373,13 @@ class Client_Store {
 			'grant_types'        => (string) $row['grant_types'],
 			'response_types'     => (string) $row['response_types'],
 			'scope'              => (string) $row['scope'],
+			'client_uri'         => ! empty( $row['client_uri'] ) ? (string) $row['client_uri'] : null,
+			'logo_uri'           => ! empty( $row['logo_uri'] ) ? (string) $row['logo_uri'] : null,
+			'tos_uri'            => ! empty( $row['tos_uri'] ) ? (string) $row['tos_uri'] : null,
+			'policy_uri'         => ! empty( $row['policy_uri'] ) ? (string) $row['policy_uri'] : null,
+			'contacts'           => ! empty( $row['contacts'] ) ? ( json_decode( (string) $row['contacts'], true ) ?? [] ) : [],
+			'software_id'        => ! empty( $row['software_id'] ) ? (string) $row['software_id'] : null,
+			'software_version'   => ! empty( $row['software_version'] ) ? (string) $row['software_version'] : null,
 			'registered_at'      => (int) $row['registered_at'],
 		];
 	}

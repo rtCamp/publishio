@@ -66,28 +66,17 @@ export function useConnections() {
 	}, [ page, refreshKey ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
 	async function remove( id: number ): Promise< number > {
-		try {
-			const result = await connectionsApi.remove( id );
-			const newTotal = total - 1;
-			const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
-			const targetPage = Math.min( page, maxPage );
-			if ( targetPage !== page ) {
-				setPage( targetPage );
-			} else {
-				setRefreshKey( ( k ) => k + 1 );
-			}
-			setTotal( newTotal );
-			return result.tokens_deleted;
-		} catch {
-			createErrorNotice(
-				__(
-					'Failed to delete connection. Please try again.',
-					'rtcamp-publish-with-ai'
-				),
-				ERROR_OPTS
-			);
-			return 0;
+		const result = await connectionsApi.remove( id );
+		const newTotal = total - 1;
+		const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
+		const targetPage = Math.min( page, maxPage );
+		if ( targetPage !== page ) {
+			setPage( targetPage );
+		} else {
+			setRefreshKey( ( k ) => k + 1 );
 		}
+		setTotal( newTotal );
+		return result.tokens_deleted;
 	}
 
 	return {

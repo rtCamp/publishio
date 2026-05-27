@@ -91,28 +91,17 @@ export function useCredentials() {
 	}
 
 	async function remove( id: number ): Promise< number > {
-		try {
-			const result = await credentialsApi.remove( id );
-			const newTotal = total - 1;
-			const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
-			const targetPage = Math.min( page, maxPage );
-			if ( targetPage !== page ) {
-				setPage( targetPage );
-			} else {
-				setRefreshKey( ( k ) => k + 1 );
-			}
-			setTotal( newTotal );
-			return result.tokens_deleted;
-		} catch {
-			createErrorNotice(
-				__(
-					'Failed to delete credential. Please try again.',
-					'rtcamp-publish-with-ai'
-				),
-				ERROR_OPTS
-			);
-			return 0;
+		const result = await credentialsApi.remove( id );
+		const newTotal = total - 1;
+		const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
+		const targetPage = Math.min( page, maxPage );
+		if ( targetPage !== page ) {
+			setPage( targetPage );
+		} else {
+			setRefreshKey( ( k ) => k + 1 );
 		}
+		setTotal( newTotal );
+		return result.tokens_deleted;
 	}
 
 	return {

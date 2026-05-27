@@ -11,7 +11,16 @@
 }
 
 body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-family:
+		-apple-system,
+ BlinkMacSystemFont,
+ "Segoe UI",
+ Roboto,
+		Oxygen-Sans,
+ Ubuntu,
+ Cantarell,
+ "Helvetica Neue",
+ sans-serif;
 	background: #f0f0f1;
 	margin: 0;
 	padding: 40px 20px;
@@ -42,15 +51,10 @@ body {
 }
 
 .app-icon {
-	width: 56px;
-	height: 56px;
 	margin: 0 auto 16px;
-	background: #f0f6fc;
-	border-radius: 14px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #2271b1;
 }
 
 .consent-header h1 {
@@ -67,13 +71,15 @@ body {
 	line-height: 1.6;
 }
 
-.consent-header .site-link {
+.consent-header .site-link,
+.consent-header .client-link {
 	color: #2271b1;
 	font-weight: 600;
 	text-decoration: none;
 }
 
-.consent-header .site-link:hover {
+.consent-header .site-link:hover,
+.consent-header .client-link:hover {
 	text-decoration: underline;
 }
 
@@ -161,6 +167,12 @@ body {
 	font-size: 14px;
 	font-weight: 600;
 	color: #1d2327;
+}
+
+.server-desc {
+	font-size: 13px;
+	color: #50575e;
+	margin-top: 2px;
 }
 
 .server-url {
@@ -269,6 +281,22 @@ body {
 	font-size: 12px;
 	color: #a7aaad;
 	margin: 14px 0 0;
+}
+
+.footer-legal {
+	text-align: center;
+	font-size: 12px;
+	color: #a7aaad;
+	margin: 8px 0 0;
+}
+
+.footer-legal a {
+	color: #787c82;
+	text-decoration: none;
+}
+
+.footer-legal a:hover {
+	text-decoration: underline;
 }
 
 /* Responsive */

@@ -3,17 +3,22 @@
  * OAuth consent screen template.
  *
  * Variables provided by Authorize::render_consent_screen():
- *   $client_name   string  Display name of the OAuth client.
- *   $site_name     string  WordPress site name.
- *   $site_url      string  Home URL.
- *   $display_name  string  Current user display name.
- *   $user_email    string  Current user email.
- *   $scopes        string  Comma-separated scope string.
- *   $action_url    string  Form action URL.
- *   $hidden_fields string  Pre-rendered hidden input fields (unescaped).
- *   $css_url       string  URL to the consent stylesheet.
- *   $resource_url  string  MCP resource URL.
- *   $server_name   string  MCP server display name.
+ *   $client_name   string       Display name of the OAuth client.
+ *   $client_uri    string|null  URL to the client's homepage.
+ *   $logo_uri      string|null  URL to the client's logo image.
+ *   $tos_uri       string|null  URL to the client's Terms of Service.
+ *   $policy_uri    string|null  URL to the client's Privacy Policy.
+ *   $site_name     string       WordPress site name.
+ *   $site_url      string       Home URL.
+ *   $display_name  string       Current user display name.
+ *   $user_email    string       Current user email.
+ *   $scopes        string       Comma-separated scope string.
+ *   $action_url    string       Form action URL.
+ *   $hidden_fields string       Pre-rendered hidden input fields (unescaped).
+ *   $css_url       string       URL to the consent stylesheet.
+ *   $resource_url  string       MCP resource URL.
+ *   $server_name        string       MCP server display name.
+ *   $server_description string       MCP server description (empty string if none).
  *
  * @package rtCamp\Publish_With_AI
  */
@@ -25,16 +30,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @var string $client_name
- * @var string $site_name
- * @var string $site_url
- * @var string $display_name
- * @var string $user_email
- * @var string $css_url
- * @var string $action_url
- * @var string $hidden_fields
- * @var string $server_name
- * @var string $resource_url
+ * @var string      $client_name
+ * @var string|null $client_uri
+ * @var string|null $logo_uri
+ * @var string|null $tos_uri
+ * @var string|null $policy_uri
+ * @var string      $site_name
+ * @var string      $site_url
+ * @var string      $display_name
+ * @var string      $user_email
+ * @var string      $css_url
+ * @var string      $action_url
+ * @var string      $hidden_fields
+ * @var string      $server_name
+ * @var string      $server_description
+ * @var string      $resource_url
  */
 ?>
 <!DOCTYPE html>
@@ -48,14 +58,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 <body>
 	<div class="consent-card">
 		<div class="consent-header">
+			<?php if ( ! empty( $logo_uri ) ) : ?>
 			<div class="app-icon" aria-hidden="true">
-				<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-					<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-				</svg>
+				<img src="<?php echo esc_url( $logo_uri ); ?>" alt="<?php echo esc_attr( $client_name ); ?>" style="height:48px;max-width:120px;width:auto;object-fit:contain;" />
 			</div>
+			<?php endif; ?>
 			<h1><?php esc_html_e( 'Authorize Application', 'rtcamp-publish-with-ai' ); ?></h1>
 			<p class="subtitle">
-				<strong><?php echo esc_html( $client_name ); ?></strong>
+				<?php if ( ! empty( $client_uri ) ) : ?>
+					<strong><a href="<?php echo esc_url( $client_uri ); ?>" class="client-link" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $client_name ); ?></a></strong>
+				<?php else : ?>
+					<strong><?php echo esc_html( $client_name ); ?></strong>
+				<?php endif; ?>
 				<?php esc_html_e( 'is requesting access to', 'rtcamp-publish-with-ai' ); ?>
 				<a href="<?php echo esc_url( $site_url ); ?>" class="site-link" target="_blank" rel="noopener">
 					<?php echo esc_html( $site_name ); ?>
@@ -86,6 +100,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 					<div class="server-details">
 						<div class="server-name"><?php echo esc_html( $server_name ); ?></div>
+						<?php if ( ! empty( $server_description ) ) : ?>
+						<div class="server-desc"><?php echo esc_html( $server_description ); ?></div>
+						<?php endif; ?>
 						<div class="server-url"><code><?php echo esc_html( $resource_url ); ?></code></div>
 					</div>
 				</div>
@@ -115,6 +132,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p class="footer-note">
 				<?php esc_html_e( 'You can revoke access from your WordPress profile page.', 'rtcamp-publish-with-ai' ); ?>
 			</p>
+			<?php if ( ! empty( $tos_uri ) || ! empty( $policy_uri ) ) : ?>
+			<p class="footer-legal">
+				<?php if ( ! empty( $tos_uri ) ) : ?>
+					<a href="<?php echo esc_url( $tos_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Terms of Service', 'rtcamp-publish-with-ai' ); ?></a>
+				<?php endif; ?>
+				<?php if ( ! empty( $tos_uri ) && ! empty( $policy_uri ) ) : ?>
+					<span aria-hidden="true"> · </span>
+				<?php endif; ?>
+				<?php if ( ! empty( $policy_uri ) ) : ?>
+					<a href="<?php echo esc_url( $policy_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Privacy Policy', 'rtcamp-publish-with-ai' ); ?></a>
+				<?php endif; ?>
+			</p>
+			<?php endif; ?>
 		</form>
 	</div>
 </body>

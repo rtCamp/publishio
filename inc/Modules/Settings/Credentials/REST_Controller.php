@@ -77,17 +77,20 @@ class REST_Controller extends Abstract_REST_Controller {
 					'methods'             => 'PATCH',
 					'callback'            => [ $this, 'update_item' ],
 					'permission_callback' => [ $this, 'permissions_check' ],
-					'args'                => [
-						'id'          => [
-							'type'     => 'integer',
-							'required' => true,
+					'args'                => array_merge(
+						[
+							'id'          => [
+								'type'     => 'integer',
+								'required' => true,
+							],
+							'client_name' => [
+								'type'              => 'string',
+								'required'          => true,
+								'sanitize_callback' => 'sanitize_text_field',
+							],
 						],
-						'client_name' => [
-							'type'              => 'string',
-							'required'          => true,
-							'sanitize_callback' => 'sanitize_text_field',
-						],
-					],
+						self::get_optional_metadata_args()
+					),
 				],
 				[
 					'methods'             => \WP_REST_Server::DELETABLE,
@@ -195,6 +198,7 @@ class REST_Controller extends Abstract_REST_Controller {
 				'grant_types'        => [ 'authorization_code', 'refresh_token' ],
 				'response_types'     => [ 'code' ],
 				'scope'              => implode( ' ', Config::SUPPORTED_SCOPES ),
+				...$this->extract_optional_metadata( $request ),
 			]
 		);
 
@@ -266,7 +270,7 @@ class REST_Controller extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_client_name', __( 'Client name is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
 		}
 
-		$updated = Client_Store::update( $id, [ 'client_name' => $client_name ] );
+		$updated = Client_Store::update( $id, array_merge( [ 'client_name' => $client_name ], $this->extract_optional_metadata( $request ) ) );
 
 		if ( ! $updated ) {
 			return new \WP_Error( 'update_failed', __( 'Failed to update credential.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
@@ -279,6 +283,41 @@ class REST_Controller extends Abstract_REST_Controller {
 		}
 
 		return new WP_REST_Response( $client, 200 );
+	}
+
+	/**
+	 * Extract and sanitize optional RFC 7591 metadata fields from a request.
+	 *
+	 * @param \WP_REST_Request $request The request.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function extract_optional_metadata( \WP_REST_Request $request ): array {
+		$data = [];
+
+		foreach ( [ 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri' ] as $field ) {
+			$value = $request->get_param( $field );
+			if ( null !== $value ) {
+				$sanitized      = esc_url_raw( (string) $value );
+				$data[ $field ] = str_starts_with( $sanitized, 'https://' ) ? $sanitized : null;
+			}
+		}
+
+		$contacts_raw = $request->get_param( 'contacts' );
+		if ( null !== $contacts_raw ) {
+			$list             = is_array( $contacts_raw ) ? $contacts_raw : array_filter( array_map( 'trim', explode( ',', (string) $contacts_raw ) ) );
+			$data['contacts'] = array_values( array_slice( array_map( 'sanitize_text_field', $list ), 0, 10 ) );
+		}
+
+		foreach ( [ 'software_id', 'software_version' ] as $field ) {
+			$value = $request->get_param( $field );
+			if ( null !== $value ) {
+				$sanitized      = sanitize_text_field( (string) $value );
+				$data[ $field ] = '' !== $sanitized ? $sanitized : null;
+			}
+		}
+
+		return $data;
 	}
 
 	/**
@@ -341,16 +380,57 @@ class REST_Controller extends Abstract_REST_Controller {
 	 * @return array<string, array<string, mixed>>
 	 */
 	private function get_schema_args(): array {
-		return [
-			'client_name'   => [
-				'type'              => 'string',
-				'required'          => true,
-				'sanitize_callback' => 'sanitize_text_field',
+		return array_merge(
+			[
+				'client_name'   => [
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'redirect_uris' => [
+					'type'     => 'array',
+					'required' => true,
+					'items'    => [ 'type' => 'string' ],
+				],
 			],
-			'redirect_uris' => [
-				'type'     => 'array',
-				'required' => true,
-				'items'    => [ 'type' => 'string' ],
+			self::get_optional_metadata_args()
+		);
+	}
+
+	/**
+	 * Route arg definitions for optional RFC 7591 metadata fields.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function get_optional_metadata_args(): array {
+		return [
+			'client_uri'       => [
+				'type'     => 'string',
+				'required' => false,
+			],
+			'logo_uri'         => [
+				'type'     => 'string',
+				'required' => false,
+			],
+			'tos_uri'          => [
+				'type'     => 'string',
+				'required' => false,
+			],
+			'policy_uri'       => [
+				'type'     => 'string',
+				'required' => false,
+			],
+			'contacts'         => [
+				'type'     => [ 'string', 'array' ],
+				'required' => false,
+			],
+			'software_id'      => [
+				'type'     => 'string',
+				'required' => false,
+			],
+			'software_version' => [
+				'type'     => 'string',
+				'required' => false,
 			],
 		];
 	}

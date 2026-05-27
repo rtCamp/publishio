@@ -18,6 +18,7 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Connections_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Credentials_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Guide_Page;
+use rtCamp\Publish_With_AI\Modules\Settings\Pages\Settings_Page;
 
 /**
  * Class - Menu_Loader
@@ -33,6 +34,7 @@ final class Menu_Loader implements Registrable {
 		Guide_Page::class,
 		Connections_Page::class,
 		Credentials_Page::class,
+		Settings_Page::class,
 	];
 
 	/**

@@ -14,7 +14,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies
  */
 import type { OAuthCredentialFormData } from './types';
-import { getInvalidUris } from './utils';
+import { getInvalidUris, isValidHttpsUrl, getApiErrorMessage } from './utils';
 import { Notice } from '../shared/Notice';
 
 interface CreateCredentialModalProps {
@@ -80,6 +80,43 @@ export function CreateCredentialModal( {
 			return;
 		}
 
+		const urlFields: Array< { label: string; value: string } > = [
+			{
+				label: __( 'Website URL', 'rtcamp-publish-with-ai' ),
+				value: clientUri,
+			},
+			{
+				label: __( 'Logo URL', 'rtcamp-publish-with-ai' ),
+				value: logoUri,
+			},
+			{
+				label: __( 'Terms of Service URL', 'rtcamp-publish-with-ai' ),
+				value: tosUri,
+			},
+			{
+				label: __( 'Privacy Policy URL', 'rtcamp-publish-with-ai' ),
+				value: policyUri,
+			},
+		];
+
+		const invalidFields = urlFields
+			.filter( ( f ) => ! isValidHttpsUrl( f.value ) )
+			.map( ( f ) => f.label );
+
+		if ( invalidFields.length > 0 ) {
+			setError(
+				sprintf(
+					/* translators: %s: comma-separated list of field names */
+					__(
+						'Invalid URL in: %s. URLs must use https://.',
+						'rtcamp-publish-with-ai'
+					),
+					invalidFields.join( ', ' )
+				)
+			);
+			return;
+		}
+
 		setIsSaving( true );
 		setError( null );
 
@@ -91,16 +128,22 @@ export function CreateCredentialModal( {
 				logo_uri: logoUri.trim(),
 				tos_uri: tosUri.trim(),
 				policy_uri: policyUri.trim(),
-				contacts: contacts.trim(),
+				contacts: contacts.trim()
+					? contacts
+							.split( ',' )
+							.map( ( s ) => s.trim() )
+							.filter( Boolean )
+					: [],
 				software_id: softwareId.trim(),
 				software_version: softwareVersion.trim(),
 			} );
-		} catch {
+		} catch ( err ) {
 			setError(
-				__(
-					'Failed to create credential. Please try again.',
-					'rtcamp-publish-with-ai'
-				)
+				getApiErrorMessage( err ) ??
+					__(
+						'Failed to create credential. Please try again.',
+						'rtcamp-publish-with-ai'
+					)
 			);
 		} finally {
 			setIsSaving( false );

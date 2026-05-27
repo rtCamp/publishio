@@ -16,6 +16,7 @@ import type {
 	OAuthCredential,
 	CreatedOAuthCredential,
 	OAuthCredentialFormData,
+	UpdateCredentialPayload,
 } from './types';
 import { useCredentials, CREDENTIALS_NOTICES_CONTEXT } from './useCredentials';
 import { CredentialsTable } from './table/CredentialsTable';
@@ -53,17 +54,14 @@ export function CredentialsScreen() {
 		setCreatedCredential( created );
 	}
 
-	async function handleEdit(
-		credential: OAuthCredential,
-		clientName: string
-	) {
-		await update( credential.id, { client_name: clientName } );
+	async function handleEdit( data: UpdateCredentialPayload ) {
+		await update( editingCredential!.id, data );
 		setEditingCredential( null );
 		createSuccessNotice(
 			sprintf(
 				/* translators: %s: credential name */
 				__( '"%s" updated.', 'rtcamp-publish-with-ai' ),
-				clientName
+				data.client_name
 			),
 			snackbarOpts
 		);
@@ -130,9 +128,7 @@ export function CredentialsScreen() {
 			{ editingCredential && (
 				<EditCredentialModal
 					credential={ editingCredential }
-					onSave={ ( data ) =>
-						handleEdit( editingCredential, data.client_name )
-					}
+					onSave={ handleEdit }
 					onClose={ () => setEditingCredential( null ) }
 				/>
 			) }

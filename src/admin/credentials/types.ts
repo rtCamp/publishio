@@ -30,18 +30,18 @@ export interface OAuthCredentialFormData {
 	logo_uri: string;
 	tos_uri: string;
 	policy_uri: string;
-	contacts: string;
+	contacts: string[];
 	software_id: string;
 	software_version: string;
 }
 
 export interface UpdateCredentialPayload {
 	client_name: string;
-	client_uri?: string | undefined;
-	logo_uri?: string | undefined;
-	tos_uri?: string | undefined;
-	policy_uri?: string | undefined;
-	contacts?: string[] | undefined;
-	software_id?: string | undefined;
-	software_version?: string | undefined;
+	client_uri?: string | null;
+	logo_uri?: string | null;
+	tos_uri?: string | null;
+	policy_uri?: string | null;
+	contacts?: string[] | null;
+	software_id?: string | null;
+	software_version?: string | null;
 }

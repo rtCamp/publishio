@@ -8,12 +8,13 @@ import {
 	TextControl,
 	TextareaControl,
 } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
 import type { OAuthCredential, UpdateCredentialPayload } from './types';
+import { isValidHttpsUrl, getApiErrorMessage } from './utils';
 import { Notice } from '../shared/Notice';
 
 interface EditCredentialModalProps {
@@ -54,31 +55,69 @@ export function EditCredentialModal( {
 			return;
 		}
 
+		const urlFields: Array< { label: string; value: string } > = [
+			{
+				label: __( 'Website URL', 'rtcamp-publish-with-ai' ),
+				value: clientUri,
+			},
+			{
+				label: __( 'Logo URL', 'rtcamp-publish-with-ai' ),
+				value: logoUri,
+			},
+			{
+				label: __( 'Terms of Service URL', 'rtcamp-publish-with-ai' ),
+				value: tosUri,
+			},
+			{
+				label: __( 'Privacy Policy URL', 'rtcamp-publish-with-ai' ),
+				value: policyUri,
+			},
+		];
+
+		const invalidFields = urlFields
+			.filter( ( f ) => ! isValidHttpsUrl( f.value ) )
+			.map( ( f ) => f.label );
+
+		if ( invalidFields.length > 0 ) {
+			setError(
+				sprintf(
+					/* translators: %s: comma-separated list of field names */
+					__(
+						'Invalid URL in: %s. URLs must use https://.',
+						'rtcamp-publish-with-ai'
+					),
+					invalidFields.join( ', ' )
+				)
+			);
+			return;
+		}
+
 		setIsSaving( true );
 		setError( null );
 
 		try {
 			await onSave( {
 				client_name: clientName.trim(),
-				client_uri: clientUri.trim() || undefined,
-				logo_uri: logoUri.trim() || undefined,
-				tos_uri: tosUri.trim() || undefined,
-				policy_uri: policyUri.trim() || undefined,
+				client_uri: clientUri.trim() || null,
+				logo_uri: logoUri.trim() || null,
+				tos_uri: tosUri.trim() || null,
+				policy_uri: policyUri.trim() || null,
 				contacts: contacts.trim()
 					? contacts
 							.split( ',' )
 							.map( ( s ) => s.trim() )
 							.filter( Boolean )
-					: undefined,
-				software_id: softwareId.trim() || undefined,
-				software_version: softwareVersion.trim() || undefined,
+					: null,
+				software_id: softwareId.trim() || null,
+				software_version: softwareVersion.trim() || null,
 			} );
-		} catch {
+		} catch ( err ) {
 			setError(
-				__(
-					'Failed to update credential. Please try again.',
-					'rtcamp-publish-with-ai'
-				)
+				getApiErrorMessage( err ) ??
+					__(
+						'Failed to update credential. Please try again.',
+						'rtcamp-publish-with-ai'
+					)
 			);
 		} finally {
 			setIsSaving( false );
@@ -127,7 +166,10 @@ export function EditCredentialModal( {
 							credential.client_uri ||
 							credential.logo_uri ||
 							credential.tos_uri ||
-							credential.policy_uri
+							credential.policy_uri ||
+							credential.contacts?.length ||
+							credential.software_id ||
+							credential.software_version
 						)
 					}
 				>

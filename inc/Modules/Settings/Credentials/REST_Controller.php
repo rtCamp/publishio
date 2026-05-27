@@ -86,6 +86,7 @@ class REST_Controller extends Abstract_REST_Controller {
 							'client_name' => [
 								'type'              => 'string',
 								'required'          => true,
+								'minLength'         => 1,
 								'sanitize_callback' => 'sanitize_text_field',
 							],
 						],
@@ -182,10 +183,6 @@ class REST_Controller extends Abstract_REST_Controller {
 
 		$client_name = sanitize_text_field( (string) $request->get_param( 'client_name' ) );
 
-		if ( '' === $client_name ) {
-			return new \WP_Error( 'invalid_client_name', __( 'Client name is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
-		}
-
 		$secret      = wp_generate_password( 40, false );
 		$secret_hash = wp_hash_password( $secret );
 
@@ -266,10 +263,6 @@ class REST_Controller extends Abstract_REST_Controller {
 
 		$client_name = sanitize_text_field( (string) $request->get_param( 'client_name' ) );
 
-		if ( '' === $client_name ) {
-			return new \WP_Error( 'invalid_client_name', __( 'Client name is required.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
-		}
-
 		$updated = Client_Store::update( $id, array_merge( [ 'client_name' => $client_name ], $this->extract_optional_metadata( $request ) ) );
 
 		if ( ! $updated ) {
@@ -288,33 +281,42 @@ class REST_Controller extends Abstract_REST_Controller {
 	/**
 	 * Extract and sanitize optional RFC 7591 metadata fields from a request.
 	 *
+	 * Uses the raw JSON body to distinguish an absent key (skip update) from an
+	 * explicit null (clear the field). This is necessary because get_param()
+	 * returns null for both cases and cannot tell them apart.
+	 *
 	 * @param \WP_REST_Request $request The request.
 	 *
 	 * @return array<string, mixed>
 	 */
 	private function extract_optional_metadata( \WP_REST_Request $request ): array {
 		$data = [];
+		$json = $request->get_json_params() ?? [];
 
 		foreach ( [ 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri' ] as $field ) {
-			$value = $request->get_param( $field );
-			if ( null !== $value ) {
-				$sanitized      = esc_url_raw( (string) $value );
-				$data[ $field ] = str_starts_with( $sanitized, 'https://' ) ? $sanitized : null;
+			if ( ! array_key_exists( $field, $json ) ) {
+				continue;
 			}
+			$value          = $json[ $field ];
+			$data[ $field ] = null === $value || '' === (string) $value
+				? null
+				: esc_url_raw( (string) $value );
 		}
 
-		$contacts_raw = $request->get_param( 'contacts' );
-		if ( null !== $contacts_raw ) {
-			$list             = is_array( $contacts_raw ) ? $contacts_raw : array_filter( array_map( 'trim', explode( ',', (string) $contacts_raw ) ) );
-			$data['contacts'] = array_values( array_slice( array_map( 'sanitize_text_field', $list ), 0, 10 ) );
+		if ( array_key_exists( 'contacts', $json ) ) {
+			$raw              = $json['contacts'];
+			$data['contacts'] = null === $raw || [] === $raw
+				? null
+				: array_values( array_slice( array_map( 'sanitize_text_field', (array) $raw ), 0, 10 ) );
 		}
 
 		foreach ( [ 'software_id', 'software_version' ] as $field ) {
-			$value = $request->get_param( $field );
-			if ( null !== $value ) {
-				$sanitized      = sanitize_text_field( (string) $value );
-				$data[ $field ] = '' !== $sanitized ? $sanitized : null;
+			if ( ! array_key_exists( $field, $json ) ) {
+				continue;
 			}
+			$value          = $json[ $field ];
+			$sanitized      = null === $value ? '' : sanitize_text_field( (string) $value );
+			$data[ $field ] = '' !== $sanitized ? $sanitized : null;
 		}
 
 		return $data;
@@ -385,11 +387,13 @@ class REST_Controller extends Abstract_REST_Controller {
 				'client_name'   => [
 					'type'              => 'string',
 					'required'          => true,
+					'minLength'         => 1,
 					'sanitize_callback' => 'sanitize_text_field',
 				],
 				'redirect_uris' => [
 					'type'     => 'array',
 					'required' => true,
+					'minItems' => 1,
 					'items'    => [ 'type' => 'string' ],
 				],
 			],
@@ -403,33 +407,40 @@ class REST_Controller extends Abstract_REST_Controller {
 	 * @return array<string, mixed>
 	 */
 	private static function get_optional_metadata_args(): array {
+		$uri_arg = [
+			'type'              => [ 'string', 'null' ],
+			'required'          => false,
+			'validate_callback' => static function ( $value ) {
+				if ( null === $value || '' === (string) $value ) {
+					return true;
+				}
+				$parsed = wp_parse_url( (string) $value );
+				if ( false === $parsed || ! isset( $parsed['host'] ) ) {
+					return new \WP_Error( 'invalid_url', __( 'Value must be a valid URL.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
+				}
+				if ( 'https' !== strtolower( $parsed['scheme'] ?? '' ) ) {
+					return new \WP_Error( 'invalid_url_scheme', __( 'URL must use https://.', 'rtcamp-publish-with-ai' ), [ 'status' => 400 ] );
+				}
+				return true;
+			},
+		];
+
 		return [
-			'client_uri'       => [
-				'type'     => 'string',
-				'required' => false,
-			],
-			'logo_uri'         => [
-				'type'     => 'string',
-				'required' => false,
-			],
-			'tos_uri'          => [
-				'type'     => 'string',
-				'required' => false,
-			],
-			'policy_uri'       => [
-				'type'     => 'string',
-				'required' => false,
-			],
+			'client_uri'       => $uri_arg,
+			'logo_uri'         => $uri_arg,
+			'tos_uri'          => $uri_arg,
+			'policy_uri'       => $uri_arg,
 			'contacts'         => [
-				'type'     => [ 'string', 'array' ],
+				'type'     => [ 'array', 'null' ],
 				'required' => false,
+				'items'    => [ 'type' => 'string' ],
 			],
 			'software_id'      => [
-				'type'     => 'string',
+				'type'     => [ 'string', 'null' ],
 				'required' => false,
 			],
 			'software_version' => [
-				'type'     => 'string',
+				'type'     => [ 'string', 'null' ],
 				'required' => false,
 			],
 		];

@@ -15,8 +15,11 @@ import type {
 
 const REST_PATH = '/rtpwai/v1/credentials';
 
+export type CredentialPage = { items: OAuthCredential[]; total: number };
+
 export const credentialsApi = {
-	list: (): Promise< OAuthCredential[] > => apiFetch( { path: REST_PATH } ),
+	list: ( page: number ): Promise< CredentialPage > =>
+		apiFetch( { path: `${ REST_PATH }?page=${ page }` } ),
 
 	create: (
 		data: OAuthCredentialFormData

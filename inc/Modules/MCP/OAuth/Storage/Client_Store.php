@@ -17,6 +17,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
  */
 class Client_Store {
 	private const TABLE_SUFFIX = 'rtpwai_oauth_clients';
+	public const PAGE_SIZE     = 10;
 
 	/**
 	 * Get the full table name.
@@ -117,21 +118,24 @@ class Client_Store {
 	}
 
 	/**
-	 * Return clients filtered by source ('dcr' or 'cred'), newest first.
+	 * Return clients filtered by source ('dcr' or 'cred'), newest first, paginated.
 	 *
 	 * @param string $source The source value to filter by.
+	 * @param int    $offset Zero-based row offset for pagination.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	public static function all_by_source( string $source ): array {
+	public static function all_by_source( string $source, int $offset = 0 ): array {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE source = %s ORDER BY registered_at DESC LIMIT 100',
+				'SELECT * FROM %i WHERE source = %s ORDER BY registered_at DESC LIMIT %d OFFSET %d',
 				self::table_name(),
-				$source
+				$source,
+				self::PAGE_SIZE,
+				$offset
 			),
 			ARRAY_A
 		);
@@ -141,6 +145,26 @@ class Client_Store {
 		}
 
 		return array_map( [ self::class, 'parse_row' ], $rows );
+	}
+
+	/**
+	 * Count clients filtered by source.
+	 *
+	 * @param string $source The source value to filter by.
+	 */
+	public static function count_by_source( string $source ): int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE source = %s',
+				self::table_name(),
+				$source
+			)
+		);
+
+		return (int) $count;
 	}
 
 	/**

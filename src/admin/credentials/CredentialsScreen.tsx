@@ -24,7 +24,16 @@ import { EditCredentialModal } from './EditCredentialModal';
 import { CredentialCreatedDialog } from './CredentialCreatedDialog';
 
 export function CredentialsScreen() {
-	const { credentials, isLoading, create, update, remove } = useCredentials();
+	const {
+		credentials,
+		isLoading,
+		page,
+		setPage,
+		total,
+		create,
+		update,
+		remove,
+	} = useCredentials();
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
 
@@ -116,6 +125,9 @@ export function CredentialsScreen() {
 			<CredentialsTable
 				credentials={ credentials }
 				isLoading={ isLoading }
+				page={ page }
+				total={ total }
+				onPageChange={ setPage }
 				onEdit={ setEditingCredential }
 				onDelete={ handleDelete }
 			/>

@@ -15,7 +15,8 @@ import { useConnections, CONNECTIONS_NOTICES_CONTEXT } from './useConnections';
 import { ConnectionsTable } from './table/ConnectionsTable';
 
 export function ConnectionsScreen() {
-	const { connections, isLoading, remove } = useConnections();
+	const { connections, isLoading, page, setPage, total, remove } =
+		useConnections();
 	const { createSuccessNotice } = useDispatch( noticesStore );
 
 	async function handleDelete( connection: OAuthConnection ) {
@@ -54,6 +55,9 @@ export function ConnectionsScreen() {
 			<ConnectionsTable
 				connections={ connections }
 				isLoading={ isLoading }
+				page={ page }
+				total={ total }
+				onPageChange={ setPage }
 				onDelete={ handleDelete }
 			/>
 

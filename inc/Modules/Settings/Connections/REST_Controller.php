@@ -45,6 +45,14 @@ class REST_Controller extends Abstract_REST_Controller {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'get_items' ],
 				'permission_callback' => [ $this, 'permissions_check' ],
+				'args'                => [
+					'page' => [
+						'type'              => 'integer',
+						'default'           => 1,
+						'minimum'           => 1,
+						'sanitize_callback' => 'absint',
+					],
+				],
 			]
 		);
 
@@ -66,15 +74,35 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * GET /connections — list auto-registered connections only.
+	 * GET /connections — list auto-registered connections only (paginated, page size fixed at 10).
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
-	public function get_items( $request ): WP_REST_Response { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
-		$connections = Client_Store::all_by_source( 'dcr' );
+	public function get_items( $request ): WP_REST_Response {
+		$page   = max( 1, (int) $request->get_param( 'page' ) );
+		$offset = ( $page - 1 ) * Client_Store::PAGE_SIZE;
+		$total  = Client_Store::count_by_source( 'dcr' );
+
+		if ( 0 === $total ) {
+			return new WP_REST_Response(
+				[
+					'items' => [],
+					'total' => 0,
+				],
+				200
+			);
+		}
+
+		$connections = Client_Store::all_by_source( 'dcr', $offset );
 
 		if ( empty( $connections ) ) {
-			return new WP_REST_Response( [], 200 );
+			return new WP_REST_Response(
+				[
+					'items' => [],
+					'total' => $total,
+				],
+				200
+			);
 		}
 
 		// Query 1: user IDs + last active time per client, all in one hit.
@@ -113,7 +141,13 @@ class REST_Controller extends Abstract_REST_Controller {
 		}
 		unset( $connection );
 
-		return new WP_REST_Response( $connections, 200 );
+		return new WP_REST_Response(
+			[
+				'items' => $connections,
+				'total' => $total,
+			],
+			200
+		);
 	}
 
 	/**

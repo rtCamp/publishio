@@ -51,6 +51,14 @@ class REST_Controller extends Abstract_REST_Controller {
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => [ $this, 'get_items' ],
 					'permission_callback' => [ $this, 'permissions_check' ],
+					'args'                => [
+						'page' => [
+							'type'              => 'integer',
+							'default'           => 1,
+							'minimum'           => 1,
+							'sanitize_callback' => 'absint',
+						],
+					],
 				],
 				[
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -97,15 +105,35 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * GET /credentials — list admin-managed credentials.
+	 * GET /credentials — list admin-managed credentials (paginated, page size fixed at 10).
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
-	public function get_items( $request ): WP_REST_Response { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
-		$credentials = Client_Store::all_by_source( 'cred' );
+	public function get_items( $request ): WP_REST_Response {
+		$page   = max( 1, (int) $request->get_param( 'page' ) );
+		$offset = ( $page - 1 ) * Client_Store::PAGE_SIZE;
+		$total  = Client_Store::count_by_source( 'cred' );
+
+		if ( 0 === $total ) {
+			return new WP_REST_Response(
+				[
+					'items' => [],
+					'total' => 0,
+				],
+				200
+			);
+		}
+
+		$credentials = Client_Store::all_by_source( 'cred', $offset );
 
 		if ( empty( $credentials ) ) {
-			return new WP_REST_Response( [], 200 );
+			return new WP_REST_Response(
+				[
+					'items' => [],
+					'total' => $total,
+				],
+				200
+			);
 		}
 
 		$client_ids = array_column( $credentials, 'client_id' );
@@ -117,7 +145,13 @@ class REST_Controller extends Abstract_REST_Controller {
 		}
 		unset( $credential );
 
-		return new WP_REST_Response( $credentials, 200 );
+		return new WP_REST_Response(
+			[
+				'items' => $credentials,
+				'total' => $total,
+			],
+			200
+		);
 	}
 
 	/**

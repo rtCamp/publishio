@@ -16,6 +16,7 @@ import type {
 	UpdateCredentialPayload,
 } from './types';
 import { credentialsApi } from './api';
+import { PAGE_SIZE } from '../constants';
 
 export const CREDENTIALS_NOTICES_CONTEXT = 'rtpwai/credentials';
 
@@ -28,6 +29,9 @@ const ERROR_OPTS = {
 export function useCredentials() {
 	const [ credentials, setCredentials ] = useState< OAuthCredential[] >( [] );
 	const [ isLoading, setIsLoading ] = useState( true );
+	const [ page, setPage ] = useState( 1 );
+	const [ total, setTotal ] = useState( 0 );
+	const [ refreshKey, setRefreshKey ] = useState( 0 );
 
 	const { createErrorNotice } = useDispatch( noticesStore );
 
@@ -37,10 +41,11 @@ export function useCredentials() {
 		setIsLoading( true );
 
 		credentialsApi
-			.list()
-			.then( ( data ) => {
+			.list( page )
+			.then( ( { items, total: count } ) => {
 				if ( ! cancelled ) {
-					setCredentials( data );
+					setCredentials( items );
+					setTotal( count );
 				}
 			} )
 			.catch( () => {
@@ -63,13 +68,15 @@ export function useCredentials() {
 		return () => {
 			cancelled = true;
 		};
-	}, [] ); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [ page, refreshKey ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
 	async function create(
 		data: OAuthCredentialFormData
 	): Promise< CreatedOAuthCredential > {
 		const created = await credentialsApi.create( data );
-		setCredentials( ( prev ) => [ ...prev, created ] );
+		// New items are newest-first, so go to page 1 and force a re-fetch.
+		setPage( 1 );
+		setRefreshKey( ( k ) => k + 1 );
 		return created;
 	}
 
@@ -86,7 +93,15 @@ export function useCredentials() {
 	async function remove( id: number ): Promise< number > {
 		try {
 			const result = await credentialsApi.remove( id );
-			setCredentials( ( prev ) => prev.filter( ( c ) => c.id !== id ) );
+			const newTotal = total - 1;
+			const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
+			const targetPage = Math.min( page, maxPage );
+			if ( targetPage !== page ) {
+				setPage( targetPage );
+			} else {
+				setRefreshKey( ( k ) => k + 1 );
+			}
+			setTotal( newTotal );
 			return result.tokens_deleted;
 		} catch {
 			createErrorNotice(
@@ -100,5 +115,15 @@ export function useCredentials() {
 		}
 	}
 
-	return { credentials, isLoading, create, update, remove };
+	return {
+		credentials,
+		isLoading,
+		page,
+		setPage,
+		total,
+		pageSize: PAGE_SIZE,
+		create,
+		update,
+		remove,
+	};
 }

@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { useState } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { DataViews, filterSortAndPaginate } from '@wordpress/dataviews';
 import type { View, Action, Field } from '@wordpress/dataviews';
@@ -16,17 +16,18 @@ import { LastActiveField } from '../../shared/table/fields/LastActiveField';
 import { UsersField } from './fields/UsersField';
 import { EmptyState } from '../../shared/EmptyState';
 import { DeleteConnectionDialog } from '../DeleteConnectionDialog';
+import { PAGE_SIZE } from '../../constants';
 
 const DEFAULT_VIEW: View = {
 	type: 'table',
 	page: 1,
-	perPage: 10,
+	perPage: PAGE_SIZE,
 	sort: { field: 'client_name', direction: 'asc' },
 	fields: [ 'client_name', 'users', 'registered_at', 'last_active_at' ],
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
-const DEFAULT_CONFIG = { perPageSizes: [ 10 ] };
+const DEFAULT_CONFIG = { perPageSizes: [ PAGE_SIZE ] };
 
 const connectionFields: Field< OAuthConnection >[] = [
 	{
@@ -67,15 +68,26 @@ const connectionFields: Field< OAuthConnection >[] = [
 interface ConnectionsTableProps {
 	connections: OAuthConnection[];
 	isLoading: boolean;
+	page: number;
+	total: number;
+	onPageChange: ( page: number ) => void;
 	onDelete: ( connection: OAuthConnection ) => Promise< void >;
 }
 
 export function ConnectionsTable( {
 	connections,
 	isLoading,
+	page,
+	total,
+	onPageChange,
 	onDelete,
 }: ConnectionsTableProps ) {
-	const [ view, setView ] = useState< View >( DEFAULT_VIEW );
+	const [ view, setView ] = useState< View >( { ...DEFAULT_VIEW, page } );
+
+	// Sync external page changes (e.g. after delete navigates back a page).
+	useEffect( () => {
+		setView( ( prev ) => ( { ...prev, page } ) );
+	}, [ page ] );
 
 	const actions: Action< OAuthConnection >[] = [
 		{
@@ -96,11 +108,17 @@ export function ConnectionsTable( {
 		},
 	];
 
-	const { data: processedData, paginationInfo } = filterSortAndPaginate(
+	// Sort/search within the current page; disable re-pagination (server owns that).
+	const { data: processedData } = filterSortAndPaginate(
 		connections,
-		view,
+		{ ...view, page: 1, perPage: connections.length || 1 },
 		connectionFields
 	);
+
+	const paginationInfo = {
+		totalItems: total,
+		totalPages: Math.ceil( total / PAGE_SIZE ),
+	};
 
 	return (
 		<div className="p-6">
@@ -108,9 +126,13 @@ export function ConnectionsTable( {
 				data={ processedData }
 				fields={ connectionFields }
 				view={ view }
-				onChangeView={ ( next ) =>
-					setView( { ...next, page: 1, perPage: 10 } )
-				}
+				onChangeView={ ( next ) => {
+					const nextPage = next.page ?? 1;
+					setView( { ...next, perPage: PAGE_SIZE } );
+					if ( nextPage !== page ) {
+						onPageChange( nextPage );
+					}
+				} }
 				actions={ actions }
 				getItemId={ ( item ) => String( item.id ) }
 				isLoading={ isLoading }

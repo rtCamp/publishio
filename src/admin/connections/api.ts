@@ -10,8 +10,11 @@ import type { OAuthConnection } from './types';
 
 const REST_PATH = '/rtpwai/v1/connections';
 
+export type ConnectionPage = { items: OAuthConnection[]; total: number };
+
 export const connectionsApi = {
-	list: (): Promise< OAuthConnection[] > => apiFetch( { path: REST_PATH } ),
+	list: ( page: number ): Promise< ConnectionPage > =>
+		apiFetch( { path: `${ REST_PATH }?page=${ page }` } ),
 
 	remove: ( id: number ): Promise< { tokens_deleted: number } > =>
 		apiFetch( { path: `${ REST_PATH }/${ id }`, method: 'DELETE' } ),

@@ -6,7 +6,8 @@
 	"config": {
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true,
-			"phpstan/extension-installer": true
+			"phpstan/extension-installer": true,
+			"cweagans/composer-patches": true
 		},
 		"platform": {
 			"php": "8.2"
@@ -33,6 +34,7 @@
 	],
 	"require": {
 		"php": "^8.2",
+		"cweagans/composer-patches": "^2.0",
 		"wordpress/mcp-adapter": "0.5.0"
 	},
 	"require-dev": {
@@ -53,5 +55,12 @@
 		"phpstan": "phpstan analyse --memory-limit=1G",
 		"test": "vendor/bin/phpunit -c phpunit.xml.dist",
 		"test-multisite": "WP_MULTISITE=1 phpunit --exclude-group=ms-excluded"
+	},
+	"extra": {
+		"patches": {
+			"wordpress/mcp-adapter": {
+				"Pass _meta through resource content DTOs": "patches/wordpress-mcp-adapter-resource-contents-meta.patch"
+			}
+		}
 	}
 }

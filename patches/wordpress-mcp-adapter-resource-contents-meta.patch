@@ -1,0 +1,10 @@
+--- a/includes/Handlers/Resources/ResourcesHandler.php	2026-04-14 17:42:58
++++ b/includes/Handlers/Resources/ResourcesHandler.php	2026-05-28 17:05:35
+@@ -275,6 +275,7 @@
+ 				'uri'      => $item_uri,
+ 				'text'     => (string) $text,
+ 				'mimeType' => is_string( $mime_type ) ? $mime_type : null,
++				'_meta'    => $item['_meta'] ?? null,
+ 			)
+ 		);
+ 	}

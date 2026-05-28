@@ -1,0 +1,17 @@
+{
+	"_hash": "8a020f07d30b742115f4bb1f1c6753380687bce16740ac1973adfdd4c31fa612",
+	"patches": {
+		"wordpress/mcp-adapter": [
+			{
+				"package": "wordpress/mcp-adapter",
+				"description": "Pass _meta through resource content DTOs",
+				"url": "patches/wordpress-mcp-adapter-resource-contents-meta.patch",
+				"sha256": "712e98b118606ac8b43d18c641f8f0d370ef3264f8b1c470f856c28b440d9cf7",
+				"depth": 1,
+				"extra": {
+					"provenance": "root"
+				}
+			}
+		]
+	}
+}

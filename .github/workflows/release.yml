@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -31,7 +33,7 @@ jobs:
     permissions:
       contents: read
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
@@ -41,6 +43,7 @@ jobs:
   upload:
     name: Upload release asset
     needs: [release-please, build]
+    if: ${{ needs.release-please.outputs.release_created || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -58,4 +61,9 @@ jobs:
       - name: Upload release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ needs.release-please.outputs.tag_name }} rtcamp-publish-with-ai.zip --clobber --repo ${{ github.repository }}
+        run: |
+          TAG_NAME="${{ needs.release-please.outputs.tag_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          gh release upload "$TAG_NAME" rtcamp-publish-with-ai.zip --clobber --repo ${{ github.repository }}

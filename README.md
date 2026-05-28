@@ -8,7 +8,9 @@
 
 ---
 
-Publish WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content.
+Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content.
+
+[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publishwithai/releases/latest/download/rtcamp-publish-with-ai.zip)
 
 ## 👥 Contributors
 

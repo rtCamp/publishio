@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/rtCamp/publishwithai/compare/v0.2.0...v0.2.1) (2026-05-28)
+
+
+### Miscellaneous Chores
+
+* reset version to 0.2.0 ([8d56032](https://github.com/rtCamp/publishwithai/commit/8d56032059fc397931e956b197a14619e523da1e))
+
 ## [0.3.0](https://github.com/rtCamp/publishwithai/compare/v0.2.0...v0.3.0) (2026-05-28)
 
 

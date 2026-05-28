@@ -6,6 +6,7 @@
 			"changelog-path": "CHANGELOG.md",
 			"include-v-in-tag": true,
 			"bump-minor-pre-major": true,
+			"include-github-external-contributors": true,
 			"header": "[<img src=\"https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github\" alt=\"Download Now\" height=\"40\">](https://github.com/rtCamp/publishwithai/releases/latest/download/rtcamp-publish-with-ai.zip)\n"
 		}
 	}

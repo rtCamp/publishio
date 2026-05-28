@@ -69,19 +69,13 @@ Code contributions, bug reports, and feature requests are welcome! The following
 │   # PHP source files (plugin-specific code).
 ├── inc/
 │   ├── Core/
-│   │   ├── Assets.php    # Registers scripts, styles, blocks.
+│   │   ├── Assets.php    # Registers scripts, styles.
 │   │   └── Templates.php # Template loader and helper functions.
 │   │
 │   ├── Modules/
-│   │   ├── CLI/   # wp-cli command definitions.
-│   │   ├── Example/   # Example module.
-│   │   │   ├── Example_Post_Type.php
-│   │   │   ├── Example_Taxonomy.php
-│   │   │   ├── Example_Post_Type_Meta.php
-│   │   │   └── Example_REST_Controller.php
-│   │   └── Settings/ # Settings module.
-│   │       ├── Settings.php
-│   │       └── Admin_Screen.php
+│   │   ├── MCP/        # Model Context Protocol abilities.
+│   │   ├── Screenshot/ # Screenshot generation API.
+│   │   └── Settings/   # Plugin settings and connections.
 │   │
 │   ├── Autoloader.php # PSR-4 autoloader.
 │   └── Main.php # Main plugin entrypoint.
@@ -91,17 +85,9 @@ Code contributions, bug reports, and feature requests are welcome! The following
 ├── templates/ # Reusable PHP templates and partials.
 │
 │   # Scripts and styles that are compiled by webpack to `build/`.
-│   # Each root directory is a separate entry point to a WordPress-registerable asset.
 ├── src/
 │   ├── admin/          # Admin UI entrypoint.
-│   ├── editor/         # Editor UI entrypoint.
-│   ├── example-module/ # Example module entrypoint.
-│   ├── frontend/       # Frontend UI entrypoint.
-│   ├── global-styles/  # Global styles.
-│   └── blocks/         # Gutenberg blocks.
-│       ├── dynamic-block/     # Example dynamic block with server-side rendering.
-│       ├── interactive-block/ # Example block using @wordpress/interactivity API.
-│       └── static-block/      # Example static block.
+│   └── tailwind.scss   # Global tailwind styles.
 │
 │   # Tests
 ├── tests/
@@ -169,6 +155,7 @@ Code contributions, bug reports, and feature requests are welcome! The following
 
 ### Prerequisites
 
+- **WordPress 7.0** (or the [official WordPress AI plugin](https://wordpress.org/plugins/ai/) for versions below 7.0)
 - [Node.js](https://nodejs.org/): v22.21.1+ ([NVM](https://nvm.sh/) recommended)
 - npm: v10.9.4+
 - [Docker](https://www.docker.com/)
@@ -181,7 +168,7 @@ You can use Docker and the `wp-env` tool to set up a local development environme
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/justlevine/rtcamp-publish-with-ai.git
+   git clone https://github.com/rtCamp/publishwithai.git
    ```
 
 2. Change into the project folder and install the NPM dependencies.

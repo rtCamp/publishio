@@ -21,18 +21,16 @@ framework/
 │   # Contracts set expectations for how classes should be structured and interact with each other.
 ├── Contracts/
 │   ├── Abstracts/
-│   │   ├── Abstract_Post_Type.php
-│   │   ├── Abstract_REST_Controller.php
-│   │   └── Abstract_Taxonomy.php
+│   │   ├── Abstract_Admin_Page.php
+│   │   └── Abstract_REST_Controller.php
 │   ├── Interfaces/
-│   │   ├── CLI_Command.php # WordPress CLI command classes.
 │   │   └── Registrable.php # Classes that hook into WordPress with actions/filters.
 │   └── Traits/
 │       └── Singleton.php   # Singleton antipattern.
 │
 │   # Core framework traits and utility classes are designed to be composable and overloadable.
-├── AssetLoaderTrait.php    # Trait for loading assets (scripts/styles/blocks).
-├── AutoloaderTrait.php     # Trait for Composer autoloader.
+├── AssetLoaderTrait.php    # Trait for loading assets (scripts/styles).
+├── AutoloaderTrait.php     # Trait for PSR-4 autoloader.
 ├── Encryptor.php           # Simple encryption/decryption utility class.
 └── TemplateLoaderTrait.php # Trait for (over-)loading plugin template parts
 

@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Publish with AI! We welcome contr
 
 ## Code of Conduct
 
-Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md) to ensure a welcoming environment for all contributors. If you encounter any issues or wish to report a concern, please email us at [marketing@rtcamp.com](mailto:marketing@rtcamp.com).
+Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md) to ensure a welcoming environment for all contributors. If you encounter any issues or wish to report a concern, please email us at [security@rtcamp.com](mailto:security@rtcamp.com).
 
 ## How to Contribute
 
@@ -12,7 +12,7 @@ Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md) to ensure a w
 
 > [!IMPORTANT]
 >
-> **Do not report potential security vulnerabilities in the public GitHub repository.** Instead, please email us at [marketing@rtcamp.com](mailto:marketing@rtcamp.com).
+> **Do not report potential security vulnerabilities in the public GitHub repository.** Instead, please email us at [security@rtcamp.com](mailto:security@rtcamp.com).
 >
 > For more information, refer to our [Security Policy](./SECURITY.md).
 

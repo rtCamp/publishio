@@ -15,17 +15,9 @@ jobs:
     runs-on: [high-performance]
     container:
       image: ghcr.io/actions/actions-runner@sha256:1ad983536759ceec39ed75a2c8f007ca8c37b66eee35ed86f13623b29a4db97d # v2.333.0
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - /tmp/wp-env:/tmp/wp-env
 
     permissions:
       contents: read
-
-    env:
-      # Per-job subdir under the shared /tmp/wp-env mount keeps concurrent jobs on the
-      # same self-hosted host from colliding on wp-env's md5(project_path) instance dir.
-      WP_ENV_HOME: /tmp/wp-env/${{ github.run_id }}-${{ github.run_attempt }}-build
 
     timeout-minutes: 30
 
@@ -33,21 +25,8 @@ jobs:
       - name: Magic thing needed becuase of github as it bind mounts __temp
         run: |
           sudo apt update && sudo apt install -y acl
-          sudo setfacl -R -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
-          sudo setfacl -R -d -m u:runner:rwX /__w /github/home /github/workflow /tmp/wp-env
-          mkdir -p "$WP_ENV_HOME"
-
-      - name: Configure Docker group permissions
-        run: |
-          SOCK_GID=$(stat -c '%g' /var/run/docker.sock)
-          sudo groupmod -g $SOCK_GID -o docker
-          sudo usermod -aG $SOCK_GID runner
-
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
-        with:
-          version: latest
-          cache-binary: true
+          sudo setfacl -R -m u:runner:rwX /__w /github/home /github/workflow
+          sudo setfacl -R -d -m u:runner:rwX /__w /github/home /github/workflow
 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -79,40 +58,10 @@ jobs:
       - name: Build plugin for release
         run: npm run build
 
-      - name: Pick wp-env port
-        id: pick-port
-        uses: ./.github/actions/find-free-port
-
-      - name: Fix wp-env host mapping
-        run: |
-          # Get the host path for the workspace by inspecting the container's own mounts
-          HOST_WORKSPACE_PATH=$(docker inspect $(hostname) --format '{{ range .Mounts }}{{ if eq .Destination "/__w" }}{{ .Source }}{{ end }}{{ end }}')
-
-          # Construct the full host path for the current plugin directory
-          RELATIVE_PATH=$(pwd | sed 's|^/__w||')
-          PLUGIN_HOST_PATH="${HOST_WORKSPACE_PATH}${RELATIVE_PATH}"
-
-          echo "Host Workspace: $HOST_WORKSPACE_PATH"
-          echo "Plugin Host Path: $PLUGIN_HOST_PATH"
-          echo "Using wp-env port: ${{ steps.pick-port.outputs.port }}"
-
-          # Update .wp-env.json (default env)
-          jq --arg path "$PLUGIN_HOST_PATH" \
-             --argjson port "${{ steps.pick-port.outputs.port }}" \
-             '.plugins = ["https://downloads.wordpress.org/plugin/ai.zip"] | .mappings["wp-content/plugins/rtcamp-publish-with-ai"] = $path | .port = $port' \
-             .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
-
-          cat .wp-env.json
-
-      - name: Start the Docker testing environment
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: npm run wp-env start -- --update
-
       - name: Generate Translation files
-        run: npm run i18n:make-pot
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          php wp-cli.phar i18n make-pot . ./languages/rtcamp-publish-with-ai.pot --domain=rtcamp-publish-with-ai --include="*.php,inc,framework,src,templates" --exclude="assets,build,build-apps,node_modules,tests,vendor"
 
       - name: Create plugin zip
         run: npm run plugin-zip
@@ -123,10 +72,6 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: rtcamp-publish-with-ai.zip
           if-no-files-found: error
-
-      - name: Stop the Docker testing environment
-        if: always()
-        run: npm run wp-env destroy -- --force
 
       - name: Cleanup Workspace & Home to avoid pollution
         if: always()
@@ -143,6 +88,3 @@ jobs:
 
           sudo rm -rf /github/workflow/* || true
           sudo rm -rf /github/workflow/.* 2>/dev/null || true
-
-          # Empty only this job's wp-env directory, not the shared parent.
-          sudo rm -rf "$WP_ENV_HOME" || true

@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 7.0
 Tested up to:      7.0.0
-Stable tag:        0.0.1
+Stable tag:        0.2.0
 
 Publish WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content.
 

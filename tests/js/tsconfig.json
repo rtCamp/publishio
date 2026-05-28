@@ -16,5 +16,10 @@
 		"../../src/**/*.spec.ts",
 		"../../src/**/*.spec.tsx"
 	],
-	"exclude": [ "../../node_modules", "../../build", "../../vendor" ]
+	"exclude": [
+		"../../node_modules",
+		"../../build",
+		"../../build-apps",
+		"../../vendor"
+	]
 }

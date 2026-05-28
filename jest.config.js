@@ -43,6 +43,7 @@ module.exports = {
 	testPathIgnorePatterns: [
 		'/node_modules/',
 		'/build/',
+		'/build-apps/',
 		'/vendor/',
 		'/tests/e2e/',
 		'/tests/php/',

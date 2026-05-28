@@ -44,4 +44,36 @@ class App extends McpAppResource {
 	protected function template_dir(): string {
 		return __DIR__;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The pattern preview iframe runs wp_head()/wp_footer() which load
+	 * emoji SVGs and potentially theme fonts from these CDNs.
+	 */
+	protected function resource_domains(): array {
+		return [
+			'https://s.w.org', // WordPress emoji SVGs (twemoji).
+			'https://fonts.googleapis.com',
+			'https://fonts.gstatic.com',
+		];
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Reads the webpack-built index.html and substitutes the %%PLUGIN_URL%%
+	 * placeholder with the real asset base URL so <link>/<script> tags resolve.
+	 */
+	protected function build_html(): string {
+		$build_file = RTCAMP_PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval/index.html';
+
+		if ( ! is_readable( $build_file ) ) {
+			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build:js</code> to generate the Pattern Approval app.</body></html>';
+		}
+
+		$plugin_url = RTCAMP_PUBLISH_WITH_AI_URL . 'build-apps';
+
+		return str_replace( '%%PLUGIN_URL%%', $plugin_url, (string) file_get_contents( $build_file ) );
+	}
 }

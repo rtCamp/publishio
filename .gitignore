@@ -18,6 +18,7 @@ Thumbs.db
 
 # Build output
 build/
+build-apps/
 
 # Generated language files
 /languages/*

@@ -24,6 +24,7 @@
 	],
 	"exclude": [
 		"**/build/*",
+		"**/build-apps/*",
 		"vendor/*",
 		"node_modules/*",
 		"eslint.config.mjs"

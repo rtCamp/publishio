@@ -16,7 +16,6 @@ declare( strict_types = 1 );
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<base href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank">
 	<?php wp_head(); ?>
 	<style>
 		body { background: transparent !important; margin: 0; padding: 0; }

@@ -1,5 +1,6 @@
 ## Ignore build and dependency directories
 /build
+/build-apps
 /node_modules
 /tests
 /vendor

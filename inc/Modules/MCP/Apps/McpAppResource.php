@@ -39,6 +39,57 @@ abstract class McpAppResource {
 	abstract protected function template_dir(): string;
 
 	/**
+	 * Additional origins beyond site_url() to allow for network requests (connect-src).
+	 *
+	 * @return string[]
+	 */
+	protected function connect_domains(): array {
+		return [];
+	}
+
+	/**
+	 * Additional origins beyond site_url() to allow for static resources
+	 * (script-src, style-src, img-src, font-src, media-src).
+	 *
+	 * @return string[]
+	 */
+	protected function resource_domains(): array {
+		return [];
+	}
+
+	/**
+	 * Additional origins beyond site_url() to allow for nested iframes (frame-src).
+	 *
+	 * @return string[]
+	 */
+	protected function frame_domains(): array {
+		return [];
+	}
+
+	/**
+	 * Additional origins beyond site_url() to allow for <base> href.
+	 *
+	 * @return string[]
+	 */
+	protected function base_uri_domains(): array {
+		return [];
+	}
+
+	/**
+	 * Build the CSP config array, merging site_url() with any subclass-declared domains.
+	 *
+	 * @return array<string, string[]>
+	 */
+	private function csp(): array {
+		return [
+			'connectDomains'  => array_values( array_unique( array_merge( [ site_url() ], $this->connect_domains() ) ) ),
+			'resourceDomains' => array_values( array_unique( array_merge( [ site_url() ], $this->resource_domains() ) ) ),
+			'frameDomains'    => array_values( array_unique( array_merge( [ site_url() ], $this->frame_domains() ) ) ),
+			'baseUriDomains'  => array_values( array_unique( array_merge( [ site_url() ], $this->base_uri_domains() ) ) ),
+		];
+	}
+
+	/**
 	 * Register this resource into the MCP server config array.
 	 *
 	 * @param array<string, mixed> $config MCP server config.
@@ -46,6 +97,7 @@ abstract class McpAppResource {
 	 */
 	public function add_resource( array $config ): array {
 		$uri      = $this->uri();
+		$csp      = $this->csp();
 		$resource = McpResource::fromArray(
 			[
 				'uri'         => $uri,
@@ -58,6 +110,7 @@ abstract class McpAppResource {
 						'uri'      => $uri,
 						'mimeType' => 'text/html;profile=mcp-app',
 						'text'     => $this->build_html(),
+						'_meta'    => [ 'ui' => [ 'csp' => $csp ] ],
 					],
 				],
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),

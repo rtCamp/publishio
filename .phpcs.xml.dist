@@ -16,6 +16,7 @@
 
 	<!-- These are excluded from the above paths.-->
 	<exclude-pattern>**/build/**</exclude-pattern>
+	<exclude-pattern>**/build-apps/**</exclude-pattern>
 	<exclude-pattern>**/node_modules/**</exclude-pattern>
 	<exclude-pattern>**/vendor/**</exclude-pattern>
 

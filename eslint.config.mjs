@@ -7,6 +7,7 @@ export default [
 		ignores: [
 			'**/*.min.js',
 			'build/**',
+			'build-apps/**',
 			'node_modules/**',
 			'tests/_output/**',
 			'vendor/**',
@@ -167,6 +168,15 @@ export default [
 		files: [ 'tests/e2e/**/*.{ts,tsx}' ],
 		rules: {
 			'jsdoc/no-undefined-types': 'off',
+		},
+	},
+
+	// MCP Apps overrides
+	{
+		files: [ 'src/apps/**/*.{ts,tsx}' ],
+		rules: {
+			'@wordpress/dependency-group': 'off',
+			'no-restricted-syntax': 'off',
 		},
 	},
 ];

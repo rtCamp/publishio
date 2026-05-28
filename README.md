@@ -1,35 +1,80 @@
 # Publish with AI
 
-[![Try in WordPress Playground](https://img.shields.io/badge/Try%20in-WordPress%20Playground-blue?logo=wordpress)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/rtCamp/publishwithai/main/blueprint.json)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
-[![WordPress](https://img.shields.io/badge/WordPress-6.x%2B-blue?logo=wordpress)](https://wordpress.org)<br>
+[![WordPress](https://img.shields.io/badge/WordPress-7.0-blue?logo=wordpress)](https://wordpress.org)<br>
 [![CI](https://github.com/rtCamp/publishwithai/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publishwithai/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/rtCamp/publishwithai/branch/main/graph/badge.svg)](https://codecov.io/gh/rtCamp/publishwithai)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publishwithai/latest)](https://github.com/rtCamp/publishwithai/releases)
 
 ---
 
-A WordPress plugin to enhance the publishing experience with AI capabilities. This plugin allows users to leverage AI for content generation and editing from AI apps like Claude, ChatGPT, etc.
+Publish WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content.
 
-## Documentation
+## 👥 Contributors
 
-- **[Development Guide](docs/DEVELOPMENT.md)** - Local setup, commands, testing, and contribution guidelines.
-- **[Contributing](docs/CONTRIBUTING.md)** - How to contribute to this project.
-- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community standards.
-- **[Security](docs/SECURITY.md)** - Reporting security vulnerabilities.
+[@Utsav-Ladani](https://github.com/Utsav-Ladani)
+[@danishshakeel](https://github.com/danishshakeel)
 
-**Reference:**
-[Action Hooks](docs/reference/actions.md) | [Filter Hooks](docs/reference/filters.md) | [Constants](docs/reference/constants.md) | [WP-CLI Commands](docs/reference/cli.md)
+## ✨ Features
 
-## Project Structure
+- **Pattern Auto-Discovery:** Automatically detects patterns from your active theme.
+- **Structured Content Generation:** AI builds pages using proper block structures, avoiding messy HTML insertion.
+- **Platform Agnostic:** Works with major AI platforms like Claude and ChatGPT via Model Context Protocol (MCP).
+- **SEO & Metadata:** Automatically adds metadata and SEO details (compatible with Yoast).
+- **In-Chat Previews:** Shows live previews of your generated content directly within the AI chat interface.
+- **Full Compatibility:** Works seamlessly with both Posts and Pages, ensuring 100% Block Editor compatibility.
 
-```
+## 📋 Requirements
+
+### WordPress
+
+- **WordPress 7.0**
+- For WordPress versions **below 7.0**, the [official WordPress AI plugin](https://wordpress.org/plugins/ai/) must be active.
+
+### Themes
+
+- Tested with **Twenty Twenty-Five** and **Ollie**.
+- Compatible with any theme. For best results, ensure patterns have descriptive names and descriptions.
+
+#### Importance of proper naming and description
+
+This metadata provides the semantic context the AI needs to understand the purpose and structure of each pattern, enabling it to select the most appropriate ones for your content.
+
+## 🚀 Quick Start
+
+1. Install and activate the plugin in your WordPress dashboard.
+2. Ensure you meet the [Requirements](#-requirements) (WP 7.0 or the official AI plugin).
+3. Navigate to the plugin settings to connect your AI platform (Claude/ChatGPT).
+4. Start prompting your AI to build WordPress pages using your theme's patterns.
+
+## ❓ FAQ
+
+**Q: Do I need a specific theme?**
+A: No, it works with any theme, but themes with well-described patterns (like Twenty Twenty-Five) yield the best results.
+
+**Q: Why do I need the official WordPress AI plugin on older versions?**
+A: WordPress 7.0 introduced core features that this plugin relies on. The official AI plugin backports those features to older versions.
+
+## 📚 Documentation
+
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, commands, testing, and contribution.
+- **[Contributing](docs/CONTRIBUTING.md)**
+- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)**
+- **[Security](docs/SECURITY.md)**
+
+## 🏗️ Project Structure
+
+```text
 ├── .github/workflows/      # CI/CD workflows
+├── assets/                 # Static assets (CSS, images)
 ├── docs/                   # Development guides and references
-├── inc/                    # Plugin-specific PHP source
 ├── framework/              # Reusable framework (shared across plugins)
 │   └── README.md
+├── inc/                    # Plugin-specific PHP source
+│   └── Modules/
+│       ├── MCP/            # Model Context Protocol abilities
+│       ├── Screenshot/     # Screenshot generation API
+│       └── Settings/       # Plugin settings and connections
 ├── src/                    # TypeScript/JS entry points
 │   └── README.md
 ├── templates/              # PHP templates with theme override support
@@ -38,7 +83,7 @@ A WordPress plugin to enhance the publishing experience with AI capabilities. Th
 
 See [./docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#directory-structure) for a detailed directory tree and descriptions.
 
-## License
+## 📄 License
 
 GPL-2.0-or-later. See [LICENSE.md](LICENSE.md).
 

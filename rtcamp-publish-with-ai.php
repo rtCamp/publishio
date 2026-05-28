@@ -9,7 +9,7 @@
  *
  * Plugin Name:       Publish with AI
  * Plugin URI:        https://github.com/rtCamp/publishwithai
- * Description:       A plugin to enhance the publishing experience with AI capabilities.
+ * Description:       Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant.
  * Version:           0.0.1
  * Author:            rtCamp
  * Author URI:        https://rtcamp.com

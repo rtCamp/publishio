@@ -176,7 +176,6 @@ export default [
 		files: [ 'src/apps/**/*.{ts,tsx}' ],
 		rules: {
 			'@wordpress/dependency-group': 'off',
-			'no-restricted-syntax': 'off',
 		},
 	},
 ];

@@ -50,9 +50,17 @@ class Render_Pattern {
 					'type'       => 'object',
 					'required'   => [ 'preview_html' ],
 					'properties' => [
-						'preview_html' => [
+						'preview_html'        => [
 							'type'        => 'string',
 							'description' => 'Self-contained HTML document ready for iframe srcdoc.',
+						],
+						'pattern_title'       => [
+							'type'     => 'string',
+							'nullable' => true,
+						],
+						'pattern_description' => [
+							'type'     => 'string',
+							'nullable' => true,
 						],
 					],
 				],
@@ -88,7 +96,17 @@ class Render_Pattern {
 					require __DIR__ . '/preview-template.php';
 					$preview_html = (string) ob_get_clean();
 
-					return [ 'preview_html' => $preview_html ];
+					$result = [ 'preview_html' => $preview_html ];
+
+					if ( ! empty( $pattern['title'] ) ) {
+						$result['pattern_title'] = wp_strip_all_tags( $pattern['title'] );
+					}
+
+					if ( ! empty( $pattern['description'] ) ) {
+						$result['pattern_description'] = wp_strip_all_tags( $pattern['description'] );
+					}
+
+					return $result;
 				},
 				'meta'                => [
 					'show_in_rest' => true,

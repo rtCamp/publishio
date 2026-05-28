@@ -66,7 +66,7 @@ class App extends McpAppResource {
 	 * placeholder with the real asset base URL so <link>/<script> tags resolve.
 	 */
 	protected function build_html(): string {
-		$build_file = RTCAMP_PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval/index.html';
+		$build_file = RTCAMP_PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval.html';
 
 		if ( ! is_readable( $build_file ) ) {
 			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build:js</code> to generate the Pattern Approval app.</body></html>';
@@ -74,6 +74,19 @@ class App extends McpAppResource {
 
 		$plugin_url = RTCAMP_PUBLISH_WITH_AI_URL . 'build-apps';
 
-		return str_replace( '%%PLUGIN_URL%%', $plugin_url, (string) file_get_contents( $build_file ) );
+		$site_data = (string) wp_json_encode(
+			[
+				'siteUrl'  => home_url(),
+				'siteName' => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
+			]
+		);
+
+		return strtr(
+			(string) file_get_contents( $build_file ),
+			[
+				'%%PLUGIN_URL%%' => $plugin_url,
+				'%%SITE_DATA%%'  => $site_data,
+			]
+		);
 	}
 }

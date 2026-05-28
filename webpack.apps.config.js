@@ -3,7 +3,11 @@
  */
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin'; // eslint-disable-line import/no-extraneous-dependencies
-import MiniCssExtractPlugin from 'mini-css-extract-plugin'; // eslint-disable-line import/no-extraneous-dependencies
+
+/**
+ * WordPress dependencies
+ */
+import defaultConfig from '@wordpress/scripts/config/webpack.config.js'; // eslint-disable-line no-restricted-syntax,import/no-extraneous-dependencies
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -22,7 +26,12 @@ const mcpAppEntries = Object.fromEntries(
 	] )
 );
 
+const plugins = defaultConfig.plugins.filter(
+	( plugin ) => plugin.constructor.name !== 'RtlCssPlugin'
+);
+
 const appsConfig = {
+	...defaultConfig,
 	mode: isDev ? 'development' : 'production',
 	devtool: isDev ? 'inline-source-map' : false,
 
@@ -30,48 +39,49 @@ const appsConfig = {
 
 	output: {
 		path: path.resolve( import.meta.dirname, 'build-apps' ),
-		filename: '[name]/script.js',
+		filename: '[name].js',
 		publicPath: '%%PLUGIN_URL%%',
 		clean: true,
+		chunkFormat: false,
 	},
 
 	resolve: {
 		extensions: [ '.ts', '.tsx', '.js', '.jsx' ],
 		alias: {
+			...defaultConfig.resolve.alias,
 			'@apps': path.resolve( import.meta.dirname, 'src/apps' ),
 		},
 	},
 
 	optimization: {
+		...defaultConfig.optimization,
 		runtimeChunk: false,
 	},
 
 	module: {
+		...defaultConfig.module,
 		rules: [
+			...defaultConfig.module.rules,
+			/**
+			 * postcss-loader is already added in the defaultConfig
+			 * but we need it here for tailwindcss.
+			 */
 			{
-				test: /\.[jt]sx?$/,
-				exclude: /node_modules/,
-				use: 'babel-loader',
-			},
-			{
-				test: /\.css$/,
-				use: [
-					MiniCssExtractPlugin.loader,
-					'css-loader',
-					'postcss-loader',
-				],
+				test: /\.scss$/i,
+				include: path.resolve( import.meta.dirname, 'src' ),
+				use: [ 'postcss-loader' ],
 			},
 		],
 	},
 
 	plugins: [
-		new MiniCssExtractPlugin( { filename: '[name]/style.css' } ),
+		...plugins,
 		new HtmlWebpackPlugin( {
 			template: path.resolve(
 				import.meta.dirname,
 				'src/apps/template.html'
 			),
-			filename: '[name]/index.html',
+			filename: '[name].html',
 			scriptLoading: 'blocking',
 		} ),
 	],
@@ -103,6 +113,8 @@ if ( isDev && process.env.SITE_URL ) {
 			},
 		],
 	};
+
+	appsConfig.output.publicPath = 'http://localhost:8889/build-apps/';
 }
 
 export default appsConfig;

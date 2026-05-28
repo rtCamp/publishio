@@ -1,0 +1,201 @@
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
+:root {
+	--border: light-dark(#e5e7eb, #2a2a2a);
+	--muted: light-dark(#6b7280, #a1a1aa);
+	--font: -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
+
+	/* MCP card brand tokens */
+	--brand-1: #fa5d38;
+	--brand-2: #da2c43;
+	--ok: #3f6b4e;
+	--paper: #fff;
+	--ink: #1f1e1c;
+	--ink-2: #3d3a36;
+	--ink-3: #666;
+	--rule: rgba(0, 0, 0, 0.1);
+	--rule-soft: rgba(0, 0, 0, 0.06);
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: var(--font);
+	background: transparent;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* ── MCP card animations ─────────────────────────────────────────────────── */
+
+@keyframes mcp-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes mcp-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes mcp-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+
+	50% {
+		transform: translateY(-4px);
+	}
+}
+
+@keyframes mcp-halo {
+	0%,
+	100% {
+		opacity: 0.35;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 0.7;
+		transform: scale(1.08);
+	}
+}
+
+@keyframes mcp-sweep {
+	0% {
+		transform: translateX(-200%);
+	}
+
+	100% {
+		transform: translateX(200%);
+	}
+}
+
+.mcp-card-enter {
+	animation: mcp-fade-up 0.35s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.animate-mcp-halo {
+	animation: mcp-halo 2.4s ease-in-out infinite;
+}
+
+.animate-mcp-float {
+	animation: mcp-float 3.2s ease-in-out infinite;
+}
+
+.animate-mcp-sweep {
+	animation: mcp-sweep 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Loading state backgrounds */
+.loading-surface {
+	background: radial-gradient(
+		ellipse 80% 70% at 50% 50%,
+		#f9f9f9 0%,
+		#f3f3f3 60%,
+		#ebebeb 100%
+	);
+}
+
+.loading-halo {
+	background: radial-gradient(
+		circle,
+		rgba(250, 93, 56, 0.22) 0%,
+		rgba(218, 44, 67, 0) 65%
+	);
+}
+
+.sweep-fill {
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		var(--brand-1) 40%,
+		var(--brand-2) 60%,
+		transparent 100%
+	);
+}
+
+/* ── Shared button styles ────────────────────────────────────────────────── */
+
+.mcp-btn {
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 550;
+	letter-spacing: -0.005em;
+	height: 34px;
+	padding: 0 14px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	transition:
+		background 0.12s,
+		border-color 0.12s,
+		color 0.12s,
+		opacity 0.12s,
+		transform 0.12s;
+	-webkit-font-smoothing: antialiased;
+	white-space: nowrap;
+}
+
+.mcp-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.mcp-btn:active:not(:disabled) {
+	transform: translateY(1px);
+}
+
+.mcp-btn-primary {
+	background: var(--brand-1);
+	color: #fff;
+	background-image: linear-gradient(
+		135deg,
+		var(--brand-1) 0%,
+		var(--brand-2) 100%
+	);
+}
+
+.mcp-btn-primary:hover:not(:disabled) {
+	filter: brightness(0.95);
+}
+
+.mcp-btn-ghost {
+	background: transparent;
+	color: var(--ink-2);
+	border-color: var(--rule);
+}
+
+.mcp-btn-ghost:hover:not(:disabled) {
+	background: rgba(0, 0, 0, 0.04);
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+/* ── Error state ─────────────────────────────────────────────────────────── */
+
+.loading-error {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	font-size: 13px;
+	color: var(--muted);
+}

@@ -2,6 +2,10 @@ declare module '*.scss';
 declare module '*.css';
 
 interface Window {
+	__rtpwai?: {
+		siteUrl: string;
+		siteName: string;
+	};
 	rtPublishWithAIAdmin?: {
 		pluginVersion: string;
 		logoUrl: string;

@@ -77,7 +77,7 @@ jobs:
         run: npm ci
 
       - name: Build plugin for release
-        run: npm run build:prod
+        run: npm run build
 
       - name: Pick wp-env port
         id: pick-port

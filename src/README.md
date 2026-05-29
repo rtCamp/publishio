@@ -5,7 +5,7 @@ This directory contains all source code for the buildable WordPress assets.
 - The `admin/` directory contains the React/TypeScript source for the plugin's admin interface.
 - `tailwind.scss` provides the global styling for the plugin, processed by Tailwind CSS.
 
-Assets are built by running `npm run build:dev` or `npm run build:prod`, which compiles the source files and outputs them to the `build/` directory. You can also run `npm run start:js` to start a development server that watches for changes and rebuilds automatically.
+Assets are built by running `npm run build`, which compiles the source files and outputs them to the `build/` directory. You can also run `npm run start:admin` or `npm run start:apps` to start a development server that watches for changes and rebuilds automatically.
 
 ## Script entries
 

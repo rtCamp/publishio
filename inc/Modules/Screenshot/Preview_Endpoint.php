@@ -124,19 +124,19 @@ class Preview_Endpoint implements Registrable {
 		$cookies = [
 			new \WP_Http_Cookie(
 				[
-					'name'  => AUTH_COOKIE,
+					'name'  => AUTH_COOKIE, // @phpstan-ignore constant.notFound
 					'value' => wp_generate_auth_cookie( $user_id, $expiry, 'auth' ),
 				]
 			),
 			new \WP_Http_Cookie(
 				[
-					'name'  => SECURE_AUTH_COOKIE,
+					'name'  => SECURE_AUTH_COOKIE, // @phpstan-ignore constant.notFound
 					'value' => wp_generate_auth_cookie( $user_id, $expiry, 'secure_auth' ),
 				]
 			),
 			new \WP_Http_Cookie(
 				[
-					'name'  => LOGGED_IN_COOKIE,
+					'name'  => LOGGED_IN_COOKIE, // @phpstan-ignore constant.notFound
 					'value' => wp_generate_auth_cookie( $user_id, $expiry, 'logged_in' ),
 				]
 			),

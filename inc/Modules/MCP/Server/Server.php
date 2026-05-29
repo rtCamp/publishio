@@ -46,7 +46,7 @@ class Server implements Registrable {
 			ErrorLogMcpErrorHandler::class,
 			null,
 			$this->get_tools(),
-			$this->get_resources(),
+			$this->get_resources(), // @phpstan-ignore argument.type
 		);
 	}
 

@@ -83,8 +83,8 @@ class Render_Pattern {
 
 					$pattern = $registry->get_registered( $pattern_name );
 					$markup  = Pattern_Schema::apply( $pattern['content'] ?? '', $schema );
-					if ( is_wp_error( $markup ) ) {
-						return $markup;
+					if ( empty( $markup ) ) {
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'rtcamp-publish-with-ai' ) );
 					}
 
 					// Ensure core block styles handle is registered before rendering.

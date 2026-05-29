@@ -115,8 +115,8 @@ class Insert_Pattern {
 					}
 
 					$markup = Pattern_Schema::apply( $content, $schema );
-					if ( is_wp_error( $markup ) ) {
-						return $markup;
+					if ( empty( $markup ) ) {
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'rtcamp-publish-with-ai' ) );
 					}
 
 					$new_blocks = parse_blocks( $markup );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useRenderPreview } from './useRenderPreview';
+import { formatPosition } from '../utils';
 
 export function usePatternApp() {
 	const [ busy, setBusy ] = useState( false );
@@ -13,7 +14,17 @@ export function usePatternApp() {
 		setUiState,
 		errorMsg,
 		setErrorMsg,
+		errorContext,
+		setErrorContext,
 	} = useRenderPreview();
+
+	function patternLabel() {
+		return pending?.pattern_title ?? pending?.pattern_name ?? 'the pattern';
+	}
+
+	function positionLabel() {
+		return formatPosition( pending?.position );
+	}
 
 	async function handleInsert() {
 		if ( ! pending || ! app ) {
@@ -30,15 +41,17 @@ export function usePatternApp() {
 				content: [
 					{
 						type: 'text',
-						text: 'Pattern inserted successfully. Please continue.',
+						text: `The "${ patternLabel() }" pattern has been successfully inserted at ${ positionLabel() }. Please continue.`,
 					},
 				],
 			} );
 			setUiState( 'inserted' );
 		} catch ( e: unknown ) {
-			setErrorMsg(
-				'Insert failed: ' +
-					( e instanceof Error ? e.message : String( e ) )
+			const label = patternLabel();
+			const pos = positionLabel();
+			setErrorMsg( e instanceof Error ? e.message : String( e ) );
+			setErrorContext(
+				`Tried to insert the "${ label }" pattern at ${ pos }.`
 			);
 			setUiState( 'error' );
 		} finally {
@@ -57,17 +70,39 @@ export function usePatternApp() {
 				content: [
 					{
 						type: 'text',
-						text: 'Please generate an alternative pattern design.',
+						text: `Show me an alternative for the "${ patternLabel() }" pattern at ${ positionLabel() }.`,
 					},
 				],
 			} );
 			setUiState( 'alternative' );
 		} catch ( e: unknown ) {
+			const label = patternLabel();
 			setErrorMsg( e instanceof Error ? e.message : String( e ) );
+			setErrorContext(
+				`Tried to request an alternative for the "${ label }" pattern.`
+			);
 			setUiState( 'error' );
 		} finally {
 			setBusy( false );
 		}
+	}
+
+	async function handleAskAi() {
+		if ( ! app ) {
+			return;
+		}
+		const context = errorContext
+			? `${ errorContext }\n\nError: ${ errorMsg }`
+			: `An error occurred: ${ errorMsg }`;
+		await app.sendMessage( {
+			role: 'user',
+			content: [
+				{
+					type: 'text',
+					text: `Something went wrong on my end. ${ context } Can you help me figure out what happened and how to proceed?`,
+				},
+			],
+		} );
 	}
 
 	return {
@@ -78,5 +113,6 @@ export function usePatternApp() {
 		busy,
 		handleInsert,
 		handleAlternative,
+		handleAskAi,
 	};
 }

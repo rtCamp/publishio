@@ -59,12 +59,13 @@ class Preview_Pattern {
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'post_id', 'position', 'pattern_name', 'schema' ],
+					'required'   => [ 'post_id', 'position', 'pattern_name', 'schema', 'message' ],
 					'properties' => [
 						'post_id'      => [ 'type' => 'integer' ],
 						'position'     => [ 'type' => 'integer' ],
 						'pattern_name' => [ 'type' => 'string' ],
 						'schema'       => [ 'type' => 'array' ],
+						'message'      => [ 'type' => 'string' ],
 					],
 				],
 				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
@@ -88,6 +89,7 @@ class Preview_Pattern {
 						'position'     => (int) ( $input['position'] ?? 0 ),
 						'pattern_name' => $pattern_name,
 						'schema'       => $input['schema'] ?? [],
+						'message'      => __( 'The pattern preview is now displayed to the user. Waiting for their approval before inserting.', 'rtcamp-publish-with-ai' ),
 					];
 				},
 				'meta'                => [

@@ -1,22 +1,38 @@
 import { Check, Swap } from './Icons';
-import type { UiState } from '../types';
+import type { UiState, PendingPattern } from '../types';
+import { formatPosition } from '../utils';
 
 interface Props {
 	uiState: Exclude< UiState, 'loading' | 'error' >;
+	pending: PendingPattern | null;
 }
 
-export function StatusLine( { uiState }: Props ) {
+export function StatusLine( { uiState, pending }: Props ) {
+	const name = pending?.pattern_title ?? pending?.pattern_name ?? 'Pattern';
+	const position = formatPosition( pending?.position );
+
 	if ( uiState === 'ready' ) {
-		return <span>Will be inserted as a draft revision.</span>;
+		return (
+			<span>
+				<strong>{ name }</strong> will be inserted at{ ' ' }
+				<strong>{ position }</strong>.
+			</span>
+		);
 	}
 
 	const inserted = uiState === 'inserted';
 	const accentClass = inserted
 		? 'text-(--ok) ring-(--ok)'
 		: 'text-(--ink-3) ring-(--ink-3)';
-	const message = inserted
-		? 'Inserted as a draft revision.'
-		: "I'll generate another direction for you next.";
+	const message = inserted ? (
+		<>
+			<strong>{ name }</strong> inserted at <strong>{ position }</strong>.
+		</>
+	) : (
+		<>
+			Show me an alternative for this <strong>{ name }</strong> pattern.
+		</>
+	);
 
 	return (
 		<>

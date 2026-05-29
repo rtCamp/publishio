@@ -55,6 +55,7 @@ export function McpCard( {
 										'loading' | 'error'
 									>
 								}
+								pending={ pending }
 							/>
 						) }
 					</div>

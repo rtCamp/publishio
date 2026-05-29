@@ -110,7 +110,12 @@ abstract class McpAppResource {
 						'uri'      => $uri,
 						'mimeType' => 'text/html;profile=mcp-app',
 						'text'     => $this->build_html(),
-						'_meta'    => [ 'ui' => [ 'csp' => $csp ] ],
+						'_meta'    => [
+							'ui' => [
+								'csp'           => $csp,
+								'prefersBorder' => true,
+							],
+						],
 					],
 				],
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),

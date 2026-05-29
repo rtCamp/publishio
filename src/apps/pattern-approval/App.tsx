@@ -16,7 +16,7 @@ export function App() {
 
 	if ( uiState === 'error' ) {
 		return (
-			<div className="w-full bg-(--paper) border border-(--rule) rounded-xl overflow-hidden shadow-sm">
+			<div className="w-full bg-(--paper)">
 				<CardHeader />
 				<div className="px-4 py-12 flex flex-col items-center">
 					<h3 className="font-medium text-(--ink-1)">

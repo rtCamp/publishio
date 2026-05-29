@@ -29,7 +29,7 @@ export function McpCard( {
 	const patternName = pending?.pattern_title ?? pending?.pattern_name ?? '';
 
 	return (
-		<div className="w-full bg-(--paper) border border-(--rule) rounded-xl overflow-hidden shadow-sm">
+		<div className="w-full bg-(--paper)">
 			<CardHeader />
 			<div className="p-3">
 				{ ! isLoading && (

@@ -27,55 +27,64 @@ class Insert_Pattern {
 		wp_register_ability(
 			'rtpwai/insert-pattern-confirmed',
 			[
-				'label'               => __( 'Insert Pattern (Confirmed)', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Insert Approved Pattern (App Only)', 'rtcamp-publish-with-ai' ),
 				'category'            => Posts_Category::SLUG,
-				'description'         => __( 'Inserts a pre-approved block pattern into a page at the specified position. Called by the Pattern Approval MCP App after user confirmation.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
-					'required'             => [ 'post_id', 'position', 'pattern_name', 'schema' ],
+					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
 					'properties'           => [
-						'post_id'      => [
-							'type'    => 'integer',
-							'minimum' => 1,
+						'page_id'      => [
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'description' => 'ID of the page to insert the pattern into.',
 						],
 						'position'     => [
-							'type'    => 'integer',
-							'minimum' => -1,
+							'type'        => 'integer',
+							'minimum'     => -1,
+							'description' => 'Zero-based top-level block index. Pass -1 to append at the end.',
 						],
 						'pattern_name' => [
-							'type' => 'string',
+							'type'        => 'string',
+							'description' => 'Fully-qualified pattern name.',
 						],
 						'schema'       => [
-							'type'     => 'array',
-							'minItems' => 1,
-							'items'    => [ 'type' => 'object' ],
+							'type'        => 'array',
+							'minItems'    => 1,
+							'items'       => [ 'type' => 'object' ],
+							'description' => 'Filled content schema with values populated.',
 						],
 					],
 					'additionalProperties' => false,
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'success', 'post_id', 'position' ],
+					'required'   => [ 'success', 'page_id', 'position' ],
 					'properties' => [
-						'success'  => [ 'type' => 'boolean' ],
-						'post_id'  => [
-							'type'    => 'integer',
-							'minimum' => 1,
+						'success'  => [
+							'type'        => 'boolean',
+							'description' => 'True if the pattern was inserted into the page.',
+						],
+						'page_id'  => [
+							'type'        => 'integer',
+							'minimum'     => 1,
+							'description' => 'ID of the page the pattern was inserted into.',
 						],
 						'position' => [
-							'type'    => 'integer',
-							'minimum' => 0,
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'description' => 'Zero-based block index where the pattern was inserted.',
 						],
 					],
 				],
 				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
-					$post_id      = (int) ( $input['post_id'] ?? 0 );
+					$page_id      = (int) ( $input['page_id'] ?? 0 );
 					$position     = (int) ( $input['position'] ?? 0 );
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
 					$schema       = $input['schema'] ?? [];
 
-					$post = get_post( $post_id );
+					$post = get_post( $page_id );
 					if ( ! $post ) {
 						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'rtcamp-publish-with-ai' ) );
 					}
@@ -138,7 +147,7 @@ class Insert_Pattern {
 
 					$result = wp_update_post(
 						[
-							'ID'           => $post_id,
+							'ID'           => $page_id,
 							'post_content' => serialize_blocks( $blocks ),
 						],
 						true
@@ -150,7 +159,7 @@ class Insert_Pattern {
 
 					return [
 						'success'  => true,
-						'post_id'  => $post_id,
+						'page_id'  => $page_id,
 						'position' => $position,
 					];
 				},

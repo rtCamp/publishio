@@ -26,7 +26,7 @@ class Render_Pattern {
 		wp_register_ability(
 			'rtpwai/render-pattern',
 			[
-				'label'               => __( 'Render Pattern to HTML', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Render Pattern to HTML (App Only)', 'rtcamp-publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
 				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [

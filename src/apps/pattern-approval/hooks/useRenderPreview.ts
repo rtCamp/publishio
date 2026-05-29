@@ -12,14 +12,14 @@ type RenderResponse = {
 
 function startHeightReporting(): () => void {
 	const report = (): void => {
-		const h = Math.min( document.documentElement.scrollHeight, 1200 );
+		const h = Math.min( document.body.scrollHeight, 1200 );
 		if ( h > 0 ) {
 			window.parent.postMessage(
 				{
 					jsonrpc: '2.0',
 					method: 'ui/notifications/size-changed',
 					params: {
-						width: document.documentElement.offsetWidth,
+						width: document.body.offsetWidth,
 						height: h,
 					},
 				},
@@ -80,7 +80,7 @@ export function useRenderPreview() {
 		}
 
 		setPending( {
-			post_id: data.post_id ?? 0,
+			page_id: data.page_id ?? 0,
 			position: data.position ?? -1,
 			pattern_name: data.pattern_name,
 			schema: data.schema,

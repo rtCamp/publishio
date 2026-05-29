@@ -35,7 +35,7 @@ class App extends McpAppResource {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return 'Shows a rendered block-pattern preview and collects user approval before inserting it into a post.';
+		return 'Shows a rendered block-pattern preview and collects user approval before inserting it into a page.';
 	}
 
 	/**

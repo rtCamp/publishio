@@ -32,10 +32,23 @@ export function usePatternApp() {
 		}
 		setBusy( true );
 		try {
-			await app.callServerTool( {
+			const res = await app.callServerTool( {
 				name: 'rtpwai-insert-pattern-confirmed',
-				arguments: pending as unknown as Record< string, unknown >,
+				arguments: {
+					page_id: pending.page_id,
+					position: pending.position,
+					pattern_name: pending.pattern_name,
+					schema: pending.schema,
+				},
 			} );
+
+			if ( res.isError ) {
+				const msg = (
+					res.content?.[ 0 ] as { text?: string } | undefined
+				 )?.text;
+				throw new Error( msg ?? 'Insert failed.' );
+			}
+
 			await app.sendMessage( {
 				role: 'user',
 				content: [

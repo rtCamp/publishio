@@ -27,14 +27,14 @@ class Preview_Pattern {
 		wp_register_ability(
 			'rtpwai/preview-pattern',
 			[
-				'label'               => __( 'Preview Pattern for Approval', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Present Pattern for User Approval', 'rtcamp-publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
-				'description'         => __( 'Validates a filled pattern and opens the Pattern Approval UI so the user can preview and confirm before the pattern is inserted into the page.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Presents a filled pattern to the user for visual review. The Pattern Approval UI opens automatically showing the rendered preview with two choices: Insert (inserts the pattern into the page and sends a confirmation back — the model resumes from that message) or Show alternative (asks the model for a different pattern). Returns an error immediately if the pattern name is not registered. Do not call any further tools — wait for the user to act.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
-					'required'             => [ 'post_id', 'position', 'pattern_name', 'schema' ],
+					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
 					'properties'           => [
-						'post_id'      => [
+						'page_id'      => [
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'description' => 'ID of the page to insert into.',
@@ -59,13 +59,16 @@ class Preview_Pattern {
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'post_id', 'position', 'pattern_name', 'schema', 'message' ],
+					'required'   => [ 'page_id', 'position', 'pattern_name', 'schema', 'message' ],
 					'properties' => [
-						'post_id'      => [ 'type' => 'integer' ],
+						'page_id'      => [ 'type' => 'integer' ],
 						'position'     => [ 'type' => 'integer' ],
 						'pattern_name' => [ 'type' => 'string' ],
 						'schema'       => [ 'type' => 'array' ],
-						'message'      => [ 'type' => 'string' ],
+						'message'      => [
+							'type'        => 'string',
+							'description' => 'Confirmation that the preview UI is open. The model must stop here — resume only when the user sends a follow-up message.',
+						],
 					],
 				],
 				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
@@ -85,7 +88,7 @@ class Preview_Pattern {
 					}
 
 					return [
-						'post_id'      => (int) ( $input['post_id'] ?? 0 ),
+						'page_id'      => (int) ( $input['page_id'] ?? 0 ),
 						'position'     => (int) ( $input['position'] ?? 0 ),
 						'pattern_name' => $pattern_name,
 						'schema'       => $input['schema'] ?? [],

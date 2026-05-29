@@ -15,7 +15,7 @@
 	--ink-2: #3d3a36;
 	--ink-3: #666;
 	--rule: rgba(0, 0, 0, 0.1);
-	--rule-soft: rgba(0, 0, 0, 0.06);
+	--rule-soft: rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -33,12 +33,14 @@ body {
 /* ── MCP card animations ─────────────────────────────────────────────────── */
 
 @keyframes mcp-spin {
+
 	to {
 		transform: rotate(360deg);
 	}
 }
 
 @keyframes mcp-fade-up {
+
 	from {
 		opacity: 0;
 		transform: translateY(4px);
@@ -51,6 +53,7 @@ body {
 }
 
 @keyframes mcp-float {
+
 	0%,
 	100% {
 		transform: translateY(0);
@@ -62,6 +65,7 @@ body {
 }
 
 @keyframes mcp-halo {
+
 	0%,
 	100% {
 		opacity: 0.35;
@@ -75,6 +79,7 @@ body {
 }
 
 @keyframes mcp-sweep {
+
 	0% {
 		transform: translateX(-200%);
 	}
@@ -102,30 +107,15 @@ body {
 
 /* Loading state backgrounds */
 .loading-surface {
-	background: radial-gradient(
-		ellipse 80% 70% at 50% 50%,
-		#f9f9f9 0%,
-		#f3f3f3 60%,
-		#ebebeb 100%
-	);
+	background: radial-gradient(ellipse 80% 70% at 50% 50%, #fff 0%, #f8f8f8 60%, #f2f2f2 100%);
 }
 
 .loading-halo {
-	background: radial-gradient(
-		circle,
-		rgba(250, 93, 56, 0.22) 0%,
-		rgba(218, 44, 67, 0) 65%
-	);
+	background: radial-gradient(circle, rgba(250, 93, 56, 0.22) 0%, rgba(218, 44, 67, 0) 65%);
 }
 
 .sweep-fill {
-	background: linear-gradient(
-		90deg,
-		transparent 0%,
-		var(--brand-1) 40%,
-		var(--brand-2) 60%,
-		transparent 100%
-	);
+	background: linear-gradient(90deg, transparent 0%, var(--brand-1) 40%, var(--brand-2) 60%, transparent 100%);
 }
 
 /* ── Shared button styles ────────────────────────────────────────────────── */
@@ -165,11 +155,7 @@ body {
 .mcp-btn-primary {
 	background: var(--brand-1);
 	color: #fff;
-	background-image: linear-gradient(
-		135deg,
-		var(--brand-1) 0%,
-		var(--brand-2) 100%
-	);
+	background-image: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
 }
 
 .mcp-btn-primary:hover:not(:disabled) {

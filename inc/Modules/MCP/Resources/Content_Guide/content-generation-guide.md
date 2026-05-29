@@ -1,11 +1,12 @@
 # WordPress Content Generation Guide
 
-Two non-negotiable mechanics:
+Three non-negotiable mechanics:
 
 1. **Schema-first for patterns.** Never hand-write pattern markup. Fetch the pattern's schema, mutate its attributes, render markup from the schema. Exception: in **blog posts**, plain prose blocks (paragraphs, headings, lists, quotes, inline images) may be written as direct block markup. In **landing pages**, no exception — every block comes from a pattern.
 2. **Incremental assembly by append.** Never draft a full page in one go. Create an empty draft, then append one section at a time directly to the end of the current content.
+3. **Preview before insert.** After filling a pattern schema, always render a preview in the interactive widget and wait for explicit user approval before appending the section to the draft. Never insert without review.
 
-Hand-written pattern markup drifts from the design system. One-shot drafts produce invalid markup and lose work mid-generation. These mechanics keep generation deterministic and recoverable.
+Hand-written pattern markup drifts from the design system. One-shot drafts produce invalid markup and lose work mid-generation. Unreviewed inserts undo work the user hasn't seen yet. These mechanics keep generation deterministic, recoverable, and user-directed.
 
 ---
 
@@ -19,6 +20,7 @@ Hand-written pattern markup drifts from the design system. One-shot drafts produ
 - **Discover before planning.** Fetch all available patterns from the site every time. Don't rely on memory.
 - **Resolve media before content.** Identify every image/video, search the library, ask for uploads if missing. Don't proceed until resolved.
 - **Draft content in chat first.** Show prose, headlines, and CTA labels for approval _before_ touching schemas or WordPress.
+- **Preview patterns before inserting.** After filling a pattern schema, render a preview in the interactive widget. Wait for the user to review and explicitly approve before appending to the draft. One section at a time.
 - **Disclose dropped content.** When the user provides reference material (e.g., a Google Doc, brief, or URL), explicitly list any sections, points, or details you are _not_ including in the draft and explain why (pattern slot limits, relevance, length constraints). Get acknowledgement before proceeding.
 - **No custom HTML** outside standard block markup.
 - **Share links as clickable** — never inside code blocks.
@@ -32,7 +34,9 @@ The only acceptable way to place a pattern. Applies to posts and landing pages a
 1. **Fetch the pattern schema** — the authoritative description of attributes (text, image refs, links, button labels, repeating-item counts).
 2. **Fetch the full pattern content** to understand its structure, slot sizes, and default copy. This tells you how much content each slot actually shows. If a slot is too small for the user's content, pick a different pattern.
 3. **Identify changeable attributes.** You change _values only_: text, image IDs/URLs, link hrefs, button labels, and (where supported) the count of repeating items. You do **not** touch markup structure, CSS classes, inline styles, spacing, or colors. If the user wants something not in the schema, say so and propose a different pattern.
-4. **Fill the schema with new content** and append the result to the draft. The rendered output comes from the filled schema — never hand-written.
+4. **Fill the schema with new content.** The rendered output comes from the filled schema — never hand-written.
+5. **Preview in the interactive widget.** Render the filled pattern as a preview for the user to review. Do not append anything yet.
+6. **Wait for approval, then append.** Only after the user explicitly approves the preview, append the section to the draft. If they request changes, revise the schema and re-preview — do not insert the old version.
 
 **Repeating items**: if a pattern's schema marks a group as repeatable, it does **not** automatically mean you can add or remove items. Some repeaters contain items with intentionally different styles, sizes, or layouts (e.g., alternating card orientations, a hero item followed by smaller cards). Changing the count in these cases will break the design.
 
@@ -49,12 +53,15 @@ If the schema does not mark a group as repeatable, the count is fixed — pick a
 
 ## The Incremental Assembly Workflow
 
-Build the page in chunks; each insertion is small, verifiable, recoverable.
+Build the page in chunks; each insertion is small, verifiable, recoverable, and user-approved.
 
 1. **Create an empty draft** in WordPress.
-2. **Append the first section** to the draft.
-3. **Repeat for every subsequent section.** Each append adds exactly one section to the end.
-4. **Done.** When the last section is appended, the draft is complete.
+2. **Fill the pattern schema** for the first section.
+3. **Preview it in the interactive widget.** Show the rendered pattern to the user before touching the draft.
+4. **Wait for explicit approval.** If the user requests changes, revise and re-preview. Do not insert until approved.
+5. **Append the approved section** to the draft.
+6. **Repeat steps 2–5 for every subsequent section.** Each append adds exactly one reviewed section to the end.
+7. **Done.** When the last section is approved and appended, the draft is complete.
 
 If a section fails, the draft is valid up to the last successful append — no cleanup needed.
 
@@ -87,7 +94,7 @@ Pattern-only. No exception for "just a paragraph of text" — find the text-cont
 5. Resolve media — list every image/video by section, search the library, ask for uploads. Don't proceed until done.
 6. Draft section content in chat, already trimmed to fit pattern slots. Get approval.
 7. Create an empty page draft.
-8. Section by section: fill the pattern schema with approved content and append to the draft.
+8. Section by section: fill the pattern schema with approved content → preview in the interactive widget → wait for user approval → append to the draft.
 9. Share the page link.
 
 ---
@@ -106,3 +113,4 @@ Search the library first. Show options if multiple match. Ask for a file or URL 
 - **"I'll write the whole post body in one blob."** No. Append section by section.
 - **"A custom block would be perfect here."** Banned everywhere. Patterns for pages, basic prose blocks for posts.
 - **"I'll add one more card to this testimonial pattern — its schema isn't repeatable but I'll force it."** No. Only add/remove items when the schema explicitly marks the group as repeatable, and only after verifying the result renders cleanly.
+- **"The content looks right to me — I'll just append it directly."** No. Always preview the filled pattern in the interactive widget and wait for the user to approve before inserting into the draft.

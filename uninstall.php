@@ -69,13 +69,15 @@ function delete_options(): void {
 
 /**
  * Deletes transients.
+ *
+ * @phpstan-ignore void.pure
  */
 function delete_transients(): void {
 	$transients = [
 		// Add more transients as needed.
 	];
 
-	foreach ( $transients as $transient ) {
+	foreach ( $transients as $transient ) { // @phpstan-ignore foreach.emptyArray
 		delete_transient( $transient );
 	}
 }

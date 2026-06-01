@@ -37,9 +37,9 @@ class Screenshot_Page extends Abstract_Admin_Page {
 	 * {@inheritDoc}
 	 */
 	public function enqueue( array $localized_data ): void {
-		wp_localize_script( Assets::ADMIN_SCREENSHOT_HANDLE, 'rtPublishWithAIAdmin', $localized_data );
-		wp_enqueue_script( Assets::ADMIN_SCREENSHOT_HANDLE );
-		wp_enqueue_style( Assets::ADMIN_SCREENSHOT_HANDLE );
+		wp_localize_script( Assets::ADMIN_SETTINGS_HANDLE, 'rtPublishWithAIAdmin', $localized_data );
+		wp_enqueue_script( Assets::ADMIN_SETTINGS_HANDLE );
+		wp_enqueue_style( Assets::ADMIN_SETTINGS_HANDLE );
 	}
 
 	/**

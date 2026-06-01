@@ -70,7 +70,7 @@ class ScreenshotOne_Provider {
 		$code         = wp_remote_retrieve_response_code( $response );
 		$content_type = wp_remote_retrieve_header( $response, 'content-type' );
 
-		if ( 200 !== $code || false === strpos( (string) $content_type, 'image/' ) ) {
+		if ( 200 !== $code || ! is_string( $content_type ) || false === strpos( $content_type, 'image/' ) ) {
 			$body = wp_remote_retrieve_body( $response );
 			$data = json_decode( $body, true );
 

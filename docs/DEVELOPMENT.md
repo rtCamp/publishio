@@ -240,9 +240,9 @@ For more information on using `wp-env`, see the [wp-env documentation](https://d
 
 #### Building and Watching Assets
 
-- `npm run start:js`: Starts the JS/CSS watcher (development mode).
-- `npm run build:dev`: Builds assets for development.
-- `npm run build:prod`: Builds assets for production and installs optimized PHP dependencies.
+- `npm run start:admin`: Starts the admin JS/CSS watcher (development mode).
+- `npm run start:apps`: Starts the apps JS/CSS watcher (development mode).
+- `npm run build`: Builds all assets for production.
 - `npm run clean`: Cleans generated assets.
 
 ## Code Contributions (Pull Requests)
@@ -456,7 +456,7 @@ nvm use && npm ci
 npm run wp-env:cli -- install --optimize-autoloader --no-dev
 
 # Create a production-ready build:
-npm run build:prod
+npm run build
 
 # Generate translation files:
 npm run i18n:make-pot

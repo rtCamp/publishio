@@ -78,8 +78,8 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build development assets
-        run: npm run build:dev
+      - name: Build assets
+        run: npm run build
 
       - name: Pick wp-env port
         id: pick-port

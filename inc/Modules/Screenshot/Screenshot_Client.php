@@ -45,6 +45,7 @@ final class Screenshot_Client {
 				 * Third-party providers registered via publish_with_ai_screenshot_providers
 				 * can hook here to handle their own provider IDs.
 				 *
+				 * @param null   $result      Short-circuit return value. Default null (no provider handled the request).
 				 * @param string $url         URL to screenshot.
 				 * @param string $selector    CSS selector.
 				 * @param string $api_key     Configured API key.

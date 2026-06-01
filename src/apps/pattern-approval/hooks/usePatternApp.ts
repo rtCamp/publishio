@@ -107,16 +107,19 @@ export function usePatternApp() {
 		const context = errorContext
 			? `${ errorContext }\n\nError: ${ errorMsg }`
 			: `An error occurred: ${ errorMsg }`;
-		await app.sendMessage( {
-			role: 'user',
-			content: [
-				{
-					type: 'text',
-					text: `Something went wrong on my end. ${ context } Can you help me figure out what happened and how to proceed?`,
-				},
-			],
-		} );
-	}
+		try {
+			await app.sendMessage( {
+				role: 'user',
+				content: [
+					{
+						type: 'text',
+						text: `Something went wrong on my end. ${ context } Can you help me figure out what happened and how to proceed?`,
+					},
+				],
+			} );
+		} catch {
+			// sendMessage failure is non-recoverable; silently ignore.
+		}
 
 	return {
 		uiState,

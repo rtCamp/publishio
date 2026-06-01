@@ -13,6 +13,7 @@ export function PatternPreview( { html }: Props ) {
 				ref={ ref }
 				title="Pattern preview"
 				srcDoc={ html }
+				sandbox="allow-scripts allow-same-origin"
 				className="w-full block border-none min-h-40"
 			/>
 		</div>

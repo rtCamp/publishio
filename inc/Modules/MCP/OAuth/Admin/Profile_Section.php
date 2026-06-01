@@ -82,6 +82,8 @@ class Profile_Section {
 		}
 
 		Token_Store::revoke_for_client( $user_id, $client_id );
+		// Also revoke tokens for all other users of this client.
+		Token_Store::delete_all_for_client( $client_id );
 		Client_Store::delete_by_client_id( $client_id );
 
 		$redirect = get_current_user_id() === $user_id

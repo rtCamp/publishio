@@ -109,7 +109,7 @@ class Search_Posts {
 							'status'    => $post->post_status,
 							'date'      => $post->post_date,
 							'url'       => get_permalink( $post->ID ),
-							'edit_url'  => get_edit_post_link( $post->ID, 'raw' ),
+							'edit_url'  => get_edit_post_link( $post->ID, 'raw' ) ?: '',
 						];
 					}
 

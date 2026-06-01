@@ -95,7 +95,7 @@ export function CredentialsTable( {
 		{
 			id: 'edit',
 			label: __( 'Edit', 'rtcamp-publish-with-ai' ),
-			callback: ( [ item ] ) => onEdit( item! ),
+			callback: ( [ item ] ) => onEdit( item! /* DataViews always passes the selected row */ ),
 		},
 		{
 			id: 'delete',
@@ -104,7 +104,7 @@ export function CredentialsTable( {
 			modalSize: 'small',
 			RenderModal: ( { items, closeModal } ) => (
 				<DeleteCredentialDialog
-					credential={ items[ 0 ]! }
+					credential={ items[ 0 ]! /* DataViews always passes the selected row */ }
 					onConfirm={ async () => {
 						await onDelete( items[ 0 ]! );
 						closeModal?.();

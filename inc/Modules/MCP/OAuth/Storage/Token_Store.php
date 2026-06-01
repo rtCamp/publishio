@@ -187,9 +187,15 @@ class Token_Store {
 		}
 
 		// Issue new tokens first; only remove the old row if issuance succeeds.
+		// Wrap in a transaction so a failure between INSERT and DELETE does not leave both tokens valid.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
+
 		$new_tokens = self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
 		if ( null === $new_tokens ) {
 			// DB failure — old token is still valid; signal server_error to caller.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			return false;
 		}
 
@@ -199,6 +205,9 @@ class Token_Store {
 			[ 'id' => (int) $row['id'] ],
 			[ '%d' ]
 		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'COMMIT' );
 
 		return $new_tokens;
 	}

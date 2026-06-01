@@ -23,7 +23,7 @@ function startHeightReporting(): () => void {
 						height: h,
 					},
 				},
-				'*'
+				window.location.origin
 			);
 		}
 	};
@@ -68,7 +68,7 @@ export function useRenderPreview() {
 			const errText = first?.text ?? 'Unknown error';
 			setErrorMsg( errText );
 			setErrorContext(
-				'Claude tried to show a pattern preview but the tool returned an error.'
+				'The AI assistant tried to show a pattern preview but the tool returned an error.'
 			);
 			setUiState( 'error' );
 			return;

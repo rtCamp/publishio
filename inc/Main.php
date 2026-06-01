@@ -67,8 +67,20 @@ final class Main {
 	 */
 	private function load(): void {
 		foreach ( self::REGISTRABLE_CLASSES as $class_name ) {
-			$instance = new $class_name();
+			if ( ! class_exists( $class_name ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: class name */
+						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'rtcamp-publish-with-ai' ),
+						$class_name
+					),
+					RTCAMP_PUBLISH_WITH_AI_VERSION
+				);
+				continue;
+			}
 
+			$instance = new $class_name();
 			$instance->register_hooks();
 		}
 

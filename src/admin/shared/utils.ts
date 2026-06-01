@@ -38,7 +38,9 @@ export function detectApps( redirectUris: string[] ): App[] {
 }
 
 export function relativeDate( timestamp: number ): string {
-	const rtf = new Intl.RelativeTimeFormat( navigator.language || 'en', { numeric: 'auto' } );
+	const rtf = new Intl.RelativeTimeFormat( navigator.language || 'en', {
+		numeric: 'auto',
+	} );
 	const diffSeconds = ( timestamp * 1000 - Date.now() ) / 1000;
 	const abs = Math.abs( diffSeconds );
 

@@ -120,6 +120,7 @@ export function usePatternApp() {
 		} catch {
 			// sendMessage failure is non-recoverable; silently ignore.
 		}
+	}
 
 	return {
 		uiState,

@@ -73,9 +73,9 @@ final class Main {
 					sprintf(
 						/* translators: %s: class name */
 						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'rtcamp-publish-with-ai' ),
-						$class_name
+						$class_name //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
-					RTCAMP_PUBLISH_WITH_AI_VERSION
+					RTCAMP_PUBLISH_WITH_AI_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				);
 				continue;
 			}

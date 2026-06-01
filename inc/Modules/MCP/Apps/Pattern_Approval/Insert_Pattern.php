@@ -92,6 +92,10 @@ class Insert_Pattern {
 						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'rtcamp-publish-with-ai' ) );
 					}
 
+					if ( ! current_user_can( 'edit_post', $page_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'rtcamp-publish-with-ai' ) );
+					}
+
 					if ( empty( $schema ) || ! is_array( $schema ) ) {
 						return new \WP_Error( 'missing_schema', __( 'A filled content schema is required.', 'rtcamp-publish-with-ai' ) );
 					}

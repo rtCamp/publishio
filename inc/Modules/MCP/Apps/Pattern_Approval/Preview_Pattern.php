@@ -73,8 +73,18 @@ class Preview_Pattern {
 				],
 				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
+					$page_id      = (int) ( $input['page_id'] ?? 0 );
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
-					$registry     = \WP_Block_Patterns_Registry::get_instance();
+
+					if ( ! get_post( $page_id ) ) {
+						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'rtcamp-publish-with-ai' ) );
+					}
+
+					if ( ! current_user_can( 'edit_post', $page_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'rtcamp-publish-with-ai' ) );
+					}
+
+					$registry = \WP_Block_Patterns_Registry::get_instance();
 
 					if ( ! $registry->is_registered( $pattern_name ) ) {
 						return new \WP_Error(
@@ -88,7 +98,7 @@ class Preview_Pattern {
 					}
 
 					return [
-						'page_id'      => (int) ( $input['page_id'] ?? 0 ),
+						'page_id'      => $page_id,
 						'position'     => (int) ( $input['position'] ?? 0 ),
 						'pattern_name' => $pattern_name,
 						'schema'       => $input['schema'] ?? [],

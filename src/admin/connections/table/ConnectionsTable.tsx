@@ -97,7 +97,7 @@ export function ConnectionsTable( {
 			modalSize: 'small',
 			RenderModal: ( { items, closeModal } ) => (
 				<DeleteConnectionDialog
-					connection={ items[ 0 ]! }
+					connection={ items[ 0 ]! /* DataViews always passes the selected row */ }
 					onConfirm={ async () => {
 						await onDelete( items[ 0 ]! );
 						closeModal?.();

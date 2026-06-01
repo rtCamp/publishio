@@ -41,7 +41,7 @@ class Create_Post {
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'post_id', 'edit_url' ],
+					'required'   => [ 'post_id' ],
 					'properties' => [
 						'post_id'  => [
 							'type'    => 'integer',
@@ -84,7 +84,7 @@ class Create_Post {
 
 					return [
 						'post_id'  => $post_id,
-						'edit_url' => get_edit_post_link( $post_id, 'raw' ),
+						'edit_url' => get_edit_post_link( $post_id, 'raw' ) ?: '',
 					];
 				},
 				'meta'                => [

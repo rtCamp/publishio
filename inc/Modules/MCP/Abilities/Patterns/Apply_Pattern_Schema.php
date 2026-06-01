@@ -20,9 +20,9 @@ class Apply_Pattern_Schema {
 		wp_register_ability(
 			'rtpwai/apply-pattern-schema',
 			[
-				'label'               => __( 'Apply Content Schema to Pattern', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Apply Pattern Schema', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the modified block markup with the new content applied. Only content (text, links, images, labels) is replaced — layout and styles are preserved. Optionally renders the result to HTML for previewing the final output.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the block markup with the new content hydrated in. Only content fields (text, links, images, labels) are replaced — layout and styles are preserved. Optionally renders the result to HTML.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'pattern_name', 'schema' ],
@@ -33,36 +33,19 @@ class Apply_Pattern_Schema {
 						],
 						'schema'       => [
 							'type'        => 'array',
-							'description' => 'The filled content schema — same structure returned by get-pattern-schema with values updated to desired content. For repeatable entries, return fewer items to reduce count. Can be an empty array to use the pattern as-is.',
+							'description' => 'The filled content schema — same structure returned by get-pattern-schema with field values updated to the desired content. Can be an empty array to use the pattern as-is.',
 							'minItems'    => 0,
 							'items'       => [
-								'anyOf' => [
-									[
-										'type'       => 'object',
-										'required'   => [ 'block', 'fields' ],
-										'properties' => [
-											'block'  => [ 'type' => 'string' ],
-											'fields' => [
-												'type' => 'object',
-												'additionalProperties' => [ 'type' => 'string' ],
-											],
-										],
-										'additionalProperties' => false,
-									],
-									[
-										'type'       => 'object',
-										'required'   => [ 'block', 'repeatable', 'items' ],
-										'properties' => [
-											'block'      => [ 'type' => 'string' ],
-											'repeatable' => [ 'type' => 'boolean' ],
-											'items'      => [
-												'type'  => 'array',
-												'items' => [ 'type' => 'array' ],
-											],
-										],
-										'additionalProperties' => false,
+								'type'                 => 'object',
+								'required'             => [ 'block', 'fields' ],
+								'properties'           => [
+									'block'  => [ 'type' => 'string' ],
+									'fields' => [
+										'type' => 'object',
+										'additionalProperties' => [ 'type' => 'string' ],
 									],
 								],
+								'additionalProperties' => false,
 							],
 						],
 						'render'       => [

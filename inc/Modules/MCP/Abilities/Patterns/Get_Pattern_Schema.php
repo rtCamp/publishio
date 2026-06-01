@@ -20,9 +20,9 @@ class Get_Pattern_Schema {
 		wp_register_ability(
 			'rtpwai/get-pattern-schema',
 			[
-				'label'               => __( 'Get Pattern Content Schema', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Pattern Schema', 'rtcamp-publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Parses a block pattern and returns a schema of all replaceable content (text, links, images, button labels). Use this schema to know what can be customised in a pattern.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Parses a block pattern and returns a schema of its replaceable content fields (text, links, images, button labels). Use this schema as the input for the apply-pattern-schema ability.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'name' ],
@@ -36,54 +36,22 @@ class Get_Pattern_Schema {
 				],
 				'output_schema'       => [
 					'type'        => 'array',
-					'description' => 'Ordered list of replaceable blocks. Each entry is either a content block (block + fields) or a repeatable container (block + repeatable + items). Pass the same structure (with updated values or fewer items) to the apply ability.',
+					'description' => 'Ordered list of replaceable content blocks. Each entry has a block type and its replaceable fields. Pass the same structure with updated values to the apply-pattern-schema ability.',
 					'items'       => [
-						'anyOf' => [
-							[
-								'type'                 => 'object',
-								'required'             => [ 'block', 'fields' ],
-								'properties'           => [
-									'block'  => [
-										'type'        => 'string',
-										'description' => 'Block type name (e.g. core/paragraph, core/image).',
-									],
-									'fields' => [
-										'type'        => 'object',
-										'description' => 'Replaceable fields. Keys vary by block type (e.g. content, url, alt, id).',
-										'additionalProperties' => [ 'type' => 'string' ],
-									],
-								],
-								'additionalProperties' => false,
+						'type'                 => 'object',
+						'required'             => [ 'block', 'fields' ],
+						'properties'           => [
+							'block'  => [
+								'type'        => 'string',
+								'description' => 'Block type name (e.g. core/paragraph, core/image).',
 							],
-							[
+							'fields' => [
 								'type'                 => 'object',
-								'required'             => [ 'block', 'repeatable', 'items' ],
-								'properties'           => [
-									'block'       => [
-										'type'        => 'string',
-										'description' => 'Repeatable container block name (e.g. core/columns, core/gallery).',
-									],
-									'repeatable'  => [
-										'type'  => 'boolean',
-										'const' => true,
-									],
-									'count'       => [
-										'type'        => 'integer',
-										'description' => 'Current number of repeated items.',
-									],
-									'item_schema' => [
-										'type'        => 'array',
-										'description' => 'Template schema for one repeated item (read-only reference).',
-									],
-									'items'       => [
-										'type'        => 'array',
-										'description' => 'Content for each repeated item. Return fewer entries to reduce count.',
-										'items'       => [ 'type' => 'array' ],
-									],
-								],
-								'additionalProperties' => false,
+								'description'          => 'Replaceable fields. Keys vary by block type (e.g. content, url, alt, id).',
+								'additionalProperties' => [ 'type' => 'string' ],
 							],
 						],
+						'additionalProperties' => false,
 					],
 				],
 				'permission_callback' => static function () {

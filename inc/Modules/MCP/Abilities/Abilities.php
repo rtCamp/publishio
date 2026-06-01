@@ -35,7 +35,6 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Update_Post;
 use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Upload_Media;
-
 use rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval\Insert_Pattern;
 use rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval\Preview_Pattern;
 use rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval\Render_Pattern;

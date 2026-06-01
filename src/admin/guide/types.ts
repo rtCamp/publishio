@@ -1,4 +1,4 @@
-export type GuideApp = 'claude' | 'openai' | 'other';
+export type GuideApp = 'claude' | 'openai';
 
 export interface Guide {
 	id: string;

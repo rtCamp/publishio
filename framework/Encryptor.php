@@ -111,6 +111,8 @@ final class Encryptor {
 	 * Gets the encryption key.
 	 *
 	 * Uses RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY if defined, otherwise falls back to LOGGED_IN_KEY.
+	 *
+	 * @throws \RuntimeException If no valid encryption key is configured.
 	 */
 	private static function get_key(): string {
 		if ( defined( 'RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY' ) && '' !== RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY ) {

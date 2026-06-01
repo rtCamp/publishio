@@ -65,10 +65,10 @@ class Get_Yoast_Meta {
 					$post_id = (int) ( $input['post_id'] ?? 0 );
 					if ( ! get_post( $post_id ) ) {
 						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
-			if ( ! current_user_can( 'edit_post', $post_id ) ) {
-				return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
-			}
+					}
 
+					if ( ! current_user_can( 'edit_post', $post_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
 					}
 
 					$get = static function ( string $key ) use ( $post_id ): string {

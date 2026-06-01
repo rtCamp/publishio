@@ -131,7 +131,7 @@ class Authorize extends Abstract_REST_Controller {
 		}
 
 		// Ensure the user has permission to authorize MCP clients.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
 		}
 
@@ -158,7 +158,7 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'not_authenticated', 'User must be logged in.', [ 'status' => 401 ] );
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
 		}
 

@@ -150,9 +150,9 @@ final class Menu_Loader implements Registrable {
 			'pluginVersion' => RTCAMP_PUBLISH_WITH_AI_VERSION,
 			'logoUrl'       => plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 			'appLogos'      => [
-				'claude' => plugins_url( 'assets/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'openai' => plugins_url( 'assets/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'other'  => plugins_url( 'assets/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 			],
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
 			'guideImages'   => [

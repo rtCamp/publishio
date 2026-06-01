@@ -88,6 +88,7 @@ class Search_Posts {
 						'posts_per_page' => min( (int) ( $input['per_page'] ?? 10 ), 50 ),
 						'orderby'        => 'date',
 						'order'          => 'DESC',
+						'perm'           => 'editable',
 					];
 
 					if ( ! empty( $input['search'] ) ) {

@@ -83,6 +83,10 @@ class Set_Post_Terms {
 					$post = get_post( $post_id );
 					if ( ! $post ) {
 						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+		}
+
 					}
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {

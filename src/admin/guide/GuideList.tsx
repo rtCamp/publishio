@@ -29,15 +29,6 @@ const GUIDES: Guide[] = [
 		),
 		app: 'openai',
 	},
-	{
-		id: 'other',
-		title: __( 'Other Apps', 'rtcamp-publish-with-ai' ),
-		description: __(
-			'Learn how to connect with any compatible AI app.',
-			'rtcamp-publish-with-ai'
-		),
-		app: 'other',
-	},
 ];
 
 interface GuideListProps {

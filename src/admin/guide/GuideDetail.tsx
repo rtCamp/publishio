@@ -11,7 +11,6 @@ import { AdminHeader } from '../shared/AdminHeader';
 import type { Guide } from './types';
 import { ClaudeGuide } from './ClaudeGuide';
 import { OpenAIGuide } from './OpenAIGuide';
-import { OtherAppsGuide } from './OtherAppsGuide';
 
 interface GuideDetailProps {
 	guide: Guide;
@@ -24,8 +23,6 @@ function GuideContent( { guide }: { guide: Guide } ) {
 			return <ClaudeGuide />;
 		case 'openai':
 			return <OpenAIGuide />;
-		case 'other':
-			return <OtherAppsGuide />;
 	}
 }
 

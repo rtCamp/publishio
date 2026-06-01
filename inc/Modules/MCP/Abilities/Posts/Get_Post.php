@@ -56,12 +56,10 @@ class Get_Post {
 						],
 						'excerpt'        => [ 'type' => 'string' ],
 						'date'           => [
-							'type'   => 'string',
-							'format' => 'date-time',
+							'type' => 'string',
 						],
 						'modified'       => [
-							'type'   => 'string',
-							'format' => 'date-time',
+							'type' => 'string',
 						],
 						'parent_id'      => [
 							'type'    => 'integer',

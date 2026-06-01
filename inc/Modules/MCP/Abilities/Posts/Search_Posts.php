@@ -65,8 +65,7 @@ class Search_Posts {
 							'post_type' => [ 'type' => 'string' ],
 							'status'    => [ 'type' => 'string' ],
 							'date'      => [
-								'type'   => 'string',
-								'format' => 'date-time',
+								'type' => 'string',
 							],
 							'url'       => [
 								'type'   => 'string',

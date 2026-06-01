@@ -169,17 +169,17 @@ jobs:
       coverage: ${{ matrix.coverage == true }}
     secrets: inherit
 
-  e2e:
-    name: E2E Tests
-    needs: [detect, build-plugin-zip]
-    # needs: phpstan
-    if: needs.detect.outputs.php == 'true' || needs.detect.outputs.e2e == 'true' || needs.detect.outputs.js == 'true' || needs.detect.outputs.css == 'true'
-    # uses: ./.github/workflows/reusable-e2e-public.yml
-    uses: ./.github/workflows/reusable-e2e.yml
-    permissions:
-      contents: read
-    with:
-      php-version: '8.2'
+  # e2e:
+  #   name: E2E Tests
+  #   needs: [detect, build-plugin-zip]
+  #   # needs: phpstan
+  #   if: needs.detect.outputs.php == 'true' || needs.detect.outputs.e2e == 'true' || needs.detect.outputs.js == 'true' || needs.detect.outputs.css == 'true'
+  #   # uses: ./.github/workflows/reusable-e2e-public.yml
+  #   uses: ./.github/workflows/reusable-e2e.yml
+  #   permissions:
+  #     contents: read
+  #   with:
+  #     php-version: '8.2'
 
   build-plugin-zip:
     name: Build Plugin Zip

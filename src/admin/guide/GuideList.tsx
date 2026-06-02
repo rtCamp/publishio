@@ -20,15 +20,6 @@ const GUIDES: Guide[] = [
 		),
 		app: 'claude',
 	},
-	{
-		id: 'openai',
-		title: 'OpenAI',
-		description: __(
-			'Learn how to set up OpenAI (ChatGPT) as your publishing assistant.',
-			'rtcamp-publish-with-ai'
-		),
-		app: 'openai',
-	},
 ];
 
 interface GuideListProps {
@@ -53,6 +44,12 @@ export function GuideList( { onOpen }: GuideListProps ) {
 						onClick={ onOpen }
 					/>
 				) ) }
+				<p className="text-sm text-gray-500 text-center pt-2">
+					{ __(
+						'More guides coming soon.',
+						'rtcamp-publish-with-ai'
+					) }
+				</p>
 			</div>
 		</>
 	);

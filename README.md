@@ -1,51 +1,61 @@
-# Publish with AI
+# Publish With AI
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
-[![WordPress](https://img.shields.io/badge/WordPress-7.0-blue?logo=wordpress)](https://wordpress.org)<br>
+[![WordPress](https://img.shields.io/badge/WordPress-6.9-blue?logo=wordpress)](https://wordpress.org)<br>
 [![CI](https://github.com/rtCamp/publishwithai/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publishwithai/actions/workflows/ci.yml)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publishwithai/latest)](https://github.com/rtCamp/publishwithai/releases)
 
 ---
 
-Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content.
+Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content using the Block Editor.
 
 [<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publishwithai/releases/latest/download/rtcamp-publish-with-ai.zip)
 
-## 👥 Contributors
-
-[@Utsav-Ladani](https://github.com/Utsav-Ladani)
-[@danishshakeel](https://github.com/danishshakeel)
-
 ## ✨ Features
 
-- **Pattern Auto-Discovery:** Automatically detects patterns from your active theme.
-- **Structured Content Generation:** AI builds pages using proper block structures, avoiding messy HTML insertion.
+- **Pattern Auto-Discovery:** Automatically discovers all patterns registered on your site — from your theme, plugins, and core.
+- **Structured Content Generation:** AI builds pages using proper block structures, fully Block Editor-compatible content, avoiding messy HTML insertion.
+- **In-Chat Previews:** Shows live previews of each section directly within the AI chat interface before AI publishes them.
 - **Platform Agnostic:** Works with major AI platforms like Claude and ChatGPT via Model Context Protocol (MCP).
 - **SEO & Metadata:** Automatically adds metadata and SEO details (compatible with Yoast).
-- **In-Chat Previews:** Shows live previews of your generated content directly within the AI chat interface.
-- **Full Compatibility:** Works seamlessly with both Posts and Pages, ensuring 100% Block Editor compatibility.
+- **Theme Agnostic:** Works with any Block-based/FSE theme.<sup>see: [compatible themes](#themes)</sup>
 
 ## 📋 Requirements
 
 ### WordPress
 
-- **WordPress 7.0**
-- For WordPress versions **below 7.0**, the [official WordPress AI plugin](https://wordpress.org/plugins/ai/) must be active.
+- **WordPress 6.9 or higher**
+- The [official WordPress AI plugin](https://wordpress.org/plugins/ai/) is required — it provides the Abilities API that this plugin uses to expose tools to AI assistants.
 
 ### Themes
 
-- Tested with **Twenty Twenty-Five** and **Ollie**.
-- Compatible with any theme. For best results, ensure patterns have descriptive names and descriptions.
+- Tested this plugin with **Twenty Twenty-Five** and **Ollie**.
+- Compatible with any theme. For best results, ensure patterns have descriptive names and descriptions. (see: [Why your theme's patterns need proper names and descriptions](#why-your-themes-patterns-need-proper-names-and-descriptions))
 
-#### Importance of proper naming and description
+### Why your theme's patterns need proper names and descriptions
 
-This metadata provides the semantic context the AI needs to understand the purpose and structure of each pattern, enabling it to select the most appropriate ones for your content.
+This plugin acts as a bridge between your WordPress theme and AI assistants. Here's how it works:
+
+1. **Pattern discovery** — the plugin scans all patterns registered by your active theme via `WP_Block_Patterns_Registry`.
+2. **Metadata sent to AI** — each pattern's `title`, `description`, `categories`, and `keywords` are sent to the AI as structured data. The actual block markup is fetched separately, on demand.
+3. **AI selects a pattern** — the AI reads the pattern metadata and decides which pattern best fits the user's request.
+4. **Content is filled** — the AI hydrates the selected pattern with new content (headings, paragraphs, images, buttons).
+5. **Preview and approve** — the generated page is previewed in the AI chat before insertion.
+
+**When a pattern has no description (or a generic one), the AI has only the `title` to work with for matching.** A title like "Hero Section" doesn't tell the AI whether it's a full-width hero, a split hero with an image, a centered hero with a CTA, or a hero with a background video. The AI must then fetch the full content of every pattern that matches a keyword — adding expensive round trips — just to understand what each one looks like.
+
+**What the AI sees:**
+
+- Patterns with rich metadata → the AI matches confidently in one round trip.
+- Patterns with no metadata → the AI either skips them or fetches every candidate's full content to reverse-engineer their purpose.
+
+**Bottom line:** The more descriptive your pattern names and descriptions, the better the AI's output. Theme authors should treat pattern metadata as documentation for AI — not just a label for the block inserter.
 
 ## 🚀 Quick Start
 
 1. Install and activate the plugin in your WordPress dashboard.
-2. Ensure you meet the [Requirements](#-requirements) (WP 7.0 or the official AI plugin).
+2. Ensure you meet the [Requirements](#-requirements) (WordPress 6.9+ and the official AI plugin).
 3. Navigate to the plugin settings to connect your AI platform (Claude/ChatGPT).
 4. Start prompting your AI to build WordPress pages using your theme's patterns.
 
@@ -54,8 +64,23 @@ This metadata provides the semantic context the AI needs to understand the purpo
 **Q: Do I need a specific theme?**
 A: No, it works with any theme, but themes with well-described patterns (like Twenty Twenty-Five) yield the best results.
 
-**Q: Why do I need the official WordPress AI plugin on older versions?**
-A: WordPress 7.0 introduced core features that this plugin relies on. The official AI plugin backports those features to older versions.
+**Q: Why do I need the official WordPress AI plugin?**
+A: This plugin uses the Abilities API (`wp_register_ability`) to expose tools like pattern discovery, post creation, and SEO metadata to AI assistants. The Abilities API is developed as part of the AI plugin ecosystem and shipped through it. Without the AI plugin active, AI tools won't discover any site abilities.
+
+**Q: Does it work with AI platforms other than Claude and ChatGPT?**
+A: Yes. The plugin uses the Model Context Protocol (MCP), an open standard. Any AI platform or client that supports MCP — including local models, coding assistants, and custom integrations — can connect to your site and build content.
+
+**Q: Does the AI publish directly, or can I review content first?**
+A: You're always in control. The plugin provides in-chat previews of each section before anything is inserted. You can review, request changes, or approve before the content is published.
+
+**Q: Does it work with classic (non-block) themes?**
+A: The plugin is designed for block-based and Full Site Editing (FSE) themes. Classic themes without block editor support are not recommended — the AI generates Block Editor content that requires block-aware themes to render correctly.
+
+**Q: Will it work with page builders like Elementor or Divi?**
+A: No. This plugin generates native WordPress block markup for the Block Editor. Page builder shortcodes and proprietary formats are not supported.
+
+**Q: Does it support custom post types?**
+A: Yes. The plugin works with any registered post type — pages, posts, and custom post types (e.g. portfolio, product, event). Just pass the post type slug when creating content.
 
 ## 📚 Documentation
 
@@ -71,22 +96,22 @@ A: WordPress 7.0 introduced core features that this plugin relies on. The offici
 ├── assets/                 # Static assets (CSS, images)
 ├── docs/                   # Development guides and references
 ├── framework/              # Reusable framework (shared across plugins)
-│   └── README.md
 ├── inc/                    # Plugin-specific PHP source
 │   └── Modules/
 │       ├── MCP/            # Model Context Protocol abilities
-│       ├── Screenshot/     # Screenshot generation API
 │       └── Settings/       # Plugin settings and connections
 ├── src/                    # TypeScript/JS entry points
-│   └── README.md
-├── templates/              # PHP templates with theme override support
-└── tests/                  # PHPUnit, Jest, Playwright tests
+├── templates/              # Admin screen and OAuth consent templates
+└── tests/                  # PHPUnit and Jest tests
 ```
 
 See [./docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#directory-structure) for a detailed directory tree and descriptions.
 
+## 👥 Contributors
+
+[@Utsav-Ladani](https://github.com/Utsav-Ladani)
+[@danishshakeel](https://github.com/danishshakeel)
+
 ## 📄 License
 
 GPL-2.0-or-later. See [LICENSE.md](LICENSE.md).
-
-<a href="https://rtcamp.com/"><img src="https://rtcamp.com/wp-content/uploads/sites/2/2019/04/github-banner@2x.png" alt="Join us at rtCamp, we specialize in providing high performance enterprise WordPress solutions"></a>

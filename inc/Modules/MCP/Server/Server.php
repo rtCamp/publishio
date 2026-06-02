@@ -1,6 +1,6 @@
 <?php
 /**
- * Registers the dedicated Publish with AI MCP server.
+ * Registers the dedicated Publish With AI MCP server.
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\Server
  */
@@ -40,7 +40,7 @@ class Server implements Registrable {
 			'mcp',
 			self::SERVER_ID,
 			__( 'Publish With AI — rtCamp', 'rtcamp-publish-with-ai' ),
-			__( 'MCP server for the Publish with AI plugin.', 'rtcamp-publish-with-ai' ),
+			__( 'MCP server for the Publish With AI plugin.', 'rtcamp-publish-with-ai' ),
 			RTCAMP_PUBLISH_WITH_AI_VERSION,
 			[ HttpTransport::class ],
 			ErrorLogMcpErrorHandler::class,

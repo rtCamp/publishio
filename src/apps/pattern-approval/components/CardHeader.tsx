@@ -12,7 +12,7 @@ export function CardHeader() {
 			</div>
 			<div className="flex flex-col min-w-0 flex-1">
 				<span className="text-sm font-medium text-(--ink)">
-					Publish with AI
+					Publish With AI
 				</span>
 				{ siteName && siteUrl && (
 					<a

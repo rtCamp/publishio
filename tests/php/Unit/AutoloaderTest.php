@@ -64,7 +64,7 @@ class AutoloaderTest extends TestCase {
 		$method = new \ReflectionMethod( Autoloader::class, 'get_autoloader_error_message' );
 		$method->setAccessible( true );
 		$result = $method->invoke( null );
-		$this->assertStringContainsString( 'Publish with AI', $result );
+		$this->assertStringContainsString( 'Publish With AI', $result );
 		$this->assertStringContainsString( 'Composer autoloader', $result );
 	}
 }

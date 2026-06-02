@@ -16,7 +16,7 @@ Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md) to ensure a w
 >
 > For more information, refer to our [Security Policy](./SECURITY.md).
 
-If you find a bug or have a feature request, please open an issue in the [GitHub Issues](https://github.com/rtCamp/publishwithai) section. Provide as much detail as possible, including:
+If you find a bug or have a feature request, please open an issue in the [GitHub Issues](https://github.com/rtCamp/publish-with-ai) section. Provide as much detail as possible, including:
 
 1. A clear description of the issue.
 2. Steps to reproduce the issue.
@@ -26,7 +26,7 @@ In general, we recommend you **adhere to the GitHub issue templates** included i
 
 > [!TIP]
 >
-> **Note**: Before opening a new issue, please search the [GitHub Issues](https://github.com/rtCamp/publishwithai/issues) to see if a similar issue has already been reported.
+> **Note**: Before opening a new issue, please search the [GitHub Issues](https://github.com/rtCamp/publish-with-ai/issues) to see if a similar issue has already been reported.
 >
 > If you find an existing issue that matches your concern, you can upvote the issue or add a comment to provide additional context, reproduction steps, or any other relevant information to help the ticket advance.
 

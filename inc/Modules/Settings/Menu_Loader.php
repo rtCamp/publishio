@@ -17,7 +17,6 @@ use rtCamp\Publish_With_AI\Core\Assets;
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config as MCP_Config;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Connections_Page;
-use rtCamp\Publish_With_AI\Modules\Settings\Pages\Credentials_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Guide_Page;
 
 /**
@@ -33,7 +32,6 @@ final class Menu_Loader implements Registrable {
 	private const PAGE_CLASSES = [
 		Guide_Page::class,
 		Connections_Page::class,
-		Credentials_Page::class,
 	];
 
 	/**

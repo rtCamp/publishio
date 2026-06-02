@@ -111,27 +111,6 @@ class Client_Store {
 	}
 
 	/**
-	 * Return all registered clients, newest first.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	public static function all(): array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-
-		return array_map( [ self::class, 'parse_row' ], $rows );
-	}
-
-	/**
 	 * Return clients filtered by source ('dcr' or 'cred'), newest first, paginated.
 	 *
 	 * @param string $source The source value to filter by.

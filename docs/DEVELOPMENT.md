@@ -157,7 +157,6 @@ Code contributions, bug reports, and feature requests are welcome! The following
 
 ### Prerequisites
 
-- [WordPress](https://wordpress.org/) with the [official WordPress AI plugin](https://wordpress.org/plugins/ai/)
 - [Node.js](https://nodejs.org/): >=24.0.0 ([NVM](https://nvm.sh/) recommended)
 - npm: >=11.0.0
 - [Docker](https://www.docker.com/)

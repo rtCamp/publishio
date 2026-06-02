@@ -8,6 +8,7 @@ export default [
 			'**/*.min.js',
 			'build/**',
 			'build-apps/**',
+			'.claude/**',
 			'node_modules/**',
 			'tests/_output/**',
 			'vendor/**',
@@ -70,6 +71,11 @@ export default [
 						// @wordpress/* packages are provided by WordPress at runtime;
 						// they only need to be devDependencies for types and build.
 						'**/src/**',
+						// Config files at root — ESLint global ignores sometimes
+						// bypassed by wp-scripts lint-js.
+						'**/.lintstagedrc.*',
+						'**/.prettierrc.*',
+						'**/eslint.config.*',
 					],
 				},
 			],

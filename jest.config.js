@@ -34,9 +34,6 @@ module.exports = {
 		...defaultConfig.moduleNameMapper,
 		// Path alias for src directory
 		'^@/(.*)$': '<rootDir>/src/$1',
-		// Mock for WordPress Interactivity API (not available in test environment)
-		'^@wordpress/interactivity$':
-			'<rootDir>/tests/js/__mocks__/wordpress-interactivity.ts',
 	},
 
 	// Directories to ignore when searching for tests
@@ -47,7 +44,11 @@ module.exports = {
 		'/vendor/',
 		'/tests/e2e/',
 		'/tests/php/',
+		'/.claude/',
 	],
+
+	// Directories to ignore for module resolution (prevents Haste collisions)
+	modulePathIgnorePatterns: [ '/.claude/' ],
 
 	// Test match patterns
 	testMatch: [

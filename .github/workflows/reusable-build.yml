@@ -72,6 +72,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: rtcamp-publish-with-ai.zip
           if-no-files-found: error
+          archive: false
 
       - name: Cleanup Workspace & Home to avoid pollution
         if: always()

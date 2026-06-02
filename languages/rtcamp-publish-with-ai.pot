@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-02T01:16:19+00:00\n"
+"POT-Creation-Date: 2026-06-02T11:56:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: rtcamp-publish-with-ai\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: rtcamp-publish-with-ai.php
-msgid "https://github.com/rtCamp/publishwithai"
+msgid "https://github.com/rtCamp/publish-with-ai"
 msgstr ""
 
 #. Description of the plugin
@@ -76,7 +76,7 @@ msgid "%s: The Composer autoloader was not found. If you installed the plugin fr
 msgstr ""
 
 #. translators: %s: class name
-#: inc/Main.php:75
+#: inc/Main.php:74
 #, php-format
 msgid "Publish With AI: Class %s not found. Skipping registration."
 msgstr ""
@@ -499,55 +499,55 @@ msgstr ""
 msgid "Invalid request."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:106
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:112
 msgid "MCP OAuth Sessions"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:109
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:115
 msgid "MCP OAuth session revoked."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:111
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:117
 msgid "All MCP OAuth sessions have been revoked."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:115
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:121
 msgid "No active MCP OAuth sessions."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:120
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:126
 msgid "Client"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:121
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:127
 msgid "Scope"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:122
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:128
 msgid "Created"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:123
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:129
 msgid "Expires"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:124
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:130
 msgid "Actions"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:142
-msgid "Revoke access for this client? It will need to re-authorize."
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:148
+msgid "Revoke your access to this app? You will need to sign in again."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:143
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:149
 msgid "Revoke"
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:159
-msgid "Revoke all MCP OAuth sessions? The connected application will need to re-authorize."
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:165
+msgid "Revoke all MCP OAuth sessions? You will need to sign in to each app again."
 msgstr ""
 
-#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:160
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:166
 msgid "Revoke All Sessions"
 msgstr ""
 
@@ -577,74 +577,21 @@ msgstr ""
 msgid "MCP server for the Publish With AI plugin."
 msgstr ""
 
-#: inc/Modules/Settings/Connections/REST_Controller.php:165
+#: inc/Modules/Settings/Connections/REST_Controller.php:179
 msgid "Connection not found."
 msgstr ""
 
-#: inc/Modules/Settings/Connections/REST_Controller.php:171
-#: inc/Modules/Settings/Credentials/REST_Controller.php:237
-msgid "Failed to delete associated tokens."
+#: inc/Modules/Settings/Connections/REST_Controller.php:185
+msgid "Failed to revoke tokens."
 msgstr ""
 
-#: inc/Modules/Settings/Connections/REST_Controller.php:177
-msgid "Failed to delete connection."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:176
-msgid "At least one valid redirect URI is required."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:203
-msgid "Failed to create credential."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:209
-msgid "Failed to retrieve created credential."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:231
-#: inc/Modules/Settings/Credentials/REST_Controller.php:261
-msgid "Credential not found."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:243
-msgid "Failed to delete credential."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:269
-msgid "Failed to update credential."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:275
-msgid "Failed to retrieve updated credential."
-msgstr ""
-
-#. translators: %s: comma-separated list of invalid URIs
-#: inc/Modules/Settings/Credentials/REST_Controller.php:369
-#, php-format
-msgid "Invalid redirect URI(s): %s. URIs must use https:// (or http:// for localhost only). Fragments (#) are not allowed."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:419
-msgid "Value must be a valid URL."
-msgstr ""
-
-#: inc/Modules/Settings/Credentials/REST_Controller.php:422
-msgid "URL must use https://."
-msgstr ""
-
-#: inc/Modules/Settings/Menu_Loader.php:118
+#: inc/Modules/Settings/Menu_Loader.php:116
 msgid "Settings"
 msgstr ""
 
 #: inc/Modules/Settings/Pages/Connections_Page.php:28
 #: inc/Modules/Settings/Pages/Connections_Page.php:29
 msgid "Connections"
-msgstr ""
-
-#: inc/Modules/Settings/Pages/Credentials_Page.php:28
-#: inc/Modules/Settings/Pages/Credentials_Page.php:29
-msgid "Credentials"
 msgstr ""
 
 #: inc/Modules/Settings/Pages/Guide_Page.php:36

@@ -18,8 +18,8 @@
  * Text Domain:       rtcamp-publish-with-ai
  * Domain Path:       /languages
  * Requires PHP:      8.2
- * Requires at least: 7.0
- * Tested up to:      7.0.0
+ * Requires at least: 6.9
+ * Tested up to:      7.0
  * Requires Plugins:  ai
  */
 

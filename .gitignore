@@ -20,9 +20,10 @@ Thumbs.db
 build/
 build-apps/
 
-# Generated language files
+# Generated language files (commit .pot templates, ignore compiled .mo)
 /languages/*
 !/languages/.gitkeep
+!/languages/*.pot
 
 # Environment
 .env

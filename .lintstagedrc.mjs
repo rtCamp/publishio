@@ -20,5 +20,5 @@ export default {
 			`sh -c "./vendor/bin/phpcbf ${ relativeFilenames } || [ \$? -eq 3 ]"`,
 		];
 	},
-	'**/*.{json,md,css,scss,js,jsx,ts,tsx}': [ 'wp-scripts format --' ],
+	'**/*.{json,md,js,jsx,ts,tsx}': [ 'wp-scripts format --' ],
 };

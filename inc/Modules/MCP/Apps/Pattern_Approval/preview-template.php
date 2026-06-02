@@ -8,23 +8,39 @@
  * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
  */
 
-declare( strict_types = 1 );
+declare(strict_types = 1);
 
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
+
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<?php wp_head(); ?>
 	<style>
-		body { background: transparent !important; margin: 0; padding: 0; }
-		html { margin-top: 0 !important; }
+		body {
+			background: transparent !important;
+			margin: 0;
+			padding: 0;
+			zoom: 0.5;
+			transform-origin: top left;
+		}
+
+		html {
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+
 		<?php printf( '%s { display: none !important; }', '#wpadminbar' ); ?>
 	</style>
 </head>
+
 <body <?php body_class(); ?>>
-	<?php echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitised by do_blocks() ?>
+	<?php
+	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitised by do_blocks()
+	?>
 	<?php wp_footer(); ?>
 </body>
+
 </html>

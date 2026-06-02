@@ -51,5 +51,5 @@ jobs:
         env:
           CI: true
 
-      - name: Build development assets
-        run: npm run build:dev
+      - name: Build assets
+        run: npm run build

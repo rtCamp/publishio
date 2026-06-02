@@ -50,7 +50,9 @@ class Token_Store {
 			UNIQUE KEY access_token_hash (access_token_hash),
 			UNIQUE KEY refresh_token_hash (refresh_token_hash),
 			KEY user_refresh (user_id, refresh_expires_at),
-			KEY client_refresh (client_id, refresh_expires_at)
+			KEY client_refresh (client_id, refresh_expires_at),
+			KEY user_client (user_id, client_id),
+			KEY client_user_refresh (client_id, user_id, refresh_expires_at)
 		) {$charset_collate};";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -187,9 +189,15 @@ class Token_Store {
 		}
 
 		// Issue new tokens first; only remove the old row if issuance succeeds.
+		// Wrap in a transaction so a failure between INSERT and DELETE does not leave both tokens valid.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
+
 		$new_tokens = self::issue( (int) $row['user_id'], $client_id, $row['scope'], $row['resource'] );
 		if ( null === $new_tokens ) {
 			// DB failure — old token is still valid; signal server_error to caller.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			return false;
 		}
 
@@ -200,21 +208,10 @@ class Token_Store {
 			[ '%d' ]
 		);
 
-		return $new_tokens;
-	}
-
-	/**
-	 * Delete all tokens for a client across all users. Used when a client is deleted.
-	 *
-	 * @param string $client_id The OAuth client ID.
-	 *
-	 * @return int|false Number of rows deleted.
-	 */
-	public static function delete_all_for_client( string $client_id ): int|false {
-		global $wpdb;
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		return $wpdb->delete( self::table_name(), [ 'client_id' => $client_id ], [ '%s' ] );
+		$wpdb->query( 'COMMIT' );
+
+		return $new_tokens;
 	}
 
 	/**
@@ -222,18 +219,95 @@ class Token_Store {
 	 *
 	 * @param int    $user_id   The WordPress user ID.
 	 * @param string $client_id The OAuth client ID.
+	 *
+	 * @return int|false Number of rows deleted, or false on DB error.
 	 */
-	public static function revoke_for_client( int $user_id, string $client_id ): void {
+	public static function revoke_for_client( int $user_id, string $client_id ): int|false {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->delete(
+		return $wpdb->delete(
 			self::table_name(),
 			[
 				'user_id'   => $user_id,
 				'client_id' => $client_id,
 			],
 			[ '%d', '%s' ]
+		);
+	}
+
+	/**
+	 * Count distinct (client_id, user_id) pairs for DCR clients with active refresh tokens.
+	 *
+	 * Used to drive pagination on the connections admin screen.
+	 *
+	 * @param int $now Current Unix timestamp.
+	 *
+	 * @return int Total number of active (client, user) pairs.
+	 */
+	public static function count_connection_pairs( int $now ): int {
+		global $wpdb;
+
+		$tokens_table  = self::table_name();
+		$clients_table = $wpdb->prefix . 'rtpwai_oauth_clients';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ( SELECT 1 FROM %i t INNER JOIN %i c ON c.client_id = t.client_id WHERE c.source = %s AND t.refresh_expires_at > %d GROUP BY t.client_id, t.user_id ) pairs',
+				$tokens_table,
+				$clients_table,
+				'dcr',
+				$now
+			)
+		);
+
+		return (int) $count;
+	}
+
+	/**
+	 * Return a paginated slice of active (client_id, user_id) pairs for DCR clients.
+	 *
+	 * Each row carries the MAX(created_at) for that pair so the caller can display
+	 * a "last active" timestamp per user per client.
+	 *
+	 * @param int $offset Page offset (0-based).
+	 * @param int $limit  Number of rows to return.
+	 * @param int $now    Current Unix timestamp.
+	 *
+	 * @return array<int, array{client_id: string, user_id: int, last_active_at: int}>
+	 */
+	public static function get_connection_pairs( int $offset, int $limit, int $now ): array {
+		global $wpdb;
+
+		$tokens_table  = self::table_name();
+		$clients_table = $wpdb->prefix . 'rtpwai_oauth_clients';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT t.client_id, t.user_id, MAX(t.created_at) AS last_active_at FROM %i t INNER JOIN %i c ON c.client_id = t.client_id WHERE c.source = %s AND t.refresh_expires_at > %d GROUP BY t.client_id, t.user_id ORDER BY last_active_at DESC LIMIT %d OFFSET %d',
+				$tokens_table,
+				$clients_table,
+				'dcr',
+				$now,
+				$limit,
+				$offset
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+
+		return array_map(
+			static fn ( $row ) => [
+				'client_id'      => $row['client_id'],
+				'user_id'        => (int) $row['user_id'],
+				'last_active_at' => (int) $row['last_active_at'],
+			],
+			$rows
 		);
 	}
 
@@ -277,50 +351,6 @@ class Token_Store {
 		);
 
 		return is_array( $rows ) ? $rows : [];
-	}
-
-	/**
-	 * Get active user IDs and latest token time grouped by client_id.
-	 *
-	 * Single query returning both the distinct user IDs and MAX(created_at) per
-	 * client. Only rows where the refresh token is still valid are included.
-	 *
-	 * @param string[] $client_ids OAuth client IDs to look up.
-	 *
-	 * @return array<string, array{user_ids: int[], last_active_at: int}> Map of client_id => data.
-	 */
-	public static function get_client_token_data( array $client_ids ): array {
-		if ( empty( $client_ids ) ) {
-			return [];
-		}
-
-		global $wpdb;
-
-		$now = time();
-		$sql = sprintf(
-			'SELECT client_id, GROUP_CONCAT(DISTINCT user_id) AS user_ids, MAX(created_at) AS last_active_at FROM %%i WHERE client_id IN (%s) AND refresh_expires_at > %%d GROUP BY client_id',
-			implode( ', ', array_fill( 0, count( $client_ids ), '%s' ) )
-		);
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			$wpdb->prepare( $sql, array_merge( [ self::table_name() ], $client_ids, [ $now ] ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-
-		$result = [];
-		foreach ( $rows as $row ) {
-			$result[ $row['client_id'] ] = [
-				'user_ids'       => array_map( 'intval', explode( ',', $row['user_ids'] ) ),
-				'last_active_at' => (int) $row['last_active_at'],
-			];
-		}
-
-		return $result;
 	}
 
 	/**

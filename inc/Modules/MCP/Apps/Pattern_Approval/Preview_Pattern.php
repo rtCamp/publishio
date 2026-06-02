@@ -27,14 +27,14 @@ class Preview_Pattern {
 		wp_register_ability(
 			'rtpwai/preview-pattern',
 			[
-				'label'               => __( 'Preview Pattern for Approval', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Present Pattern for User Approval', 'rtcamp-publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
-				'description'         => __( 'Validates a filled pattern and opens the Pattern Approval UI so the user can preview and confirm before the pattern is inserted into the page.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Presents a filled pattern to the user for visual review. The Pattern Approval UI opens automatically showing the rendered preview with two choices: Insert (inserts the pattern into the page and sends a confirmation back — the model resumes from that message) or Show alternative (asks the model for a different pattern). Returns an error immediately if the pattern name is not registered. Do not call any further tools — wait for the user to act.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
-					'required'             => [ 'post_id', 'position', 'pattern_name', 'schema' ],
+					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
 					'properties'           => [
-						'post_id'      => [
+						'page_id'      => [
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'description' => 'ID of the page to insert into.',
@@ -59,18 +59,32 @@ class Preview_Pattern {
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'post_id', 'position', 'pattern_name', 'schema' ],
+					'required'   => [ 'page_id', 'position', 'pattern_name', 'schema', 'message' ],
 					'properties' => [
-						'post_id'      => [ 'type' => 'integer' ],
+						'page_id'      => [ 'type' => 'integer' ],
 						'position'     => [ 'type' => 'integer' ],
 						'pattern_name' => [ 'type' => 'string' ],
 						'schema'       => [ 'type' => 'array' ],
+						'message'      => [
+							'type'        => 'string',
+							'description' => 'Confirmation that the preview UI is open. The model must stop here — resume only when the user sends a follow-up message.',
+						],
 					],
 				],
 				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
+					$page_id      = (int) ( $input['page_id'] ?? 0 );
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
-					$registry     = \WP_Block_Patterns_Registry::get_instance();
+
+					if ( ! get_post( $page_id ) ) {
+						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'rtcamp-publish-with-ai' ) );
+					}
+
+					if ( ! current_user_can( 'edit_post', $page_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'rtcamp-publish-with-ai' ) );
+					}
+
+					$registry = \WP_Block_Patterns_Registry::get_instance();
 
 					if ( ! $registry->is_registered( $pattern_name ) ) {
 						return new \WP_Error(
@@ -84,10 +98,11 @@ class Preview_Pattern {
 					}
 
 					return [
-						'post_id'      => (int) ( $input['post_id'] ?? 0 ),
+						'page_id'      => $page_id,
 						'position'     => (int) ( $input['position'] ?? 0 ),
 						'pattern_name' => $pattern_name,
 						'schema'       => $input['schema'] ?? [],
+						'message'      => __( 'The pattern preview is now displayed to the user. Waiting for their approval before inserting.', 'rtcamp-publish-with-ai' ),
 					];
 				},
 				'meta'                => [

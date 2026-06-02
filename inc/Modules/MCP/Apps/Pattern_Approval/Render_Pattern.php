@@ -26,7 +26,7 @@ class Render_Pattern {
 		wp_register_ability(
 			'rtpwai/render-pattern',
 			[
-				'label'               => __( 'Render Pattern to HTML', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Render Pattern to HTML (App Only)', 'rtcamp-publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
 				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'rtcamp-publish-with-ai' ),
 				'input_schema'        => [
@@ -83,8 +83,8 @@ class Render_Pattern {
 
 					$pattern = $registry->get_registered( $pattern_name );
 					$markup  = Pattern_Schema::apply( $pattern['content'] ?? '', $schema );
-					if ( is_wp_error( $markup ) ) {
-						return $markup;
+					if ( empty( $markup ) ) {
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'rtcamp-publish-with-ai' ) );
 					}
 
 					// Ensure core block styles handle is registered before rendering.

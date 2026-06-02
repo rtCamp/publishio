@@ -56,12 +56,10 @@ class Get_Post {
 						],
 						'excerpt'        => [ 'type' => 'string' ],
 						'date'           => [
-							'type'   => 'string',
-							'format' => 'date-time',
+							'type' => 'string',
 						],
 						'modified'       => [
-							'type'   => 'string',
-							'format' => 'date-time',
+							'type' => 'string',
 						],
 						'parent_id'      => [
 							'type'    => 'integer',
@@ -118,6 +116,10 @@ class Get_Post {
 						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
 					}
 
+					if ( ! current_user_can( 'edit_post', $post_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+					}
+
 					$thumbnail_id = (int) get_post_thumbnail_id( $post_id );
 					$featured     = null;
 					if ( $thumbnail_id ) {
@@ -156,7 +158,7 @@ class Get_Post {
 						'template'       => get_page_template_slug( $post_id ) ?: '',
 						'featured_image' => $featured,
 						'url'            => get_permalink( $post_id ),
-						'edit_url'       => get_edit_post_link( $post_id, 'raw' ),
+						'edit_url'       => get_edit_post_link( $post_id, 'raw' ) ?: '',
 						'blocks'         => $block_list,
 					];
 				},

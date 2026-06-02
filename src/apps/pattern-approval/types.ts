@@ -6,15 +6,15 @@ export type UiState =
 	| 'alternative';
 
 export interface PreviewData {
-	post_id?: unknown;
-	position?: unknown;
+	page_id?: number;
+	position?: number;
 	pattern_name?: string;
 	schema?: unknown;
 }
 
 export interface PendingPattern {
-	post_id: unknown;
-	position: unknown;
+	page_id: number;
+	position: number;
 	pattern_name: string;
 	pattern_title?: string;
 	pattern_description?: string;

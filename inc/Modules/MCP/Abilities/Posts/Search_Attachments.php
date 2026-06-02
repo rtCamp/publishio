@@ -62,8 +62,7 @@ class Search_Attachments {
 							'mime_type' => [ 'type' => 'string' ],
 							'alt'       => [ 'type' => 'string' ],
 							'date'      => [
-								'type'   => 'string',
-								'format' => 'date-time',
+								'type' => 'string',
 							],
 						],
 					],

@@ -4,11 +4,16 @@
 	"compilerOptions": {
 		"outDir": "../_output/js",
 		"noEmit": true,
-		"types": [ "jest", "node", "@testing-library/jest-dom" ]
+		"types": [ "jest", "node", "@testing-library/jest-dom" ],
+		"paths": {
+			"@/*": [ "../../src/*" ]
+		}
 	},
 	"include": [
 		"./**/*.ts",
 		"./**/*.tsx",
+		"../../src/**/*.ts",
+		"../../src/**/*.tsx",
 		"../../src/**/__tests__/**/*.ts",
 		"../../src/**/__tests__/**/*.tsx",
 		"../../src/**/*.test.ts",

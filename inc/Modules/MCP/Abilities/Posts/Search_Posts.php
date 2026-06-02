@@ -65,8 +65,7 @@ class Search_Posts {
 							'post_type' => [ 'type' => 'string' ],
 							'status'    => [ 'type' => 'string' ],
 							'date'      => [
-								'type'   => 'string',
-								'format' => 'date-time',
+								'type' => 'string',
 							],
 							'url'       => [
 								'type'   => 'string',
@@ -89,6 +88,7 @@ class Search_Posts {
 						'posts_per_page' => min( (int) ( $input['per_page'] ?? 10 ), 50 ),
 						'orderby'        => 'date',
 						'order'          => 'DESC',
+						'perm'           => 'editable',
 					];
 
 					if ( ! empty( $input['search'] ) ) {
@@ -109,7 +109,7 @@ class Search_Posts {
 							'status'    => $post->post_status,
 							'date'      => $post->post_date,
 							'url'       => get_permalink( $post->ID ),
-							'edit_url'  => get_edit_post_link( $post->ID, 'raw' ),
+							'edit_url'  => get_edit_post_link( $post->ID, 'raw' ) ?: '',
 						];
 					}
 

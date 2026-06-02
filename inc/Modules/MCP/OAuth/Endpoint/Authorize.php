@@ -131,7 +131,7 @@ class Authorize extends Abstract_REST_Controller {
 		}
 
 		// Ensure the user has permission to authorize MCP clients.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
 		}
 
@@ -158,7 +158,7 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'not_authenticated', 'User must be logged in.', [ 'status' => 401 ] );
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
 		}
 
@@ -295,10 +295,10 @@ class Authorize extends Abstract_REST_Controller {
 		$user        = wp_get_current_user();
 		$client      = Client_Store::get_by_client_id( $params['client_id'] );
 		$client_name = $client ? $client['client_name'] : $params['client_id']; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$client_uri  = $client['client_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$logo_uri    = $client['logo_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$tos_uri     = $client['tos_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$policy_uri  = $client['policy_uri'] ?? null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$client_uri  = $client ? ( $client['client_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$logo_uri    = $client ? ( $client['logo_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$tos_uri     = $client ? ( $client['tos_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$policy_uri  = $client ? ( $client['policy_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_name   = get_bloginfo( 'name' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$action_url  = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 

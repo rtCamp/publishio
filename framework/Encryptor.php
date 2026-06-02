@@ -41,10 +41,10 @@ final class Encryptor {
 		if ( ! extension_loaded( 'openssl' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				'OpenSSL extension is not loaded. Returning unencrypted value.',
+				'OpenSSL extension is not loaded. Cannot encrypt value.',
 				'0.0.1',
 			);
-			return $raw_value;
+			return false;
 		}
 
 		$iv  = random_bytes( self::IV_LENGTH );
@@ -75,10 +75,10 @@ final class Encryptor {
 		if ( ! extension_loaded( 'openssl' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				'OpenSSL extension is not loaded. Returning unencrypted value.',
+				'OpenSSL extension is not loaded. Cannot decrypt value.',
 				'0.0.1',
 			);
-			return $raw_value;
+			return false;
 		}
 
 		$decoded_value = base64_decode( $raw_value, true );
@@ -111,17 +111,23 @@ final class Encryptor {
 	 * Gets the encryption key.
 	 *
 	 * Uses RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY if defined, otherwise falls back to LOGGED_IN_KEY.
+	 *
+	 * @throws \RuntimeException If no valid encryption key is configured.
 	 */
 	private static function get_key(): string {
 		if ( defined( 'RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY' ) && '' !== RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY ) {
-			return RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY;
+			return hash( 'sha256', RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY, true );
 		}
 
 		if ( defined( 'LOGGED_IN_KEY' ) && '' !== LOGGED_IN_KEY ) {
-			return LOGGED_IN_KEY;
+			return hash( 'sha256', LOGGED_IN_KEY, true );
 		}
 
-		// If you're here, you're either not on a live site or have a serious security issue.
-		return 'this-is-not-a-real-key-change-me';
+		// No encryption key configured. Fail hard instead of silently using an insecure fallback.
+		// Define RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY in wp-config.php with a cryptographically secure value.
+		// WordPress core's LOGGED_IN_KEY is an acceptable fallback for sites that have it set.
+		throw new \RuntimeException(
+			'Publish With AI: No encryption key configured. Define RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY in wp-config.php.'
+		);
 	}
 }

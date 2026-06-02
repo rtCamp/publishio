@@ -17,9 +17,7 @@ use rtCamp\Publish_With_AI\Core\Assets;
 use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config as MCP_Config;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Connections_Page;
-use rtCamp\Publish_With_AI\Modules\Settings\Pages\Credentials_Page;
 use rtCamp\Publish_With_AI\Modules\Settings\Pages\Guide_Page;
-use rtCamp\Publish_With_AI\Modules\Settings\Pages\Settings_Page;
 
 /**
  * Class - Menu_Loader
@@ -34,8 +32,6 @@ final class Menu_Loader implements Registrable {
 	private const PAGE_CLASSES = [
 		Guide_Page::class,
 		Connections_Page::class,
-		Credentials_Page::class,
-		Settings_Page::class,
 	];
 
 	/**
@@ -152,9 +148,9 @@ final class Menu_Loader implements Registrable {
 			'pluginVersion' => RTCAMP_PUBLISH_WITH_AI_VERSION,
 			'logoUrl'       => plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 			'appLogos'      => [
-				'claude' => plugins_url( 'assets/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'openai' => plugins_url( 'assets/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'other'  => plugins_url( 'assets/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
 			],
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
 			'guideImages'   => [

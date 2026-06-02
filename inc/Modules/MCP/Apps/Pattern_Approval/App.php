@@ -35,7 +35,7 @@ class App extends McpAppResource {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return 'Shows a rendered block-pattern preview and collects user approval before inserting it into a post.';
+		return 'Shows a rendered block-pattern preview and collects user approval before inserting it into a page.';
 	}
 
 	/**
@@ -69,7 +69,7 @@ class App extends McpAppResource {
 		$build_file = RTCAMP_PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval.html';
 
 		if ( ! is_readable( $build_file ) ) {
-			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build:js</code> to generate the Pattern Approval app.</body></html>';
+			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build</code> to generate the Pattern Approval app.</body></html>';
 		}
 
 		$plugin_url = RTCAMP_PUBLISH_WITH_AI_URL . 'build-apps';

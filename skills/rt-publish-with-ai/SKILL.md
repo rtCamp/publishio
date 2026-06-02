@@ -1,34 +1,112 @@
 ---
 name: rt-publish-with-ai
-description: Generates WordPress content using the site's existing patterns (never custom blocks), assembled via pattern schemas and built up incrementally rather than written in one shot. Landing pages are pattern-only; blog posts may use direct block markup for plain prose (paragraphs, headings, lists, quotes, inline images) but still use the pattern-schema workflow for any structured section. Use whenever the user asks to "write a blog post", "create a landing page", "add a section", "draft content", "build a page", or mentions WordPress content creation, page assembly, or publishing workflows. Use this skill even if the user doesn't explicitly mention patterns or schemas — the schema-first, incremental approach is how WordPress content should be produced in this site, period.
+description: Generates WordPress content using pattern schemas and incremental assembly. Landing pages are pattern-only; blog posts use direct block markup for plain prose (paragraphs, headings, lists, quotes, inline images) and patterns for structured sections. Use when the user asks to write a blog post, create a landing page, add a section, draft content, build a page, or mentions WordPress content creation. Trigger even if the user doesn't say "pattern" or "schema" — this is how WordPress content is produced on this site.
 ---
 
 # WordPress Content Generation
 
-Two non-negotiable mechanics:
+## Before You Begin
 
-1. **Schema-first for patterns.** Never hand-write pattern markup. Fetch the pattern's schema, mutate its attributes, render markup from the schema. Exception: in **blog posts**, plain prose blocks (paragraphs, headings, lists, quotes, inline images) may be written as direct block markup. In **landing pages**, no exception — every block comes from a pattern.
-2. **Incremental assembly by append.** Never draft a full page in one go. Create an empty draft, then append one section at a time directly to the end of the current content.
+Verify the WordPress MCP server is connected by attempting `rtpwai/get-patterns`. If it fails, tell the user the site connection isn't available — don't proceed.
 
-Hand-written pattern markup drifts from the design system. One-shot drafts produce invalid markup and lose work mid-generation. These mechanics keep generation deterministic and recoverable.
+Every interactive question goes through `ask_user_input` as buttons. Never use prose bullet lists for questions with finite answers.
+
+## Tool Reference
+
+### Patterns
+
+| Tool                        | Purpose                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| `rtpwai/get-patterns`       | List all available patterns                                  |
+| `rtpwai/get-pattern-schema` | Get a pattern's schema (attributes, slots, repeatable items) |
+| `rtpwai/render-pattern`     | Render a pattern to block markup from a schema               |
+| `rtpwai/preview-pattern`    | Render a pattern with default content to inspect slot sizes  |
+
+### Posts & Pages
+
+| Tool                        | Purpose                                                                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rtpwai/create-post`        | Create a draft (pass `post_type: "page"` for pages). Returns `post_id` and `edit_url`                                                          |
+| `rtpwai/get-post`           | Read a post/page — returns `content` (block markup), `blocks` (top-level block list), `status`, `slug`, `excerpt`, `url`, `edit_url`, and more |
+| `rtpwai/update-post`        | Update metadata only: `title`, `slug`, `excerpt`, `parent_id`, `template`. Does **not** accept `content`                                       |
+| `rtpwai/append-blocks`      | Append block markup to a **post** (returns error for pages)                                                                                    |
+| `rtpwai/insert-blocks-at`   | Insert block markup at a position in a **post** (returns error for pages)                                                                      |
+| `rtpwai/delete-block-at`    | Delete a top-level block at a position (works on all post types)                                                                               |
+| `rtpwai/set-featured-image` | Set the featured image by attachment ID                                                                                                        |
+| `rtpwai/search-posts`       | Search existing posts/pages                                                                                                                    |
+
+### Media
+
+| Tool                        | Purpose                             |
+| --------------------------- | ----------------------------------- |
+| `rtpwai/search-attachments` | Search the media library by keyword |
+| `rtpwai/upload-media`       | Upload a file to the media library  |
+
+### Taxonomies
+
+| Tool                        | Purpose                                                                |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `rtpwai/get-taxonomy-terms` | List terms in a taxonomy (pass `taxonomy: "category"` or `"post_tag"`) |
+| `rtpwai/get-post-terms`     | Get terms currently assigned to a post                                 |
+| `rtpwai/set-post-terms`     | Assign terms to a post (pass array of term slugs or IDs)               |
+
+### SEO
+
+| Tool                    | Purpose                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `rtpwai/get-yoast-meta` | Read existing Yoast fields. Use as a probe — if it succeeds, Yoast is active |
+| `rtpwai/set-yoast-meta` | Set Yoast SEO fields. Only call if `get-yoast-meta` succeeded                |
 
 ---
 
-## Critical Rules
+## Core Mechanics
 
-- **Landing pages: patterns only.** No custom blocks, no raw markup. If no pattern fits, stop and tell the user.
-- **Blog posts: prose may be direct block markup**, but anything structured (cards, CTAs, heroes, columns, galleries, testimonials) still goes through the pattern-schema workflow. Custom blocks remain banned.
-- **Never write pattern markup by hand.** Always: fetch schema → mutate attributes → render markup → append.
-- **Size-fit before committing.** Render the pattern (or read its schema's layout) to see how much each slot actually shows. Tailor copy to the pattern, not the reverse.
-- **Append, don't rewrite.** Each section is added to the end of existing content via the site's append/update mechanism — never regenerate the whole document.
-- **Discover before planning.** Fetch all available patterns from the site every time. Don't rely on memory.
-- **Resolve media before content.** Identify every image/video, search the library, ask for uploads if missing. Don't proceed until resolved.
-- **Draft content in chat first.** Show prose, headlines, and CTA labels for approval _before_ touching schemas or WordPress.
-- **Always ask questions interactively using the `ask_user_input` tool.** Never ask clarifying questions as prose bullet points. Every question that requires a choice — images, CTA URLs, tone, audience, sections, publish status, etc. — must be presented as interactive buttons so the user taps rather than types. Minimise typing to zero wherever possible.
-- **Always create as draft** unless the user explicitly says to publish.
-- **No custom HTML** outside standard block markup.
-- **Share links as clickable** — never inside code blocks.
-- **Never surface internal errors or retries to the user.** If a tool call fails, retries, or returns an unexpected result, handle it silently. Never say "trying again", "that returned an error", "now attempting", or any variation. Only communicate outcomes that matter to the user.
+Three non-negotiable rules. Everything else follows from these.
+
+### 1. Schema-first for patterns
+
+Never hand-write pattern markup. Always: fetch schema → mutate attributes → render markup from schema → preview → append.
+
+**Why:** Hand-written pattern markup drifts from the design system. The schema is the single source of truth for what attributes exist, how slots are sized, and what can change. Bypassing it produces markup that looks right but breaks on theme updates, misses responsive variants, or uses wrong image sizes.
+
+**Exception — blog post prose:** Paragraphs, headings, lists, quotes, and inline images may be written as direct block markup in blog posts. Any structured layout (cards, CTAs, heroes, columns, galleries, testimonials) still goes through the pattern-schema workflow.
+
+**Decision heuristic:** If the section has layout — columns, cards, side-by-side content, overlapping elements, background treatments — it's a pattern. If it's a linear flow of text with occasional inline images, it's prose.
+
+**Landing pages:** No exception. Every block comes from a pattern.
+
+**Repeating items:** You may reduce count by removing entries. You may not add beyond the pattern's design. Need more? Pick a different pattern.
+
+**Custom blocks:** Banned everywhere.
+
+### 2. Incremental assembly by append
+
+Build the page one section at a time. Create an empty draft, then append each section to the end of current content. Never generate the whole document in one shot.
+
+**Why:** One-shot drafts risk invalid markup mid-document that loses all subsequent content. Append-by-section means each insertion is small and verifiable. If a section fails, the draft is valid up to the last successful append — recoverable at every step.
+
+**Mechanism depends on post type:**
+
+| Post type                      | Append mechanism                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Post** (`post_type: "post"`) | `rtpwai/append-blocks` — one call, appends block markup to the end                                                                         |
+| **Page** (`post_type: "page"`) | WordPress REST API `POST /wp/v2/pages/{id}` — read current `content` via `rtpwai/get-post`, concatenate new markup, send full content back |
+
+**Append hygiene:** When sending full content for pages, pass prior sections through unchanged. Do not regenerate, rewrite, or reformat existing content.
+
+### 3. Preview before append
+
+After filling a pattern schema, always render a preview in the interactive widget and show it to the user. Wait for explicit approval before appending the section to the draft. Never insert without review.
+
+**Why:** Unreviewed inserts put content the user hasn't seen into the draft. If the user wants changes, you've already modified the document and must undo work. Preview-then-approve keeps each insert intentional and user-directed. Incremental assembly guarantees recoverability; preview guarantees correctness.
+
+---
+
+## Disclose Dropped Content
+
+When the user provides reference material (a Google Doc, brief, URL, or any source content), explicitly list any sections, points, or details you are _not_ including in the draft and explain why — pattern slot limits, relevance, length constraints, or redundancy. Get acknowledgement before proceeding.
+
+Do not silently omit content the user provided. They need to know what was considered and why it was cut.
 
 ---
 
@@ -36,106 +114,87 @@ Hand-written pattern markup drifts from the design system. One-shot drafts produ
 
 The only acceptable way to place a pattern. Applies to posts and landing pages alike.
 
-1. **Fetch the pattern schema** — the authoritative description of attributes (text, image refs, links, button labels, repeating-item counts).
-2. **Render the pattern** with default content to see how each slot is sized. This determines what copy actually fits without clipping or ugly wrap. If a slot is too small for the user's content, pick a different pattern.
-3. **Identify changeable attributes.** You change _values only_: text, image IDs/URLs, link hrefs, button labels, and (where supported) the count of repeating items. You do **not** touch markup structure, CSS classes, inline styles, spacing, or colors. If the user wants something not in the schema, say so and propose a different pattern.
+1. **Fetch the pattern schema** (`rtpwai/get-pattern-schema`) — the authoritative description of attributes: text fields, image refs, link hrefs, button labels, repeating-item counts.
+2. **Render with defaults** (`rtpwai/preview-pattern`) to see how each slot is sized. This determines what copy fits without clipping or ugly wrap. If a slot is too small for the user's content, pick a different pattern.
+3. **Identify changeable attributes.** You change values only: text, image IDs/URLs, link hrefs, button labels, and (where supported) the count of repeating items. Do not touch markup structure, CSS classes, inline styles, spacing, or colors. If the user wants something not in the schema, say so and propose a different pattern.
 4. **Mutate the schema** — edit the structured data, not rendered markup.
-5. **Render markup from the mutated schema** using the site's rendering mechanism. The markup you insert is the output of this step, never something typed by hand.
-6. **Append the rendered markup** to the draft (see below).
-
-**Repeating items**: you may _reduce_ count by removing entries. You may not _add_ beyond the pattern's design. If you need more items, pick a different pattern.
-
----
-
-## The Incremental Assembly Workflow
-
-Build the page in chunks; each insertion is small, verifiable, recoverable.
-
-1. **Create an empty draft** in WordPress.
-2. **Append the first section.** Produce its markup (pattern-schema workflow for patterns; direct block markup for prose in blog posts), then append it to the draft's existing content using the site's update/append mechanism. Read the draft's current content, concatenate the new section, and write it back — no anchors, no placeholders.
-3. **Repeat for every subsequent section.** Same append operation: read current content, append new markup, write back. Each iteration adds exactly one section.
-4. **Done.** When the last section is appended, the draft is complete. No cleanup needed.
-
-**Why append (not anchor-based search-and-replace):**
-
-- One fewer operation per section (no anchor insertion, no anchor removal).
-- Nothing to verify between steps — no "is the anchor still there?" failure mode.
-- No risk of leaving stray markers in the final document.
-- Still recoverable: if a section fails, the draft is valid up to the last successful append.
-
-**Append hygiene**: if the site's API requires sending full content, fetch it first, concatenate, then send. Do not regenerate prior sections — pass them through unchanged.
-
-**Step-by-step visual previews**: if the user asks to see a preview after each section, call `rtpwai/screenshot-post` immediately after each append. If the tool returns `not_supported`, skip silently and continue — do not fail or pause the generation flow.
+5. **Render the filled pattern** (`rtpwai/render-pattern`) as a preview in the interactive widget. Do not append anything yet.
+6. **Wait for explicit approval.** If the user requests changes, revise the schema and re-preview. Do not insert the old version. Only append after the user approves.
 
 ---
 
 ## Blog Posts
 
-Prose body (paragraphs, headings, lists, quotes, inline images) uses direct block markup. Any pattern section uses the full schema workflow.
+Prose body (paragraphs, headings, lists, quotes, inline images) uses direct block markup. Any structured section uses the full pattern-schema workflow.
 
-1. **Ask interactively** using `ask_user_input`: topic/title (typed), audience (buttons), tone (buttons: Professional / Conversational / Educational), length (buttons: Short / Medium / Long), featured image needed (Yes / No).
-2. Use `rtpwai/get-taxonomy-terms` to fetch existing categories and tags. Fetch **all** available patterns.
-3. Resolve media.
-4. Share a plan in chat: title, hook, section-by-section structure. Mark each section as _prose_ or _pattern: \<name\>_. Get approval.
-5. Draft section content in chat (prose, headings, excerpt, proposed categories/tags, SEO fields if Yoast is active). For pattern sections, fetch/render the pattern first and size content to its slots. Get approval.
-6. Create an empty draft.
-7. For each section in order: produce markup (prose markup directly, or pattern-schema workflow for patterns), then append to the draft.
-8. Assign categories and tags using `rtpwai/set-post-terms` (taxonomy `"category"` then `"post_tag"`).
-9. **SEO & metadata (mandatory).** Always do both of the following — never skip either:
-   - Set the slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
-   - Attempt Yoast: call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`. If Yoast returns a not-active error, skip silently — the slug/excerpt from above already cover native WordPress meta.
-10. Call `rtpwai/screenshot-post` to show a final visual preview of the assembled post. If it returns `not_supported`, skip silently. **Screenshot is always the very last step.**
-11. Share the post link. Ask interactively: Publish now / Submit for review / Keep as draft.
+1. **Ask interactively** via `ask_user_input`: topic/title (typed), audience (buttons), tone (buttons: Professional / Conversational / Educational), length (buttons: Short / Medium / Long), featured image needed (Yes / No).
+2. **Discover:** Call `rtpwai/get-taxonomy-terms` for categories and tags. Call `rtpwai/get-patterns` to fetch all available patterns.
+3. **Resolve media** before drafting content — search the library, ask for uploads if missing.
+4. **Share a plan** in chat: title, hook, section-by-section structure. Mark each section as prose or pattern: \<name\>. If reference material was provided, disclose any dropped content with reasons. Get approval.
+5. **Draft section content** in chat (prose, headings, excerpt, proposed categories/tags, SEO fields). For pattern sections, render the pattern with defaults first and size content to its slots. Get approval.
+6. **Create an empty draft** via `rtpwai/create-post`.
+7. **For each section in order:**
+   - Prose section: write block markup directly, append via `rtpwai/append-blocks`
+   - Pattern section: fetch schema → render with defaults to confirm fit → mutate → render final → **preview in widget, wait for approval** → append via `rtpwai/append-blocks`
+8. **Assign categories and tags** using `rtpwai/set-post-terms` (taxonomy `"category"` then `"post_tag"`).
+9. **SEO (mandatory):**
+   - Set slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
+   - Probe Yoast: call `rtpwai/get-yoast-meta`. If it succeeds, call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`. If the probe fails, skip silently.
+10. **Share the post link** (from `rtpwai/get-post` → `url`). Do not ask to publish or change the visibility status. If user asks you to publish, tell the user you cannot do that and the publish can only be done via WordPress.
 
 ---
 
 ## Landing Pages
 
-Pattern-only. No exception for "just a paragraph of text" — find the text-content pattern, or surface that none fits.
+Pattern-only. No exception for "just a paragraph of text" — find a text-content pattern, or surface that none fits.
 
-1. **Ask interactively** using `ask_user_input`: purpose (typed or buttons if common types apply), audience (buttons), primary CTA label and URL (typed), sections needed (multi-select of common section types), reference pages (typed URL or "None").
-2. Fetch **all** available patterns.
-3. Render every pattern in the plan to inspect slot sizes (headline length, body length, image aspect, item count).
-4. Propose a section plan: pattern name, attributes to change, content sized to fit. Get **explicit approval**.
-5. Resolve media — list every image/video by section, search the library, ask for uploads. Don't proceed until done.
-6. Draft section content in chat, already trimmed to fit pattern slots. Get approval.
-7. Create an empty page draft.
-8. Section by section: fetch schema → render to confirm fit → mutate → render final → append.
-9. **SEO & metadata (mandatory).** Always do both of the following — never skip either:
-   - Set the slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
-   - Attempt Yoast: call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`, and `schema_page_type`. If Yoast returns a not-active error, skip silently — the slug/excerpt from above already cover native WordPress meta.
-10. Call `rtpwai/screenshot-post` to show a final visual preview of the assembled page. If it returns `not_supported`, skip silently. **Screenshot is always the very last step.**
-11. Share the page link. Ask interactively: Publish now / Keep as draft.
+1. **Ask interactively** via `ask_user_input`: purpose (typed or buttons), audience (buttons), primary CTA label and URL (typed), sections needed (multi-select of common types), reference pages (typed URL or "None").
+2. **Discover:** Call `rtpwai/get-patterns` to fetch all available patterns.
+3. **Render every candidate pattern** with defaults (`rtpwai/preview-pattern`) to inspect slot sizes (headline length, body length, image aspect, item count). This determines what content fits before you write a word.
+4. **Propose a section plan:** pattern name per section, attributes to change, content sized to fit. If reference material was provided, disclose any dropped content with reasons. Get explicit approval.
+5. **Resolve media** — list every image/video by section, search the library via `rtpwai/search-attachments`, ask for uploads. Don't proceed until done.
+6. **Draft section content** in chat, already trimmed to fit pattern slots. Get approval.
+7. **Create an empty page draft** via `rtpwai/create-post` with `post_type: "page"`.
+8. **For each section in order:** fetch schema → render to confirm fit → mutate → render final → **preview in widget, wait for approval** → append. Append by reading current content via `rtpwai/get-post`, concatenating the new markup, and writing back via the WordPress REST API (`POST /wp/v2/pages/{id}` with the full `content` field).
+9. **SEO (mandatory):**
+   - Set slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
+   - Probe Yoast: call `rtpwai/get-yoast-meta`. If it succeeds, call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`, and `schema_page_type`. If the probe fails, skip silently.
+10. **Share the page link** (from `rtpwai/get-post` → `url`).
 
 ---
 
 ## Media
 
-Search the library first. Show options if multiple match. If nothing fits, ask interactively using `ask_user_input`: provide found options as buttons plus a "I'll provide a URL" option — never ask the user to type a filename or describe an image when a button will do. Never source media independently. Media IDs/URLs go into pattern schemas — not raw `<img>` tags.
+Search the library first via `rtpwai/search-attachments`. Show options as buttons if multiple match. If nothing fits, ask interactively: provide found options plus an "I'll provide a URL" option. Never ask the user to type a filename or describe an image when a button will do.
+
+Never source media independently — only from the library, user-provided URLs, or `rtpwai/upload-media`.
+
+Media IDs/URLs go into pattern schemas, never raw `<img>` tags.
 
 ---
 
-## Supporting Details
+## SEO & Taxonomies
 
-- **Categories & Tags** — Use `rtpwai/get-taxonomy-terms` to discover existing terms. Use `rtpwai/set-post-terms` to assign them (taxonomy `"category"` or `"post_tag"`). Create new terms only with explicit user confirmation; if confirmed, create via the WordPress REST API and then assign with `rtpwai/set-post-terms`.
-- **SEO (mandatory on every post/page)** — Always set slug and excerpt via `rtpwai/update-post` first (these work regardless of plugins). Then always attempt `rtpwai/set-yoast-meta` with: `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`. For landing pages also set `schema_page_type`. If Yoast returns a not-active error, skip silently — do not mention it to the user.
+- **Categories & Tags** — Always call `rtpwai/get-taxonomy-terms` first to discover real existing terms before proposing or assigning any. Use `rtpwai/set-post-terms` to assign (taxonomy `"category"` or `"post_tag"`). Create new terms only with explicit user confirmation; if confirmed, create via the WordPress REST API and then assign with `rtpwai/set-post-terms`.
+- **SEO is mandatory on every post and page.** Always set slug and excerpt via `rtpwai/update-post` (works regardless of plugins). Always probe Yoast with `rtpwai/get-yoast-meta` — if it succeeds, set all fields with `rtpwai/set-yoast-meta`. If the probe fails, skip silently. Never skip slug/excerpt just because Yoast isn't active.
 - **Post Types** — Check registered post types first; use the relevant custom post type if one exists.
-- **Status** — Default is draft. Change only on explicit instruction (publish, pending, scheduled, private).
-- **Screenshots** — `rtpwai/screenshot-post` is always the very last step, after SEO/metadata. It returns an inline image when the feature is enabled and configured. If it returns `not_supported`, skip silently, never surface the error to the user.
+- **Status** — Default is draft. You cannot change that even if the user asks..
 
 ---
 
-## Common Mistakes to Avoid
+## Common Mistakes
 
-- **"I'll ask clarifying questions as a bullet list."** No. Every question with a finite set of answers goes through `ask_user_input` as buttons. Prose question lists are banned — they force the user to type when they could tap.
-- **"I'll tweak the pattern markup a little."** No. If it's not in the schema, it's not your change. Pick a different pattern.
-- **"Landing page, but this section is just text — I'll inline a paragraph."** No. Find the text-content pattern or surface that none fits.
-- **"I'll write the content first and assume it fits."** No. Render the pattern first, then size content to its slots.
-- **"I'll write the whole post body in one blob."** No. Append section by section.
-- **"A custom block would be perfect here."** Banned everywhere. Patterns only (plus prose markup in posts).
-- **"I'll add one more card to this testimonial pattern."** No. Reduce, never extend. Need more items? Pick a different pattern.
-- **"The screenshot tool failed — I should tell the user."** No. If `rtpwai/screenshot-post` returns `not_supported`, skip silently. It means the feature is not configured, not that something went wrong with the content.
-- **"I'll tell the user I'm retrying or that something errored."** No. Handle tool failures, retries, and unexpected results silently. Only report outcomes that affect the user's content.
-- **"I'll use whatever categories/tags come to mind."** No. Always call `rtpwai/get-taxonomy-terms` first to discover real existing terms before proposing or assigning any.
-- **"Yoast isn't installed so I'll skip SEO entirely."** No. Always set slug and excerpt via `rtpwai/update-post` regardless of Yoast. Then attempt `rtpwai/set-yoast-meta` — if it errors, skip silently. Never skip the slug/excerpt step.
-- **"I'll do the screenshot before setting SEO."** No. SEO and metadata always come before the screenshot. Screenshot is always the very last step.
+These are failure modes seen in practice. They are not a restatement of the rules above — they're specific anti-patterns to catch before they happen.
+
+- **Asking questions as bullet lists.** Every question with a finite set of answers goes through `ask_user_input` as buttons. Prose question lists force the user to type when they could tap.
+- **Tweaking pattern markup by hand.** If it's not in the schema, it's not your change. Pick a different pattern.
+- **Landing page prose inlined as raw markup.** Pattern-only for pages. Find the text-content pattern or surface that none fits.
+- **Writing content before checking pattern slot sizes.** Render the pattern with defaults first, then size content to fit. Content written blind will overflow or clip.
+- **Adding items to a repeating pattern beyond its design limit.** Reduce only, never extend. Need more items? Pick a different pattern.
+- **Using a custom block because it "would be perfect here."** Banned everywhere. Patterns only (plus prose markup in posts).
+- **Appending a section without showing the user a preview first.** Always render the filled pattern, show it, and wait for approval before appending. Unreviewed inserts create rework.
+- **Silently dropping content the user provided.** When reference material is given, list what's being cut and why. Get acknowledgement. The user needs to know what was considered.
+- **Skipping SEO because Yoast isn't installed.** Slug and excerpt via `rtpwai/update-post` work regardless. Always set them. Probe Yoast, skip if inactive — but never skip slug/excerpt.
+- **Assigning categories/tags from memory.** Always call `rtpwai/get-taxonomy-terms` first. Made-up terms don't match the site's actual taxonomy.
+- **Surfacing tool errors to the user.** Handle failures, retries, and unexpected results silently. Only communicate outcomes that affect the user's content. If a tool call fails and there's a fallback, use the fallback without narration.
+- **Generating the whole page in one shot.** Append section by section. One-shot drafts produce invalid markup and lose work mid-generation.

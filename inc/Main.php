@@ -27,11 +27,6 @@ final class Main {
 		Core\Assets::class,
 		Modules\Settings\Menu_Loader::class,
 		Modules\Settings\Connections\REST_Controller::class,
-		Modules\Settings\Credentials\REST_Controller::class,
-		Modules\Screenshot\Settings::class,
-		Modules\Screenshot\REST_Controller::class,
-		Modules\Screenshot\Preview_Endpoint::class,
-		Modules\Screenshot\Screenshot_Image_Endpoint::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 		Modules\MCP\Server\Server::class,
@@ -71,8 +66,20 @@ final class Main {
 	 */
 	private function load(): void {
 		foreach ( self::REGISTRABLE_CLASSES as $class_name ) {
-			$instance = new $class_name();
+			if ( ! class_exists( $class_name ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: class name */
+						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'rtcamp-publish-with-ai' ),
+						$class_name //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					),
+					RTCAMP_PUBLISH_WITH_AI_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				);
+				continue;
+			}
 
+			$instance = new $class_name();
 			$instance->register_hooks();
 		}
 

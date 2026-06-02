@@ -3,12 +3,12 @@
  * REST API endpoints for OAuth connection management.
  *
  * Connections are auto-registered by MCP clients (Claude.ai, ChatGPT, etc.)
- * via the /register endpoint. Admins can only list or delete them here.
- * Deleting a connection revokes all associated OAuth tokens.
+ * via the /register endpoint. Admins can list or revoke individual user
+ * sessions here. Clients are never deleted — only their tokens are revoked.
  *
  * Routes (all require manage_options):
  *   GET    /wp-json/rtpwai/v1/connections
- *   DELETE /wp-json/rtpwai/v1/connections/{id}
+ *   DELETE /wp-json/rtpwai/v1/connections/{client_id}/users/{user_id}
  *
  * @package rtCamp\Publish_With_AI\Modules\Settings\Connections
  */
@@ -58,13 +58,18 @@ class REST_Controller extends Abstract_REST_Controller {
 
 		register_rest_route(
 			$namespace,
-			'/' . $this->rest_base . '/(?P<id>\d+)',
+			'/' . $this->rest_base . '/(?P<client_id>[a-zA-Z0-9_]+)/users/(?P<user_id>\d+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ $this, 'delete_item' ],
 				'permission_callback' => [ $this, 'permissions_check' ],
 				'args'                => [
-					'id' => [
+					'client_id' => [
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_key',
+					],
+					'user_id'   => [
 						'type'     => 'integer',
 						'required' => true,
 					],
@@ -74,14 +79,17 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * GET /connections — list auto-registered connections only (paginated, page size fixed at 10).
+	 * GET /connections — list one row per active (client, user) pair, paginated.
+	 *
+	 * Pagination is over distinct (client_id, user_id) pairs that have a valid
+	 * refresh token. Clients with no active sessions are not shown.
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
 	public function get_items( $request ): WP_REST_Response {
-		$page   = max( 1, (int) $request->get_param( 'page' ) );
-		$offset = ( $page - 1 ) * Client_Store::PAGE_SIZE;
-		$total  = Client_Store::count_by_source( 'dcr' );
+		$now   = time();
+		$page  = max( 1, (int) $request->get_param( 'page' ) );
+		$total = Token_Store::count_connection_pairs( $now );
 
 		if ( 0 === $total ) {
 			return new WP_REST_Response(
@@ -93,9 +101,10 @@ class REST_Controller extends Abstract_REST_Controller {
 			);
 		}
 
-		$connections = Client_Store::all_by_source( 'dcr', $offset );
+		$offset = ( $page - 1 ) * Client_Store::PAGE_SIZE;
+		$pairs  = Token_Store::get_connection_pairs( $offset, Client_Store::PAGE_SIZE, $now );
 
-		if ( empty( $connections ) ) {
+		if ( empty( $pairs ) ) {
 			return new WP_REST_Response(
 				[
 					'items' => [],
@@ -105,45 +114,47 @@ class REST_Controller extends Abstract_REST_Controller {
 			);
 		}
 
-		// Query 1: user IDs + last active time per client, all in one hit.
-		$client_ids = array_column( $connections, 'client_id' );
-		$token_data = Token_Store::get_client_token_data( $client_ids );
+		// Batch-load client metadata in a single IN query.
+		$client_ids = array_unique( array_column( $pairs, 'client_id' ) );
+		$client_map = Client_Store::get_by_client_ids( $client_ids );
 
-		// Collect all distinct user IDs across every connection.
-		$all_user_ids = [];
-		foreach ( $token_data as $data ) {
-			$all_user_ids = array_merge( $all_user_ids, $data['user_ids'] );
-		}
-		$all_user_ids = array_unique( $all_user_ids );
-
-		// Query 2: batch-load all WP_User objects at once.
+		// Batch-load WP_User objects.
+		$user_ids = array_unique( array_column( $pairs, 'user_id' ) );
 		$user_map = [];
-		if ( ! empty( $all_user_ids ) ) {
-			foreach ( get_users( [ 'include' => $all_user_ids ] ) as $user ) {
-				$user_map[ $user->ID ] = [
-					'id'             => $user->ID,
-					'name'           => $user->display_name,
-					'email'          => $user->user_email,
-					'avatar_url'     => get_avatar_url( $user->ID, [ 'size' => 32 ] ),
-					'admin_edit_url' => admin_url( 'user-edit.php?user_id=' . $user->ID ),
+		if ( ! empty( $user_ids ) ) {
+			foreach ( get_users( [ 'include' => $user_ids ] ) as $wp_user ) {
+				$user_map[ $wp_user->ID ] = [
+					'id'             => $wp_user->ID,
+					'name'           => $wp_user->display_name,
+					'email'          => $wp_user->user_email,
+					'avatar_url'     => get_avatar_url( $wp_user->ID, [ 'size' => 32 ] ),
+					'admin_edit_url' => admin_url( 'user-edit.php?user_id=' . $wp_user->ID ),
 				];
 			}
 		}
 
-		// Attach resolved users and last_active_at to each connection.
-		foreach ( $connections as &$connection ) {
-			$data                         = $token_data[ $connection['client_id'] ] ?? null;
-			$user_ids                     = $data['user_ids'] ?? [];
-			$connection['users']          = array_values(
-				array_filter( array_map( static fn ( $uid ) => $user_map[ $uid ] ?? null, $user_ids ) )
+		// Build one item per (client, user) pair.
+		$items = [];
+		foreach ( $pairs as $pair ) {
+			$client = $client_map[ $pair['client_id'] ] ?? null;
+			$user   = $user_map[ $pair['user_id'] ] ?? null;
+			if ( ! $client || ! $user ) {
+				// This is unreachable condition based on current implementation of Client_Store.
+				// TODO: Improve robustness by updating these queries.
+				continue; // Token orphaned — client or user deleted.
+			}
+			$items[] = array_merge(
+				$this->prepare_client_for_response( $client ),
+				[
+					'user'           => $user,
+					'last_active_at' => $pair['last_active_at'],
+				]
 			);
-			$connection['last_active_at'] = $data ? $data['last_active_at'] : null;
 		}
-		unset( $connection );
 
 		return new WP_REST_Response(
 			[
-				'items' => $connections,
+				'items' => $items,
 				'total' => $total,
 			],
 			200
@@ -151,33 +162,45 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * DELETE /connections/{id} — delete a connection and all its tokens.
+	 * DELETE /connections/{client_id}/users/{user_id} — revoke one user's tokens for a client.
+	 *
+	 * The client record is never deleted. Only the tokens belonging to this
+	 * specific (user, client) pair are removed.
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function delete_item( $request ) {
-		$id     = (int) $request->get_param( 'id' );
-		$client = Client_Store::get_by_id( $id );
+		$client_id = (string) $request->get_param( 'client_id' );
+		$user_id   = (int) $request->get_param( 'user_id' );
 
-		if ( null === $client ) {
+		if ( null === Client_Store::get_by_client_id( $client_id ) ) {
 			return new \WP_Error( 'not_found', __( 'Connection not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
 		}
 
-		$tokens_deleted = Token_Store::delete_all_for_client( $client['client_id'] );
+		$tokens_deleted = Token_Store::revoke_for_client( $user_id, $client_id );
 
 		if ( false === $tokens_deleted ) {
-			return new \WP_Error( 'delete_failed', __( 'Failed to delete associated tokens.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
-		}
-
-		$deleted = Client_Store::delete( $id );
-
-		if ( ! $deleted ) {
-			return new \WP_Error( 'delete_failed', __( 'Failed to delete connection.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
 		}
 
 		return new WP_REST_Response( [ 'tokens_deleted' => $tokens_deleted ], 200 );
+	}
+
+	/**
+	 * Strip internal-only fields from a client row before sending it to the browser.
+	 *
+	 * `client_secret_hash` must never leave the server. `id` and `is_public` are
+	 * internal implementation details that the connections UI does not need.
+	 *
+	 * @param array<string, mixed> $client Parsed client row from Client_Store.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function prepare_client_for_response( array $client ): array {
+		unset( $client['client_secret_hash'], $client['id'], $client['is_public'] );
+		return $client;
 	}
 
 	/**

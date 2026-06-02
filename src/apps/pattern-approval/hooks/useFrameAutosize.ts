@@ -20,7 +20,7 @@ export function useFrameAutosize() {
 			ro = new ResizeObserver( () => {
 				requestAnimationFrame( () => {
 					el.style.height =
-						Math.min( body.scrollHeight, 1200 ) + 'px';
+						Math.min( body.scrollHeight * 0.5, 1200 ) + 'px';
 				} );
 			} );
 			ro.observe( body );

@@ -61,6 +61,10 @@ class Append_Blocks {
 						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
 					}
 
+					if ( ! current_user_can( 'edit_post', $post_id ) ) {
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+					}
+
 					if ( 'page' === $post->post_type ) {
 						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use append-pattern instead.', 'rtcamp-publish-with-ai' ) );
 					}

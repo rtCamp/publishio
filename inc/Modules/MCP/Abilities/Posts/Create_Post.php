@@ -41,7 +41,7 @@ class Create_Post {
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'required'   => [ 'post_id', 'edit_url' ],
+					'required'   => [ 'post_id' ],
 					'properties' => [
 						'post_id'  => [
 							'type'    => 'integer',
@@ -68,6 +68,11 @@ class Create_Post {
 						return new \WP_Error( 'invalid_post_type', __( 'Invalid post type.', 'rtcamp-publish-with-ai' ) );
 					}
 
+					$post_type_obj = get_post_type_object( $post_type );
+					if ( ! $post_type_obj || ! current_user_can( $post_type_obj->cap->create_posts ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to create this post type.', 'rtcamp-publish-with-ai' ) );
+					}
+
 					$post_id = wp_insert_post(
 						[
 							'post_title'   => $title,
@@ -84,7 +89,7 @@ class Create_Post {
 
 					return [
 						'post_id'  => $post_id,
-						'edit_url' => get_edit_post_link( $post_id, 'raw' ),
+						'edit_url' => get_edit_post_link( $post_id, 'raw' ) ?: '',
 					];
 				},
 				'meta'                => [

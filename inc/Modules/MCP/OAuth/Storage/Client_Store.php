@@ -111,96 +111,6 @@ class Client_Store {
 	}
 
 	/**
-	 * Return all registered clients, newest first.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	public static function all(): array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			'SELECT * FROM ' . self::table_name() . ' ORDER BY registered_at DESC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-
-		return array_map( [ self::class, 'parse_row' ], $rows );
-	}
-
-	/**
-	 * Return clients filtered by source ('dcr' or 'cred'), newest first, paginated.
-	 *
-	 * @param string $source The source value to filter by.
-	 * @param int    $offset Zero-based row offset for pagination.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	public static function all_by_source( string $source, int $offset = 0 ): array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT * FROM %i WHERE source = %s ORDER BY registered_at DESC LIMIT %d OFFSET %d',
-				self::table_name(),
-				$source,
-				self::PAGE_SIZE,
-				$offset
-			),
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-
-		return array_map( [ self::class, 'parse_row' ], $rows );
-	}
-
-	/**
-	 * Count clients filtered by source.
-	 *
-	 * @param string $source The source value to filter by.
-	 */
-	public static function count_by_source( string $source ): int {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$count = $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE source = %s',
-				self::table_name(),
-				$source
-			)
-		);
-
-		return (int) $count;
-	}
-
-	/**
-	 * Look up a client by its numeric DB id.
-	 *
-	 * @param int $id The DB primary key.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	public static function get_by_id( int $id ): ?array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', self::table_name(), $id ),
-			ARRAY_A
-		);
-
-		return is_array( $row ) ? self::parse_row( $row ) : null;
-	}
-
-	/**
 	 * Look up a client by its client_id.
 	 *
 	 * @param string $client_id The client ID.
@@ -240,96 +150,39 @@ class Client_Store {
 	}
 
 	/**
-	 * Update mutable fields of an existing client.
+	 * Fetch multiple clients by their client_id values in a single query.
 	 *
-	 * Immutable fields (client_id, client_secret_hash, registered_at) are ignored.
-	 *
-	 * @param int                  $id   The DB primary key.
-	 * @param array<string, mixed> $data Fields to update.
+	 * @param string[] $client_ids List of client_id values to look up.
+	 * @return array<string, array<string, mixed>> Map of client_id => parsed client row (missing IDs are omitted).
 	 */
-	public static function update( int $id, array $data ): bool {
+	public static function get_by_client_ids( array $client_ids ): array {
+		if ( empty( $client_ids ) ) {
+			return [];
+		}
+
 		global $wpdb;
 
-		$fields  = [];
-		$formats = [];
+		$sql = sprintf(
+			'SELECT * FROM %%i WHERE client_id IN (%s)',
+			implode( ', ', array_fill( 0, count( $client_ids ), '%s' ) )
+		);
 
-		if ( isset( $data['client_name'] ) ) {
-			$fields['client_name'] = sanitize_text_field( (string) $data['client_name'] );
-			$formats[]             = '%s';
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				$sql, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				self::table_name(),
+				...$client_ids
+			),
+			ARRAY_A
+		);
+
+		$map = [];
+		foreach ( (array) $rows as $row ) {
+			$parsed                      = self::parse_row( $row, true );
+			$map[ $parsed['client_id'] ] = $parsed;
 		}
 
-		if ( isset( $data['redirect_uris'] ) && is_array( $data['redirect_uris'] ) ) {
-			$fields['redirect_uris'] = wp_json_encode( array_map( 'esc_url_raw', $data['redirect_uris'] ) );
-			$formats[]               = '%s';
-		}
-
-		if ( isset( $data['grant_types'] ) && is_array( $data['grant_types'] ) ) {
-			$fields['grant_types'] = implode( ' ', array_map( 'sanitize_key', $data['grant_types'] ) );
-			$formats[]             = '%s';
-		}
-
-		if ( isset( $data['scope'] ) ) {
-			$fields['scope'] = sanitize_text_field( (string) $data['scope'] );
-			$formats[]       = '%s';
-		}
-
-		foreach ( [ 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri' ] as $uri_field ) {
-			if ( array_key_exists( $uri_field, $data ) ) {
-				$fields[ $uri_field ] = ! empty( $data[ $uri_field ] ) ? esc_url_raw( (string) $data[ $uri_field ] ) : null;
-				$formats[]            = '%s';
-			}
-		}
-
-		if ( array_key_exists( 'contacts', $data ) ) {
-			$fields['contacts'] = is_array( $data['contacts'] ) && ! empty( $data['contacts'] )
-				? wp_json_encode( $data['contacts'] )
-				: null;
-			$formats[]          = '%s';
-		}
-
-		foreach ( [ 'software_id', 'software_version' ] as $str_field ) {
-			if ( array_key_exists( $str_field, $data ) ) {
-				$fields[ $str_field ] = ! empty( $data[ $str_field ] ) ? sanitize_text_field( (string) $data[ $str_field ] ) : null;
-				$formats[]            = '%s';
-			}
-		}
-
-		if ( empty( $fields ) ) {
-			return false;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->update( self::table_name(), $fields, [ 'id' => $id ], $formats, [ '%d' ] );
-
-		return false !== $result;
-	}
-
-	/**
-	 * Delete a client by its numeric DB id.
-	 *
-	 * @param int $id The DB primary key.
-	 */
-	public static function delete( int $id ): bool {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete( self::table_name(), [ 'id' => $id ], [ '%d' ] );
-
-		return false !== $result && $result > 0;
-	}
-
-	/**
-	 * Delete a client by its client_id.
-	 *
-	 * @param string $client_id The client ID.
-	 */
-	public static function delete_by_client_id( string $client_id ): bool {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete( self::table_name(), [ 'client_id' => $client_id ], [ '%s' ] );
-
-		return false !== $result && $result > 0;
+		return $map;
 	}
 
 	/**

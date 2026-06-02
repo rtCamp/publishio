@@ -12,18 +12,18 @@ type RenderResponse = {
 
 function startHeightReporting(): () => void {
 	const report = (): void => {
-		const h = Math.min( document.documentElement.scrollHeight, 1200 );
+		const h = Math.min( document.body.scrollHeight, 1200 );
 		if ( h > 0 ) {
 			window.parent.postMessage(
 				{
 					jsonrpc: '2.0',
 					method: 'ui/notifications/size-changed',
 					params: {
-						width: document.documentElement.offsetWidth,
+						width: document.body.offsetWidth,
 						height: h,
 					},
 				},
-				'*'
+				window.location.origin
 			);
 		}
 	};
@@ -41,6 +41,7 @@ export function useRenderPreview() {
 	const [ pending, setPending ] = useState< PendingPattern | null >( null );
 	const [ uiState, setUiState ] = useState< UiState >( 'loading' );
 	const [ errorMsg, setErrorMsg ] = useState( '' );
+	const [ errorContext, setErrorContext ] = useState( '' );
 
 	const { app } = useApp( {
 		appInfo: { name: 'rtpwai-pattern-approval', version: '1.0.0' },
@@ -64,8 +65,10 @@ export function useRenderPreview() {
 			const first = toolResult.content?.[ 0 ] as
 				| { text?: string }
 				| undefined;
-			setErrorMsg(
-				'Preview failed: ' + ( first?.text ?? 'Unknown error' )
+			const errText = first?.text ?? 'Unknown error';
+			setErrorMsg( errText );
+			setErrorContext(
+				'The AI assistant tried to show a pattern preview but the tool returned an error.'
 			);
 			setUiState( 'error' );
 			return;
@@ -77,8 +80,8 @@ export function useRenderPreview() {
 		}
 
 		setPending( {
-			post_id: data.post_id,
-			position: data.position,
+			page_id: data.page_id ?? 0,
+			position: data.position ?? -1,
 			pattern_name: data.pattern_name,
 			schema: data.schema,
 		} );
@@ -119,9 +122,9 @@ export function useRenderPreview() {
 		};
 
 		render().catch( ( e: unknown ) => {
-			setErrorMsg(
-				'Preview failed: ' +
-					( e instanceof Error ? e.message : String( e ) )
+			setErrorMsg( e instanceof Error ? e.message : String( e ) );
+			setErrorContext(
+				`Tried to render a preview for the "${ data.pattern_name }" pattern.`
 			);
 			setUiState( 'error' );
 		} );
@@ -135,5 +138,7 @@ export function useRenderPreview() {
 		setUiState,
 		errorMsg,
 		setErrorMsg,
+		errorContext,
+		setErrorContext,
 	};
 }

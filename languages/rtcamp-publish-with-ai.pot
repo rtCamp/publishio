@@ -1,0 +1,642 @@
+# Copyright (C) 2026 rtCamp
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Publish With AI 0.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/rtcamp-publish-with-ai\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-02T11:56:44+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: rtcamp-publish-with-ai\n"
+
+#. Plugin Name of the plugin
+#: rtcamp-publish-with-ai.php
+#: inc/Modules/Settings/Pages/Guide_Page.php:27
+#: inc/Modules/Settings/Pages/Guide_Page.php:28
+msgid "Publish With AI"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: rtcamp-publish-with-ai.php
+msgid "https://github.com/rtCamp/publish-with-ai"
+msgstr ""
+
+#. Description of the plugin
+#: rtcamp-publish-with-ai.php
+msgid "Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant."
+msgstr ""
+
+#. Author of the plugin
+#: rtcamp-publish-with-ai.php
+msgid "rtCamp"
+msgstr ""
+
+#. Author URI of the plugin
+#: rtcamp-publish-with-ai.php
+msgid "https://rtcamp.com"
+msgstr ""
+
+#: framework/AssetLoaderTrait.php:49
+msgid "Block manifest file is missing. Blocks will not be registered."
+msgstr ""
+
+#. translators: %s: The asset filename.
+#: framework/AssetLoaderTrait.php:140
+#, php-format
+msgid "Asset file for \"%s\" is missing. The script will not be registered."
+msgstr ""
+
+#. translators: %s: The asset filename.
+#: framework/AssetLoaderTrait.php:156
+#, php-format
+msgid "Asset file for \"%s\" is invalid. The script will not be registered."
+msgstr ""
+
+#. translators: %s: Class name.
+#: framework/Contracts/Traits/Singleton.php:54
+#, php-format
+msgid "The %s class should not be cloned."
+msgstr ""
+
+#. translators: %s: Class name.
+#: framework/Contracts/Traits/Singleton.php:69
+#, php-format
+msgid "De-serializing instances of %s is not allowed."
+msgstr ""
+
+#. translators: %s: The plugin name.
+#: inc/Autoloader.php:46
+#, php-format
+msgid "%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`."
+msgstr ""
+
+#. translators: %s: class name
+#: inc/Main.php:74
+#, php-format
+msgid "Publish With AI: Class %s not found. Skipping registration."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Get_Block.php:23
+msgid "Get Block Details"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Get_Block.php:25
+msgid "Returns full details of a single registered block type including attributes, example, supports, and styles."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Get_Block.php:126
+msgid "Block name is required."
+msgstr ""
+
+#. translators: %s: block name
+#: inc/Modules/MCP/Abilities/Blocks/Get_Block.php:137
+#, php-format
+msgid "No block found with name \"%s\"."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Get_Custom_Blocks.php:23
+msgid "Get Custom Blocks"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Get_Custom_Blocks.php:25
+msgid "Returns a list of all registered custom blocks (excludes core blocks). These are blocks added by plugins and themes."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Render_Block.php:23
+msgid "Render Block Markup"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Render_Block.php:25
+msgid "Renders block markup to see what it outputs and validates whether the block markup is valid or not."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Render_Block.php:66
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:75
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:86
+msgid "Block markup is required."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Blocks/Render_Block.php:76
+msgid "Could not parse any blocks from the provided markup."
+msgstr ""
+
+#. translators: %s: block name
+#: inc/Modules/MCP/Abilities/Blocks/Render_Block.php:94
+#, php-format
+msgid "Block type \"%s\" is not registered."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Blocks.php:25
+msgid "Blocks"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Blocks.php:26
+msgid "Abilities to discover and inspect registered custom blocks."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Patterns.php:25
+msgid "Patterns"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Patterns.php:26
+msgid "Abilities to discover and inspect registered block patterns."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Posts.php:25
+msgid "Content"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Categories/Posts.php:26
+msgid "Manage posts and pages — create, edit blocks, and assemble content."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:23
+msgid "Apply Pattern Schema"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:25
+msgid "Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the block markup with the new content hydrated in. Only content fields (text, links, images, labels) are replaced — layout and styles are preserved. Optionally renders the result to HTML."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:82
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern.php:84
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern_Schema.php:64
+msgid "Pattern name is required."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:86
+msgid "Schema must be an array."
+msgstr ""
+
+#. translators: %s: pattern name
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:96
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern.php:94
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern_Schema.php:74
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:109
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:94
+#: inc/Modules/MCP/Apps/Pattern_Approval/Render_Pattern.php:78
+#, php-format
+msgid "No pattern found with name \"%s\"."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Apply_Pattern_Schema.php:106
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern_Schema.php:84
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:118
+msgid "Pattern has no content."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern.php:23
+msgid "Get Pattern by Name"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern.php:25
+msgid "Returns full details of a single block pattern including its block markup content."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Patterns.php:23
+msgid "Get All Patterns"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Patterns.php:25
+msgid "Returns a list of all registered block patterns with metadata. Pattern content is excluded."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern_Schema.php:23
+msgid "Get Pattern Schema"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Patterns/Get_Pattern_Schema.php:25
+msgid "Parses a block pattern and returns a schema of its replaceable content fields (text, links, images, button labels). Use this schema as the input for the apply-pattern-schema ability."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:23
+msgid "Append Blocks to Post"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:25
+msgid "Appends raw block markup at the bottom of a post. Only works for posts (not pages)."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:61
+#: inc/Modules/MCP/Abilities/Posts/Delete_Block_At.php:67
+#: inc/Modules/MCP/Abilities/Posts/Get_Post.php:116
+#: inc/Modules/MCP/Abilities/Posts/Get_Post_Terms.php:72
+#: inc/Modules/MCP/Abilities/Posts/Get_Yoast_Meta.php:67
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:72
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:62
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:85
+#: inc/Modules/MCP/Abilities/Posts/Set_Yoast_Meta.php:108
+#: inc/Modules/MCP/Abilities/Posts/Update_Post.php:78
+msgid "Post not found."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:65
+#: inc/Modules/MCP/Abilities/Posts/Delete_Block_At.php:71
+#: inc/Modules/MCP/Abilities/Posts/Get_Post.php:120
+#: inc/Modules/MCP/Abilities/Posts/Get_Post_Terms.php:76
+#: inc/Modules/MCP/Abilities/Posts/Get_Yoast_Meta.php:71
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:76
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:66
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:89
+#: inc/Modules/MCP/Abilities/Posts/Set_Yoast_Meta.php:112
+#: inc/Modules/MCP/Abilities/Posts/Update_Post.php:82
+msgid "You do not have permission to edit this post."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Append_Blocks.php:69
+msgid "Raw block markup is not allowed for pages. Use append-pattern instead."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Create_Post.php:23
+msgid "Create Empty Post or Page"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Create_Post.php:25
+msgid "Creates a new draft post or page with no content. Pass post_type as \"page\" for pages. Returns the post ID so you can append patterns to it."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Create_Post.php:64
+msgid "Post title is required."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Create_Post.php:68
+msgid "Invalid post type."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Create_Post.php:73
+msgid "You do not have permission to create this post type."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Delete_Block_At.php:23
+msgid "Delete Block at Position"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Delete_Block_At.php:25
+msgid "Deletes a top-level block at a specific position in a post or page."
+msgstr ""
+
+#. translators: 1: requested position, 2: maximum valid position.
+#: inc/Modules/MCP/Abilities/Posts/Delete_Block_At.php:88
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:104
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:143
+#, php-format
+msgid "Position %1$d is out of range (0–%2$d)."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Post.php:23
+msgid "Get Post or Page"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Post.php:25
+msgid "Returns full details of a post or page including title, content (block markup), status, slug, excerpt, featured image, template, and parent."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Post_Terms.php:23
+msgid "Get Post Terms"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Post_Terms.php:25
+msgid "Returns the taxonomy terms currently assigned to a post (e.g. its categories and tags)."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Taxonomy_Terms.php:23
+msgid "List Taxonomy Terms"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Taxonomy_Terms.php:25
+msgid "Returns available terms for a taxonomy (e.g. \"category\", \"post_tag\"). Use this to discover valid categories or tags before assigning them to a post."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Taxonomy_Terms.php:77
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:93
+msgid "Taxonomy does not exist."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Yoast_Meta.php:23
+msgid "Get Yoast SEO Metadata"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Yoast_Meta.php:25
+msgid "Returns Yoast SEO metadata for a post — SEO title, meta description, focus keyphrase, canonical URL, and robots settings. Returns an error if Yoast SEO is not active."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Get_Yoast_Meta.php:62
+#: inc/Modules/MCP/Abilities/Posts/Set_Yoast_Meta.php:103
+msgid "Yoast SEO is not installed or active."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:23
+msgid "Insert Blocks at Position in Post"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:25
+msgid "Inserts raw block markup at a specific top-level position in a post. Only works for posts (not pages)."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Insert_Blocks_At.php:80
+msgid "Raw block markup is not allowed for pages. Use insert-pattern-at instead."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Search_Attachments.php:23
+msgid "Search Attachments"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Search_Attachments.php:25
+msgid "Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Search_Posts.php:23
+msgid "Search Posts and Pages"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Search_Posts.php:25
+msgid "Searches posts and pages by keyword, post type, and status. Returns matching results with basic metadata."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:23
+msgid "Set Featured Image for Post or Page"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:25
+msgid "Sets or removes the featured image (post thumbnail) for a post or page. Pass an attachment ID to set, or 0 to remove."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:78
+msgid "Attachment not found."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Featured_Image.php:84
+msgid "Could not set featured image."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:23
+msgid "Set Post Categories or Tags"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:25
+msgid "Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use rtpwai/get-taxonomy-terms first to discover valid values."
+msgstr ""
+
+#. translators: 1: taxonomy slug, 2: post type slug
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:101
+#, php-format
+msgid "Taxonomy \"%1$s\" is not registered for post type \"%2$s\"."
+msgstr ""
+
+#. translators: 1: term slug, 2: taxonomy slug
+#: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:120
+#, php-format
+msgid "Term \"%1$s\" not found in taxonomy \"%2$s\"."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Yoast_Meta.php:23
+msgid "Set Yoast SEO Metadata"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Set_Yoast_Meta.php:25
+msgid "Writes Yoast SEO metadata for a post. Only provided fields are updated — omitted fields are left unchanged. Returns an error if Yoast SEO is not active."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Update_Post.php:23
+msgid "Update Post or Page Metadata"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Update_Post.php:25
+msgid "Updates metadata of a post or page — title, slug, excerpt, parent, and page template. Only provided fields are changed."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Upload_Media.php:23
+msgid "Upload Media"
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Upload_Media.php:25
+msgid "Uploads an image to the media library from a URL. Returns the attachment ID and URL."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Upload_Media.php:91
+msgid "A url is required."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Upload_Media.php:130
+msgid "Invalid URL provided."
+msgstr ""
+
+#: inc/Modules/MCP/Abilities/Posts/Upload_Media.php:171
+msgid "The URL did not point to a supported image type."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:30
+msgid "Insert Approved Pattern (App Only)"
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:32
+msgid "Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:89
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:80
+msgid "Page not found."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:92
+msgid "Patterns are only for pages. Use insert-blocks-at for posts."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:96
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:84
+msgid "You do not have permission to edit this page."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:100
+msgid "A filled content schema is required."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Insert_Pattern.php:123
+#: inc/Modules/MCP/Apps/Pattern_Approval/Render_Pattern.php:87
+msgid "Pattern schema application resulted in empty markup."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:30
+msgid "Present Pattern for User Approval"
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:32
+msgid "Presents a filled pattern to the user for visual review. The Pattern Approval UI opens automatically showing the rendered preview with two choices: Insert (inserts the pattern into the page and sends a confirmation back — the model resumes from that message) or Show alternative (asks the model for a different pattern). Returns an error immediately if the pattern name is not registered. Do not call any further tools — wait for the user to act."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Preview_Pattern.php:105
+msgid "The pattern preview is now displayed to the user. Waiting for their approval before inserting."
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Render_Pattern.php:29
+msgid "Render Pattern to HTML (App Only)"
+msgstr ""
+
+#: inc/Modules/MCP/Apps/Pattern_Approval/Render_Pattern.php:31
+msgid "Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:40
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:73
+msgid "Invalid or expired request."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:44
+msgid "Invalid user."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:49
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:81
+msgid "You do not have permission to revoke these sessions."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:77
+msgid "Invalid request."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:112
+msgid "MCP OAuth Sessions"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:115
+msgid "MCP OAuth session revoked."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:117
+msgid "All MCP OAuth sessions have been revoked."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:121
+msgid "No active MCP OAuth sessions."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:126
+msgid "Client"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:127
+msgid "Scope"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:128
+msgid "Created"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:129
+msgid "Expires"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:130
+msgid "Actions"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:148
+msgid "Revoke your access to this app? You will need to sign in again."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:149
+msgid "Revoke"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:165
+msgid "Revoke all MCP OAuth sessions? You will need to sign in to each app again."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Admin/Profile_Section.php:166
+msgid "Revoke All Sessions"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Endpoint/Authorize.php:135
+#: inc/Modules/MCP/OAuth/Endpoint/Authorize.php:162
+msgid "You do not have permission to authorize MCP clients."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Endpoint/Authorize.php:323
+#: templates/oauth/consent.php:94
+msgid "MCP Server"
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Transport/Bearer_Token_Auth.php:73
+msgid "Invalid or expired access token."
+msgstr ""
+
+#: inc/Modules/MCP/OAuth/Transport/Bearer_Token_Auth.php:86
+msgid "Token was not issued for this resource."
+msgstr ""
+
+#: inc/Modules/MCP/Server/Server.php:42
+msgid "Publish With AI — rtCamp"
+msgstr ""
+
+#: inc/Modules/MCP/Server/Server.php:43
+msgid "MCP server for the Publish With AI plugin."
+msgstr ""
+
+#: inc/Modules/Settings/Connections/REST_Controller.php:179
+msgid "Connection not found."
+msgstr ""
+
+#: inc/Modules/Settings/Connections/REST_Controller.php:185
+msgid "Failed to revoke tokens."
+msgstr ""
+
+#: inc/Modules/Settings/Menu_Loader.php:116
+msgid "Settings"
+msgstr ""
+
+#: inc/Modules/Settings/Pages/Connections_Page.php:28
+#: inc/Modules/Settings/Pages/Connections_Page.php:29
+msgid "Connections"
+msgstr ""
+
+#: inc/Modules/Settings/Pages/Guide_Page.php:36
+#: inc/Modules/Settings/Pages/Guide_Page.php:37
+msgid "Guide"
+msgstr ""
+
+#: templates/oauth/consent.php:66
+msgid "Authorize Application"
+msgstr ""
+
+#: templates/oauth/consent.php:73
+msgid "is requesting access to"
+msgstr ""
+
+#: templates/oauth/consent.php:81
+msgid "Signed in as"
+msgstr ""
+
+#: templates/oauth/consent.php:112
+msgid "Permissions"
+msgstr ""
+
+#. translators: %s: client application name wrapped in <strong>.
+#: templates/oauth/consent.php:116
+#, php-format
+msgid "%s will have access based on your WordPress role and capabilities."
+msgstr ""
+
+#: templates/oauth/consent.php:126
+msgid "Deny"
+msgstr ""
+
+#: templates/oauth/consent.php:129
+msgid "Allow Access"
+msgstr ""
+
+#: templates/oauth/consent.php:133
+msgid "You can revoke access from your WordPress profile page."
+msgstr ""
+
+#: templates/oauth/consent.php:138
+msgid "Terms of Service"
+msgstr ""
+
+#: templates/oauth/consent.php:144
+msgid "Privacy Policy"
+msgstr ""

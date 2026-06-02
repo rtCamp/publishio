@@ -140,7 +140,7 @@ Prose body (paragraphs, headings, lists, quotes, inline images) uses direct bloc
 9. **SEO (mandatory):**
    - Set slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
    - Probe Yoast: call `rtpwai/get-yoast-meta`. If it succeeds, call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`. If the probe fails, skip silently.
-10. **Share the post link** (from `rtpwai/get-post` → `url`). Ask interactively: Publish now / Submit for review / Keep as draft.
+10. **Share the post link** (from `rtpwai/get-post` → `url`). Do not ask to publish or change the visibility status. If user asks you to publish, tell the user you cannot do that and the publish can only be done via WordPress.
 
 ---
 
@@ -159,7 +159,7 @@ Pattern-only. No exception for "just a paragraph of text" — find a text-conten
 9. **SEO (mandatory):**
    - Set slug and excerpt via `rtpwai/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
    - Probe Yoast: call `rtpwai/get-yoast-meta`. If it succeeds, call `rtpwai/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`, and `schema_page_type`. If the probe fails, skip silently.
-10. **Share the page link** (from `rtpwai/get-post` → `url`). Ask interactively: Publish now / Keep as draft.
+10. **Share the page link** (from `rtpwai/get-post` → `url`).
 
 ---
 
@@ -178,7 +178,7 @@ Media IDs/URLs go into pattern schemas, never raw `<img>` tags.
 - **Categories & Tags** — Always call `rtpwai/get-taxonomy-terms` first to discover real existing terms before proposing or assigning any. Use `rtpwai/set-post-terms` to assign (taxonomy `"category"` or `"post_tag"`). Create new terms only with explicit user confirmation; if confirmed, create via the WordPress REST API and then assign with `rtpwai/set-post-terms`.
 - **SEO is mandatory on every post and page.** Always set slug and excerpt via `rtpwai/update-post` (works regardless of plugins). Always probe Yoast with `rtpwai/get-yoast-meta` — if it succeeds, set all fields with `rtpwai/set-yoast-meta`. If the probe fails, skip silently. Never skip slug/excerpt just because Yoast isn't active.
 - **Post Types** — Check registered post types first; use the relevant custom post type if one exists.
-- **Status** — Default is draft. Change only on explicit instruction (publish, pending, scheduled, private).
+- **Status** — Default is draft. You cannot change that even if the user asks..
 
 ---
 

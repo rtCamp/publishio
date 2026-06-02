@@ -1,10 +1,10 @@
-# Security Policy for Publish with AI
+# Security Policy for Publish With AI
 
 At **rtCamp**, we take the security of our software products and services seriously. This document outlines how you can report vulnerabilities and how we handle them to ensure our users' safety.
 
 ## Reporting a Vulnerability
 
-If you discover any security vulnerability in **Publish with AI**, please follow these steps:
+If you discover any security vulnerability in **Publish With AI**, please follow these steps:
 
 1. **Private Disclosure:**
    Do not publicly disclose vulnerabilities. Instead, report the issue by emailing us at [security@rtcamp.com](mailto:security@rtcamp.com).
@@ -41,6 +41,6 @@ We prefer all communications to be in **English**.
 
 We follow the principles of **Coordinated Vulnerability Disclosure (CVD)**. This means we work closely with security researchers and provide time to patch vulnerabilities before they are publicly disclosed.
 
-Thank you for helping us keep `Publish with AI` secure!
+Thank you for helping us keep `Publish With AI` secure!
 
 ---

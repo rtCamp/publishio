@@ -1,6 +1,6 @@
-# Contributing to Publish with AI
+# Contributing to Publish With AI
 
-Thank you for your interest in contributing to Publish with AI! We welcome contributions from the community to help improve the project. This document outlines how you can contribute, including reporting issues, submitting code, and our code of conduct.
+Thank you for your interest in contributing to Publish With AI! We welcome contributions from the community to help improve the project. This document outlines how you can contribute, including reporting issues, submitting code, and our code of conduct.
 
 ## Code of Conduct
 
@@ -60,4 +60,4 @@ You can refer to existing documentation in the [`docs`](../docs) directory for e
 
 ## Thank You
 
-We appreciate your time and contributions to Publish with AI. Your efforts help make this project better for everyone!
+We appreciate your time and contributions to Publish With AI. Your efforts help make this project better for everyone!

@@ -50,9 +50,7 @@ const connectionFields: Field< OAuthConnection >[] = [
 		label: __( 'Last Active', 'rtcamp-publish-with-ai' ),
 		enableSorting: true,
 		getValue: ( { item } ) =>
-			item.last_active_at
-				? new Date( item.last_active_at * 1000 ).toISOString()
-				: '',
+			new Date( item.last_active_at * 1000 ).toISOString(),
 		render: ( { item } ) => <LastActiveField item={ item } />,
 	},
 	{

@@ -99,11 +99,13 @@ class Profile_Section {
 	public function render_section( \WP_User $user ): void {
 		$active = Token_Store::get_active_for_user( $user->ID );
 
-		// Batch-load client names so the table shows human-readable app names.
-		$client_names = [];
-		foreach ( array_unique( array_column( $active, 'client_id' ) ) as $cid ) {
-			$client               = Client_Store::get_by_client_id( $cid );
-			$client_names[ $cid ] = $client && '' !== $client['client_name'] ? $client['client_name'] : $cid;
+		$client_ids   = array_unique( array_column( $active, 'client_id' ) );
+		$client_map   = Client_Store::get_by_client_ids( $client_ids );
+		$client_names = array_column( $client_map, 'client_name', 'client_id' );
+		foreach ( $client_ids as $cid ) {
+			if ( empty( $client_names[ $cid ] ) ) {
+				$client_names[ $cid ] = $cid;
+			}
 		}
 		$revoked = isset( $_GET['rtpwai_oauth_revoked'] ) ? sanitize_text_field( wp_unslash( $_GET['rtpwai_oauth_revoked'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>

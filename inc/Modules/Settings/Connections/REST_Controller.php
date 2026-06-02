@@ -114,15 +114,9 @@ class REST_Controller extends Abstract_REST_Controller {
 			);
 		}
 
-		// Batch-load client metadata (one lookup per unique client on this page).
+		// Batch-load client metadata in a single IN query.
 		$client_ids = array_unique( array_column( $pairs, 'client_id' ) );
-		$client_map = [];
-		foreach ( $client_ids as $cid ) {
-			$client = Client_Store::get_by_client_id( $cid );
-			if ( $client ) {
-				$client_map[ $cid ] = $client;
-			}
-		}
+		$client_map = Client_Store::get_by_client_ids( $client_ids );
 
 		// Batch-load WP_User objects.
 		$user_ids = array_unique( array_column( $pairs, 'user_id' ) );
@@ -145,6 +139,8 @@ class REST_Controller extends Abstract_REST_Controller {
 			$client = $client_map[ $pair['client_id'] ] ?? null;
 			$user   = $user_map[ $pair['user_id'] ] ?? null;
 			if ( ! $client || ! $user ) {
+				// This is unreachable condition based on current implementation of Client_Store.
+				// TODO: Improve robustness by updating these queries.
 				continue; // Token orphaned — client or user deleted.
 			}
 			$items[] = array_merge(

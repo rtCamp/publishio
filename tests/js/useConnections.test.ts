@@ -148,7 +148,13 @@ describe( 'useConnections', () => {
 			( mockApi.list as jest.Mock )
 				.mockReturnValueOnce(
 					resolveAfterTick( {
-						items: [ { id: 1, client_name: 'App' } ],
+						items: [
+							{
+								client_id: 'dcr_app1',
+								client_name: 'App',
+								user: { id: 1 },
+							},
+						],
 						total: 3,
 					} )
 				)
@@ -162,10 +168,12 @@ describe( 'useConnections', () => {
 			expect( result.current.total ).toBe( 3 );
 
 			let tokensDeleted = 0;
-			result.current.remove( 1 ).then( ( n ) => ( tokensDeleted = n ) );
+			result.current
+				.remove( 'dcr_app1', 1 )
+				.then( ( n ) => ( tokensDeleted = n ) );
 			await flushAsync();
 
-			expect( mockApi.remove ).toHaveBeenCalledWith( 1 );
+			expect( mockApi.remove ).toHaveBeenCalledWith( 'dcr_app1', 1 );
 			expect( tokensDeleted ).toBe( 5 );
 			expect( result.current.total ).toBe( 2 );
 		} );
@@ -179,7 +187,13 @@ describe( 'useConnections', () => {
 				)
 				.mockReturnValueOnce(
 					resolveAfterTick( {
-						items: [ { id: 4, client_name: 'Last' } ],
+						items: [
+							{
+								client_id: 'dcr_last',
+								client_name: 'Last',
+								user: { id: 4 },
+							},
+						],
 						total: 4,
 					} )
 				)
@@ -193,7 +207,7 @@ describe( 'useConnections', () => {
 
 			expect( result.current.page ).toBe( 2 );
 
-			result.current.remove( 4 );
+			result.current.remove( 'dcr_last', 4 );
 			await flushAsync();
 
 			expect( result.current.page ).toBe( 1 );
@@ -209,9 +223,21 @@ describe( 'useConnections', () => {
 				.mockReturnValueOnce(
 					resolveAfterTick( {
 						items: [
-							{ id: 4, client_name: 'A' },
-							{ id: 5, client_name: 'B' },
-							{ id: 6, client_name: 'C' },
+							{
+								client_id: 'dcr_a',
+								client_name: 'A',
+								user: { id: 4 },
+							},
+							{
+								client_id: 'dcr_b',
+								client_name: 'B',
+								user: { id: 5 },
+							},
+							{
+								client_id: 'dcr_c',
+								client_name: 'C',
+								user: { id: 6 },
+							},
 						],
 						total: 6,
 					} )
@@ -219,8 +245,16 @@ describe( 'useConnections', () => {
 				.mockReturnValueOnce(
 					resolveAfterTick( {
 						items: [
-							{ id: 5, client_name: 'B' },
-							{ id: 6, client_name: 'C' },
+							{
+								client_id: 'dcr_b',
+								client_name: 'B',
+								user: { id: 5 },
+							},
+							{
+								client_id: 'dcr_c',
+								client_name: 'C',
+								user: { id: 6 },
+							},
 						],
 						total: 5,
 					} )
@@ -232,7 +266,7 @@ describe( 'useConnections', () => {
 
 			expect( result.current.page ).toBe( 2 );
 
-			result.current.remove( 4 );
+			result.current.remove( 'dcr_a', 4 );
 			await flushAsync();
 
 			expect( result.current.page ).toBe( 2 );

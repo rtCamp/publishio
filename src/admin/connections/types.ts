@@ -7,7 +7,6 @@ export interface ConnectionUser {
 }
 
 export interface OAuthConnection {
-	id: number;
 	client_id: string;
 	client_name: string;
 	source: string;
@@ -23,6 +22,6 @@ export interface OAuthConnection {
 	software_id: string | null;
 	software_version: string | null;
 	registered_at: number;
-	users: ConnectionUser[];
-	last_active_at: number | null;
+	user: ConnectionUser;
+	last_active_at: number;
 }

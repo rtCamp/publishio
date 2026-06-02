@@ -82,9 +82,6 @@ class Profile_Section {
 		}
 
 		Token_Store::revoke_for_client( $user_id, $client_id );
-		// Also revoke tokens for all other users of this client.
-		Token_Store::delete_all_for_client( $client_id );
-		Client_Store::delete_by_client_id( $client_id );
 
 		$redirect = get_current_user_id() === $user_id
 			? admin_url( 'profile.php?rtpwai_oauth_revoked=client' )
@@ -100,7 +97,16 @@ class Profile_Section {
 	 * @param \WP_User $user The user being viewed.
 	 */
 	public function render_section( \WP_User $user ): void {
-		$active  = Token_Store::get_active_for_user( $user->ID );
+		$active = Token_Store::get_active_for_user( $user->ID );
+
+		$client_ids   = array_unique( array_column( $active, 'client_id' ) );
+		$client_map   = Client_Store::get_by_client_ids( $client_ids );
+		$client_names = array_column( $client_map, 'client_name', 'client_id' );
+		foreach ( $client_ids as $cid ) {
+			if ( empty( $client_names[ $cid ] ) ) {
+				$client_names[ $cid ] = $cid;
+			}
+		}
 		$revoked = isset( $_GET['rtpwai_oauth_revoked'] ) ? sanitize_text_field( wp_unslash( $_GET['rtpwai_oauth_revoked'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
 		<h2><?php esc_html_e( 'MCP OAuth Sessions', 'rtcamp-publish-with-ai' ); ?></h2>
@@ -133,13 +139,13 @@ class Profile_Section {
 						);
 						?>
 					<tr>
-						<td><?php echo esc_html( $token['client_id'] ); ?></td>
+						<td><?php echo esc_html( $client_names[ $token['client_id'] ] ); ?></td>
 						<td><code><?php echo esc_html( $token['scope'] ?: '—' ); ?></code></td>
 						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['created_at'] ) ); ?></td>
 						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['refresh_expires_at'] ) ); ?></td>
 						<td>
 							<a href="<?php echo esc_url( $revoke_client_url ); ?>" class="button button-small button-secondary"
-								onclick="return confirm('<?php echo esc_js( __( 'Revoke access for this client? It will need to re-authorize.', 'rtcamp-publish-with-ai' ) ); ?>');">
+								onclick="return confirm('<?php echo esc_js( __( 'Revoke your access to this app? You will need to sign in again.', 'rtcamp-publish-with-ai' ) ); ?>');">
 								<?php esc_html_e( 'Revoke', 'rtcamp-publish-with-ai' ); ?>
 							</a>
 						</td>
@@ -156,7 +162,7 @@ class Profile_Section {
 			?>
 			<p style="margin-top: 12px;">
 				<a href="<?php echo esc_url( $revoke_url ); ?>" class="button button-secondary"
-					onclick="return confirm('<?php echo esc_js( __( 'Revoke all MCP OAuth sessions? The connected application will need to re-authorize.', 'rtcamp-publish-with-ai' ) ); ?>');">
+					onclick="return confirm('<?php echo esc_js( __( 'Revoke all MCP OAuth sessions? You will need to sign in to each app again.', 'rtcamp-publish-with-ai' ) ); ?>');">
 					<?php esc_html_e( 'Revoke All Sessions', 'rtcamp-publish-with-ai' ); ?>
 				</a>
 			</p>

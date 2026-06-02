@@ -51,17 +51,18 @@ export function DeleteConnectionDialog( {
 			) }
 			<p className="text-sm text-gray-700 mt-0">
 				{ sprintf(
-					/* translators: %s: connection name */
+					/* translators: 1: user name, 2: app name */
 					__(
-						'Are you sure you want to delete "%s"?',
+						'Are you sure you want to revoke %1$s\'s access to "%2$s"?',
 						'rtcamp-publish-with-ai'
 					),
+					connection.user.name,
 					connection.client_name
 				) }
 			</p>
 			<p className="text-sm text-gray-700">
 				{ __(
-					'This will immediately sign out every user who is connected via this app. They will need to reconnect the next time they use it.',
+					'This will immediately sign out this user. They will need to reconnect the next time they use this app.',
 					'rtcamp-publish-with-ai'
 				) }
 			</p>
@@ -80,7 +81,7 @@ export function DeleteConnectionDialog( {
 					disabled={ isDeleting }
 					onClick={ handleConfirm }
 				>
-					{ __( 'Delete Connection', 'rtcamp-publish-with-ai' ) }
+					{ __( 'Revoke Access', 'rtcamp-publish-with-ai' ) }
 				</Button>
 				<Button
 					variant="tertiary"

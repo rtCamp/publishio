@@ -65,8 +65,11 @@ export function useConnections() {
 		};
 	}, [ page, refreshKey ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
-	async function remove( id: number ): Promise< number > {
-		const result = await connectionsApi.remove( id );
+	async function remove(
+		clientId: string,
+		userId: number
+	): Promise< number > {
+		const result = await connectionsApi.remove( clientId, userId );
 		const newTotal = total - 1;
 		const maxPage = Math.max( 1, Math.ceil( newTotal / PAGE_SIZE ) );
 		const targetPage = Math.min( page, maxPage );

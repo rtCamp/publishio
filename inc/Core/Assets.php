@@ -28,7 +28,6 @@ final class Assets implements Registrable {
 	 */
 	public const ADMIN_HANDLE             = self::PREFIX . 'admin';
 	public const ADMIN_CONNECTIONS_HANDLE = self::PREFIX . 'admin-connections';
-	public const ADMIN_CREDENTIALS_HANDLE = self::PREFIX . 'admin-credentials';
 	public const ADMIN_MENU_ICON_HANDLE   = self::PREFIX . 'admin-menu-icon';
 
 	/**
@@ -37,7 +36,6 @@ final class Assets implements Registrable {
 	private const DEFERRED_ASSETS = [
 		self::ADMIN_HANDLE,
 		self::ADMIN_CONNECTIONS_HANDLE,
-		self::ADMIN_CREDENTIALS_HANDLE,
 	];
 
 	/**
@@ -72,10 +70,6 @@ final class Assets implements Registrable {
 		// Connections page (sub-menu).
 		$this->register_script( self::ADMIN_CONNECTIONS_HANDLE, 'admin-connections' );
 		$this->register_style( self::ADMIN_CONNECTIONS_HANDLE, 'admin-connections', [ 'wp-components' ] );
-
-		// Credentials page (sub-menu).
-		$this->register_script( self::ADMIN_CREDENTIALS_HANDLE, 'admin-credentials' );
-		$this->register_style( self::ADMIN_CREDENTIALS_HANDLE, 'admin-credentials', [ 'wp-components' ] );
 
 		// Menu icon style (CSS-only entry, loaded on all admin pages).
 		$this->register_style( self::ADMIN_MENU_ICON_HANDLE, 'admin-menu-icon' );

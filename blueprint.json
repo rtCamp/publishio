@@ -1,7 +1,7 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Publish with AI Demo",
+		"title": "Publish With AI Demo",
 		"description": "@Todo: Your demo description goes here.",
 		"author": "rtCamp",
 		"categories": [ "plugin", "skeleton", "development", "enterprise" ]

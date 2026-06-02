@@ -1,13 +1,13 @@
 <?php
 /**
- * Publish with AI
+ * Publish With AI
  *
  * @package           rtCamp/Publish_With_AI
  * @author            rtCamp
  * @copyright         2026 rtCamp
  * @license           GPL-2.0-or-later
  *
- * Plugin Name:       Publish with AI
+ * Plugin Name:       Publish With AI
  * Plugin URI:        https://github.com/rtCamp/publishwithai
  * Description:       Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant.
  * Version:           0.2.0

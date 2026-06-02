@@ -44,7 +44,7 @@ final class Autoloader {
 		return sprintf(
 			/* translators: %s: The plugin name. */
 			__( '%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`.', 'rtcamp-publish-with-ai' ),
-			esc_html( 'Publish with AI' )
+			esc_html( 'Publish With AI' )
 		);
 	}
 }

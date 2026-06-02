@@ -24,8 +24,8 @@ class Guide_Page extends Abstract_Admin_Page {
 	 */
 	public function register(): string {
 		$hook_suffix = add_menu_page(
-			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
-			__( 'Publish with AI', 'rtcamp-publish-with-ai' ),
+			__( 'Publish With AI', 'rtcamp-publish-with-ai' ),
+			__( 'Publish With AI', 'rtcamp-publish-with-ai' ),
 			'edit_posts',
 			self::SLUG,
 			[ $this, 'render' ]

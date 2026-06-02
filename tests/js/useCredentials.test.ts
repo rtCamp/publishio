@@ -64,7 +64,8 @@ beforeEach( () => {
 			id: 1,
 			client_id: 'mock-id',
 			client_name:
-				( data as Record< string, string > ).client_name ?? 'Created',
+				( data as Record< string, string > )[ 'client_name' ] ??
+				'Created',
 			client_secret: 'secret-abc',
 			source: '',
 			redirect_uris: [],

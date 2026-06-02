@@ -41,7 +41,6 @@ To use the skill in Claude (claude.ai):
 = WordPress =
 
 * **WordPress 6.9 or higher**
-* The [official WordPress AI plugin](https://wordpress.org/plugins/ai/) is required — it provides the Abilities API that this plugin uses to expose tools to AI assistants.
 
 = Themes =
 
@@ -70,17 +69,14 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 == Installation ==
 
 1. Install and activate the plugin in your WordPress dashboard.
-2. Ensure you meet the requirements (WordPress 6.9+ and the official AI plugin).
-3. Navigate to the plugin settings to connect your AI platform (Claude/ChatGPT).
+2. Ensure you meet the requirements (WordPress 6.9+).
+3. Navigate to the plugin settings to connect your AI platform (Claude).
 4. Start prompting your AI to build WordPress pages using your theme's patterns.
 
 == Frequently Asked Questions ==
 
 = Do I need a specific theme? =
 No, it works with any theme, but themes with well-described patterns (like Twenty Twenty-Five) yield the best results.
-
-= Why do I need the official WordPress AI plugin? =
-This plugin uses the Abilities API to expose tools like pattern discovery, post creation, and SEO metadata to AI assistants. The Abilities API is developed as part of the AI plugin ecosystem and shipped through it. Without the AI plugin active, AI tools won't discover any site abilities.
 
 = Does it work with AI platforms other than Claude and ChatGPT? =
 Yes. The plugin uses the Model Context Protocol (MCP), an open standard. Any AI platform or client that supports MCP — including local models, coding assistants, and custom integrations — can connect to your site and build content.

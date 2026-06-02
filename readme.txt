@@ -23,6 +23,19 @@ Build WordPress pages and posts using your existing patterns directly from your 
 * **SEO & Metadata:** Automatically adds metadata and SEO details (compatible with Yoast).
 * **Theme Agnostic:** Works with any Block-based/FSE theme.
 
+= AI Skill =
+
+This plugin includes a skill file that teaches AI assistants how to generate WordPress content correctly — using your site's existing patterns, building pages incrementally, and following your design system rather than inventing markup.
+
+The skill is served automatically to any connected AI assistant via MCP. Editors and content creators don't need to configure anything — just connect your AI platform and start prompting.
+
+To use the skill in Claude (claude.ai):
+
+1. <a href="https://raw.githubusercontent.com/rtCamp/publishwithai/main/skills/rt-publish-with-ai/SKILL.md">Download the skill file</a>
+2. Open Claude and go to Customize → Skills → Upload Skill
+3. Upload the downloaded file
+4. Start prompting Claude to build WordPress pages using your theme's patterns
+
 == Requirements ==
 
 = WordPress =

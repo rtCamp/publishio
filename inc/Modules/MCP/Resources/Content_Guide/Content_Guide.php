@@ -30,7 +30,7 @@ class Content_Guide {
 				'description' => 'Rules and workflows for generating WordPress content using patterns and incremental assembly. Read this before creating any post or page.',
 				'mimeType'    => 'text/markdown',
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-				'handler'     => static fn () => file_get_contents( __DIR__ . '/content-generation-guide.md' ),
+				'handler'     => static fn () => file_get_contents( RTCAMP_PUBLISH_WITH_AI_PATH . 'skills/rt-publish-with-ai/SKILL.md' ),
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),
 			]
 		);

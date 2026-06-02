@@ -21,23 +21,17 @@ export function ConnectionsScreen() {
 
 	async function handleDelete( connection: OAuthConnection ) {
 		const name = connection.client_name;
-		const tokensDeleted = await remove( connection.id );
+		await remove( connection.client_id, connection.user.id );
 		createSuccessNotice(
-			tokensDeleted > 0
-				? sprintf(
-						/* translators: 1: connection name, 2: number of sessions revoked */
-						__(
-							'"%1$s" deleted. %2$d active session(s) revoked.',
-							'rtcamp-publish-with-ai'
-						),
-						name,
-						tokensDeleted
-				  )
-				: sprintf(
-						/* translators: %s: connection name */
-						__( '"%s" deleted.', 'rtcamp-publish-with-ai' ),
-						name
-				  ),
+			sprintf(
+				/* translators: 1: user name, 2: app name */
+				__(
+					'%1$s\'s access to "%2$s" has been revoked.',
+					'rtcamp-publish-with-ai'
+				),
+				connection.user.name,
+				name
+			),
 			{ type: 'snackbar', context: CONNECTIONS_NOTICES_CONTEXT }
 		);
 	}

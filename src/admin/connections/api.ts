@@ -16,6 +16,12 @@ export const connectionsApi = {
 	list: ( page: number ): Promise< ConnectionPage > =>
 		apiFetch( { path: `${ REST_PATH }?page=${ page }` } ),
 
-	remove: ( id: number ): Promise< { tokens_deleted: number } > =>
-		apiFetch( { path: `${ REST_PATH }/${ id }`, method: 'DELETE' } ),
+	remove: (
+		clientId: string,
+		userId: number
+	): Promise< { tokens_deleted: number } > =>
+		apiFetch( {
+			path: `${ REST_PATH }/${ clientId }/users/${ userId }`,
+			method: 'DELETE',
+		} ),
 };

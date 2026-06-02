@@ -13,7 +13,7 @@ import type { OAuthConnection } from '../types';
 import { NameField } from '../../shared/table/fields/NameField';
 import { RegisteredField } from '../../shared/table/fields/RegisteredField';
 import { LastActiveField } from '../../shared/table/fields/LastActiveField';
-import { UsersField } from './fields/UsersField';
+import { UserField } from './fields/UsersField';
 import { EmptyState } from '../../shared/EmptyState';
 import { DeleteConnectionDialog } from '../DeleteConnectionDialog';
 import { PAGE_SIZE } from '../../constants';
@@ -23,7 +23,7 @@ const DEFAULT_VIEW: View = {
 	page: 1,
 	perPage: PAGE_SIZE,
 	sort: { field: 'client_name', direction: 'asc' },
-	fields: [ 'client_name', 'users', 'registered_at', 'last_active_at' ],
+	fields: [ 'client_name', 'user', 'registered_at', 'last_active_at' ],
 };
 
 const DEFAULT_LAYOUTS = { table: {} };
@@ -39,11 +39,11 @@ const connectionFields: Field< OAuthConnection >[] = [
 		render: ( { item } ) => <NameField item={ item } />,
 	},
 	{
-		id: 'users',
-		label: __( 'Users', 'rtcamp-publish-with-ai' ),
-		getValue: ( { item } ) => item.users.map( ( u ) => u.name ).join( ' ' ),
+		id: 'user',
+		label: __( 'User', 'rtcamp-publish-with-ai' ),
+		getValue: ( { item } ) => `${ item.user.name } ${ item.user.email }`,
 		enableGlobalSearch: true,
-		render: ( { item } ) => <UsersField users={ item.users } />,
+		render: ( { item } ) => <UserField user={ item.user } />,
 	},
 	{
 		id: 'last_active_at',
@@ -136,7 +136,9 @@ export function ConnectionsTable( {
 					}
 				} }
 				actions={ actions }
-				getItemId={ ( item ) => String( item.id ) }
+				getItemId={ ( item ) =>
+					`${ item.client_id }:${ item.user.id }`
+				}
 				isLoading={ isLoading }
 				config={ DEFAULT_CONFIG }
 				paginationInfo={ paginationInfo }

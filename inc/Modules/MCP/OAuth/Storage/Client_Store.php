@@ -111,75 +111,6 @@ class Client_Store {
 	}
 
 	/**
-	 * Return clients filtered by source ('dcr' or 'cred'), newest first, paginated.
-	 *
-	 * @param string $source The source value to filter by.
-	 * @param int    $offset Zero-based row offset for pagination.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	public static function all_by_source( string $source, int $offset = 0 ): array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT * FROM %i WHERE source = %s ORDER BY registered_at DESC LIMIT %d OFFSET %d',
-				self::table_name(),
-				$source,
-				self::PAGE_SIZE,
-				$offset
-			),
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-
-		return array_map( [ self::class, 'parse_row' ], $rows );
-	}
-
-	/**
-	 * Count clients filtered by source.
-	 *
-	 * @param string $source The source value to filter by.
-	 */
-	public static function count_by_source( string $source ): int {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$count = $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE source = %s',
-				self::table_name(),
-				$source
-			)
-		);
-
-		return (int) $count;
-	}
-
-	/**
-	 * Look up a client by its numeric DB id.
-	 *
-	 * @param int $id The DB primary key.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	public static function get_by_id( int $id ): ?array {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', self::table_name(), $id ),
-			ARRAY_A
-		);
-
-		return is_array( $row ) ? self::parse_row( $row ) : null;
-	}
-
-	/**
 	 * Look up a client by its client_id.
 	 *
 	 * @param string $client_id The client ID.
@@ -281,20 +212,6 @@ class Client_Store {
 		$result = $wpdb->update( self::table_name(), $fields, [ 'id' => $id ], $formats, [ '%d' ] );
 
 		return false !== $result;
-	}
-
-	/**
-	 * Delete a client by its numeric DB id.
-	 *
-	 * @param int $id The DB primary key.
-	 */
-	public static function delete( int $id ): bool {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete( self::table_name(), [ 'id' => $id ], [ '%d' ] );
-
-		return false !== $result && $result > 0;
 	}
 
 	/**

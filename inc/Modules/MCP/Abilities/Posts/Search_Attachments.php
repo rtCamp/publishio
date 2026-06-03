@@ -18,11 +18,11 @@ class Search_Attachments {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/search-attachments',
+			'pwai/search-attachments',
 			[
-				'label'               => __( 'Search Attachments', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Search Attachments', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

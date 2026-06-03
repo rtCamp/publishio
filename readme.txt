@@ -1,4 +1,4 @@
-=== Publish With AI ===
+=== Publish With AI - Publish pages directly from AI assistants ===
 Contributors:      rtCamp, utsavladani, iamdanih17, aviral89, hiabhaykulkarni, justlevine, muralig, dipankardas011
 Tags:              Publish, AI, Editorial Workflow, Abilities, MCP
 License:           GPLv2 or later

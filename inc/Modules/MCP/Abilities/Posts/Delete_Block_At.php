@@ -18,11 +18,11 @@ class Delete_Block_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/delete-block-at',
+			'pwai/delete-block-at',
 			[
-				'label'               => __( 'Delete Block at Position', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Delete Block at Position', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Deletes a top-level block at a specific position in a post or page.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Deletes a top-level block at a specific position in a post or page.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'position' ],
@@ -64,11 +64,11 @@ class Delete_Block_At {
 					$post     = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
 					}
 
 					$blocks = array_values(
@@ -85,7 +85,7 @@ class Delete_Block_At {
 							'invalid_position',
 							sprintf(
 								// translators: 1: requested position, 2: maximum valid position.
-								__( 'Position %1$d is out of range (0–%2$d).', 'rtcamp-publish-with-ai' ),
+								__( 'Position %1$d is out of range (0–%2$d).', 'publish-with-ai' ),
 								$position,
 								count( $blocks ) - 1
 							)

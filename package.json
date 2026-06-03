@@ -1,5 +1,5 @@
 {
-	"name": "rtcamp-publish-with-ai",
+	"name": "publish-with-ai",
 	"private": true,
 	"engines": {
 		"node": ">=24.0.0",
@@ -17,7 +17,7 @@
 		"composer.json",
 		"README.md",
 		"readme.txt",
-		"rtcamp-publish-with-ai.php",
+		"publish-with-ai.php",
 		"uninstall.php"
 	],
 	"scripts": {
@@ -26,16 +26,16 @@
 		"build:apps": "cross-env NODE_ENV=production WP_NO_EXTERNALS=true wp-scripts build --config webpack.apps.config.js",
 		"clean": "rimraf build build-apps",
 		"format": "wp-scripts format",
-		"i18n:make-pot": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ -- wp i18n make-pot . ./languages/rtcamp-publish-with-ai.pot --domain=rtcamp-publish-with-ai --include='*.php,inc,framework,src,templates' --exclude='assets,build,build-apps,node_modules,tests,vendor'",
-		"i18n:make-json": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ -- wp i18n make-json languages/ --no-purge",
+		"i18n:make-pot": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/ -- wp i18n make-pot . ./languages/publish-with-ai.pot --domain=publish-with-ai --include='*.php,inc,framework,src,templates' --exclude='assets,build,build-apps,node_modules,tests,vendor'",
+		"i18n:make-json": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/ -- wp i18n make-json languages/ --no-purge",
 		"lint:css:fix": "wp-scripts lint-style --fix",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js:fix": "wp-scripts lint-js --fix",
 		"lint:js:types": "tsc --noEmit",
 		"lint:js": "wp-scripts lint-js",
-		"lint:php:fix": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ composer run-script format",
-		"lint:phpstan": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ composer run-script phpstan",
-		"lint:php": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ composer run-script lint",
+		"lint:php:fix": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/ composer run-script format",
+		"lint:phpstan": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/ composer run-script phpstan",
+		"lint:php": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/ composer run-script lint",
 		"lint": "npm-run-all --parallel lint:*",
 		"lint:fix": "npm-run-all --parallel lint:*:fix",
 		"plugin-zip": "wp-scripts plugin-zip",
@@ -45,9 +45,9 @@
 		"test:js": "wp-scripts test-unit-js --passWithNoTests",
 		"test:js:watch": "wp-scripts test-unit-js --watch",
 		"test:js:coverage": "wp-scripts test-unit-js --passWithNoTests --coverage",
-		"test:php": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/ vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:php": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publish-with-ai/ vendor/bin/phpunit -c phpunit.xml.dist",
 		"wp-env": "wp-env",
-		"wp-env:cli": "wp-env run cli --env-cwd=wp-content/plugins/rtcamp-publish-with-ai/",
+		"wp-env:cli": "wp-env run cli --env-cwd=wp-content/plugins/publish-with-ai/",
 		"wp-env:test": "wp-env --config=.wp-env.test.json"
 	},
 	"dependencies": {

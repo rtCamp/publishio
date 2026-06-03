@@ -94,8 +94,8 @@ class EncryptorTest extends TestCase {
 	 * Test that custom key is used for encryption and decryption.
 	 */
 	public function test_encrypt_and_decrypt_with_custom_key(): void {
-		if ( ! defined( 'RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY' ) ) {
-			define( 'RTCAMP_PUBLISH_WITH_AI_ENCRYPTION_KEY', 'custom-key-123' );
+		if ( ! defined( 'PUBLISH_WITH_AI_ENCRYPTION_KEY' ) ) {
+			define( 'PUBLISH_WITH_AI_ENCRYPTION_KEY', 'custom-key-123' );
 		}
 
 		$raw       = 'custom key test';

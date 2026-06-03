@@ -11,7 +11,7 @@
 	<file>./inc/</file>
 	<file>./templates/</file>
 	<file>./tests/php/</file>
-	<file>./rtcamp-publish-with-ai.php</file>
+	<file>./publish-with-ai.php</file>
 	<file>./uninstall.php</file>
 
 	<!-- These are excluded from the above paths.-->
@@ -94,7 +94,7 @@
 		<exclude-pattern>**/tests/**</exclude-pattern>
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="RTCAMP_PUBLISH_WITH_AI" /><!-- Constant -->
+				<element value="PUBLISH_WITH_AI" /><!-- Constant -->
 				<element value="rtCamp\Publish_With_AI" /><!-- Class -->
 				<element value="publish_with_ai_" /><!-- Function/variable -->
 			</property>
@@ -105,7 +105,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="rtcamp-publish-with-ai" />
+				<element value="publish-with-ai" />
 			</property>
 		</properties>
 	</rule>

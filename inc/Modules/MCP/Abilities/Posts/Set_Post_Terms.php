@@ -18,11 +18,11 @@ class Set_Post_Terms {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/set-post-terms',
+			'pwai/set-post-terms',
 			[
-				'label'               => __( 'Set Post Categories or Tags', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Set Post Categories or Tags', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use rtpwai/get-taxonomy-terms first to discover valid values.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use pwai/get-taxonomy-terms first to discover valid values.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'taxonomy', 'terms' ],
@@ -82,15 +82,15 @@ class Set_Post_Terms {
 
 					$post = get_post( $post_id );
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
 					}
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publish-with-ai' ) );
 					}
 
 					if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -98,7 +98,7 @@ class Set_Post_Terms {
 							'taxonomy_not_registered',
 							sprintf(
 								/* translators: 1: taxonomy slug, 2: post type slug */
-								__( 'Taxonomy "%1$s" is not registered for post type "%2$s".', 'rtcamp-publish-with-ai' ),
+								__( 'Taxonomy "%1$s" is not registered for post type "%2$s".', 'publish-with-ai' ),
 								$taxonomy,
 								$post->post_type
 							)
@@ -117,7 +117,7 @@ class Set_Post_Terms {
 									'invalid_term',
 									sprintf(
 										/* translators: 1: term slug, 2: taxonomy slug */
-										__( 'Term "%1$s" not found in taxonomy "%2$s".', 'rtcamp-publish-with-ai' ),
+										__( 'Term "%1$s" not found in taxonomy "%2$s".', 'publish-with-ai' ),
 										$term,
 										$taxonomy
 									)

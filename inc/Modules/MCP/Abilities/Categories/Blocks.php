@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Blocks
  */
 class Blocks {
-	public const SLUG = 'rtpwai-blocks';
+	public const SLUG = 'pwai-blocks';
 
 	/**
 	 * Register the category.
@@ -22,8 +22,8 @@ class Blocks {
 		wp_register_ability_category(
 			self::SLUG,
 			[
-				'label'       => __( 'Blocks', 'rtcamp-publish-with-ai' ),
-				'description' => __( 'Abilities to discover and inspect registered custom blocks.', 'rtcamp-publish-with-ai' ),
+				'label'       => __( 'Blocks', 'publish-with-ai' ),
+				'description' => __( 'Abilities to discover and inspect registered custom blocks.', 'publish-with-ai' ),
 			]
 		);
 	}

@@ -33,7 +33,7 @@ export function usePatternApp() {
 		setBusy( true );
 		try {
 			const res = await app.callServerTool( {
-				name: 'rtpwai-insert-pattern-confirmed',
+				name: 'pwai-insert-pattern-confirmed',
 				arguments: {
 					page_id: pending.page_id,
 					position: pending.position,

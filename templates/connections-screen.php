@@ -2,7 +2,7 @@
 /**
  * Template for the Connections admin screen.
  *
- * @package rtcamp-publish-with-ai
+ * @package publish-with-ai
  */
 
 declare(strict_types = 1);
@@ -13,4 +13,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div id="rtpwai-connections-screen-root" class="rtpwai-tailwind"></div>
+<div id="pwai-connections-screen-root" class="pwai-tailwind"></div>

@@ -18,11 +18,11 @@ class Get_Post_Terms {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-post-terms',
+			'pwai/get-post-terms',
 			[
-				'label'               => __( 'Get Post Terms', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Post Terms', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Returns the taxonomy terms currently assigned to a post (e.g. its categories and tags).', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns the taxonomy terms currently assigned to a post (e.g. its categories and tags).', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
@@ -69,11 +69,11 @@ class Get_Post_Terms {
 					$post    = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
 					}
 
 					if ( ! empty( $input['taxonomy'] ) ) {

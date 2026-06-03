@@ -18,7 +18,7 @@ module.exports = {
 	...defaultConfig,
 
 	// Display name for clarity in multi-project setups
-	displayName: 'rtcamp-publish-with-ai',
+	displayName: 'publish-with-ai',
 
 	// Root directory for tests
 	rootDir: '.',

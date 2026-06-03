@@ -32,7 +32,7 @@ export default [
 			'@wordpress/i18n-text-domain': [
 				'error',
 				{
-					allowedTextDomain: 'rtcamp-publish-with-ai',
+					allowedTextDomain: 'publish-with-ai',
 				},
 			],
 

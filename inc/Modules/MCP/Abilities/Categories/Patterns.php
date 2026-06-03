@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Patterns
  */
 class Patterns {
-	public const SLUG = 'rtpwai-patterns';
+	public const SLUG = 'pwai-patterns';
 
 	/**
 	 * Register the category.
@@ -22,8 +22,8 @@ class Patterns {
 		wp_register_ability_category(
 			self::SLUG,
 			[
-				'label'       => __( 'Patterns', 'rtcamp-publish-with-ai' ),
-				'description' => __( 'Abilities to discover and inspect registered block patterns.', 'rtcamp-publish-with-ai' ),
+				'label'       => __( 'Patterns', 'publish-with-ai' ),
+				'description' => __( 'Abilities to discover and inspect registered block patterns.', 'publish-with-ai' ),
 			]
 		);
 	}

@@ -41,7 +41,7 @@ jobs:
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
-      artifact-name: rtcamp-publish-with-ai
+      artifact-name: publish-with-ai
     secrets: inherit
 
   upload:
@@ -64,7 +64,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: rtcamp-publish-with-ai
+          name: publish-with-ai
           path: .
 
       - name: Upload release asset
@@ -79,4 +79,4 @@ jobs:
             echo "No valid tag name found, skipping upload."
             exit 0
           fi
-          gh release upload "$TAG_NAME" rtcamp-publish-with-ai.zip --clobber --repo ${{ github.repository }}
+          gh release upload "$TAG_NAME" publish-with-ai.zip --clobber --repo ${{ github.repository }}

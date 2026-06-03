@@ -89,8 +89,8 @@ function delete_tables(): void {
 	global $wpdb;
 
 	$tables = [
-		$wpdb->prefix . 'rtpwai_oauth_tokens',
-		$wpdb->prefix . 'rtpwai_oauth_clients',
+		$wpdb->prefix . 'pwai_oauth_tokens',
+		$wpdb->prefix . 'pwai_oauth_clients',
 	];
 
 	foreach ( $tables as $table ) {

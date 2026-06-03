@@ -19,8 +19,8 @@ use rtCamp\Publish_With_AI\Modules\MCP\Resources\Content_Guide\Content_Guide;
  * Class - Server
  */
 class Server implements Registrable {
-	private const SERVER_ID      = 'rt-publish-with-ai';
-	private const ABILITY_PREFIX = 'rtpwai/';
+	private const SERVER_ID      = 'publish-with-ai';
+	private const ABILITY_PREFIX = 'pwai/';
 
 	/**
 	 * {@inheritDoc}
@@ -39,9 +39,9 @@ class Server implements Registrable {
 			self::SERVER_ID,
 			'mcp',
 			self::SERVER_ID,
-			__( 'Publish With AI — rtCamp', 'rtcamp-publish-with-ai' ),
-			__( 'MCP server for the Publish With AI plugin.', 'rtcamp-publish-with-ai' ),
-			RTCAMP_PUBLISH_WITH_AI_VERSION,
+			__( 'Publish With AI — rtCamp', 'publish-with-ai' ),
+			__( 'MCP server for the Publish With AI plugin.', 'publish-with-ai' ),
+			PUBLISH_WITH_AI_VERSION,
 			[ HttpTransport::class ],
 			ErrorLogMcpErrorHandler::class,
 			null,
@@ -62,7 +62,7 @@ class Server implements Registrable {
 	}
 
 	/**
-	 * Discover all abilities registered under the rtpwai/ namespace.
+	 * Discover all abilities registered under the pwai/ namespace.
 	 *
 	 * @return list<string>
 	 */

@@ -44,7 +44,7 @@ export function useRenderPreview() {
 	const [ errorContext, setErrorContext ] = useState( '' );
 
 	const { app } = useApp( {
-		appInfo: { name: 'rtpwai-pattern-approval', version: '1.0.0' },
+		appInfo: { name: 'pwai-pattern-approval', version: '1.0.0' },
 		capabilities: {},
 		autoResize: false,
 		onAppCreated: ( a ) => {
@@ -88,7 +88,7 @@ export function useRenderPreview() {
 
 		const render = async () => {
 			const res = await app.callServerTool( {
-				name: 'rtpwai-render-pattern',
+				name: 'pwai-render-pattern',
 				arguments: {
 					pattern_name: data.pattern_name,
 					schema: data.schema as Record< string, unknown >,

@@ -20,9 +20,9 @@ parameters:
 		min: 80200
 		max: 80500
 	bootstrapFiles:
-		- rtcamp-publish-with-ai.php
+		- publish-with-ai.php
 	paths:
-		- rtcamp-publish-with-ai.php
+		- publish-with-ai.php
 		- uninstall.php
 		- framework/
 		- inc/

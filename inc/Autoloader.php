@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'rtCamp\Publish_With_AI\Framework\AutoloaderTrait' ) ) {
-	require_once RTCAMP_PUBLISH_WITH_AI_PATH . 'framework/AutoloaderTrait.php';
+	require_once PUBLISH_WITH_AI_PATH . 'framework/AutoloaderTrait.php';
 }
 
 /**
@@ -32,11 +32,11 @@ final class Autoloader {
 	 */
 	public static function autoload(): bool {
 		// If we're not *supposed* to autoload anything, then return true.
-		if ( defined( 'RTCAMP_PUBLISH_WITH_AI_AUTOLOAD' ) && false === RTCAMP_PUBLISH_WITH_AI_AUTOLOAD ) {
+		if ( defined( 'PUBLISH_WITH_AI_AUTOLOAD' ) && false === PUBLISH_WITH_AI_AUTOLOAD ) {
 			return true;
 		}
 
-		$autoloader = RTCAMP_PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
+		$autoloader = PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
 
 		return self::require_autoloader( $autoloader );
 	}
@@ -47,7 +47,7 @@ final class Autoloader {
 	private static function get_autoloader_error_message(): string {
 		return sprintf(
 			/* translators: %s: The plugin name. */
-			__( '%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`.', 'rtcamp-publish-with-ai' ),
+			__( '%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`.', 'publish-with-ai' ),
 			esc_html( 'Publish With AI' )
 		);
 	}

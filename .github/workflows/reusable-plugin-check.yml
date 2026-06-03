@@ -23,7 +23,11 @@ permissions:
 jobs:
   plugin-check:
     name: Plugin Check (PCP)
-    runs-on: ubuntu-latest
+    # TODO: Switch back to ubuntu-24.04 once wordpress/plugin-check-action fixes the URL-plugin
+    #       path in wp-env (silently fails on Node 24.16.0 / libuv 1.52.1). Also bump the action
+    #       SHA on that line below when updating.
+    #       https://github.com/WordPress/plugin-check-action/issues/579
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
 
     steps:

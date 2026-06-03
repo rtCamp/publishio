@@ -126,7 +126,7 @@ class Upload_Media {
 	 * @return array<string, mixed>|\WP_Error
 	 */
 	private static function upload_from_url( string $url, int $post_id, string $title, string $alt, string $caption, string $description, string $filename ): array|\WP_Error {
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || esc_url_raw( $url ) !== $url ) {
 			return new \WP_Error( 'invalid_url', __( 'Invalid URL provided.', 'rtcamp-publish-with-ai' ) );
 		}
 
@@ -167,7 +167,7 @@ class Upload_Media {
 		];
 
 		if ( ! $image_type || ! isset( $allowed[ $image_type ] ) ) {
-			unlink( $tmp_file ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
+			wp_delete_file( $tmp_file );
 			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'rtcamp-publish-with-ai' ) );
 		}
 
@@ -179,7 +179,7 @@ class Upload_Media {
 		$attachment_id = media_handle_sideload( $file_array, $post_id, $title ?: null );
 
 		if ( file_exists( $tmp_file ) ) {
-			unlink( $tmp_file ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink
+			wp_delete_file( $tmp_file );
 		}
 
 		return $attachment_id;

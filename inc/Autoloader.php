@@ -11,6 +11,10 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publish_With_AI;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'rtCamp\Publish_With_AI\Framework\AutoloaderTrait' ) ) {
 	require_once RTCAMP_PUBLISH_WITH_AI_PATH . 'framework/AutoloaderTrait.php';
 }

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-02T11:56:44+00:00\n"
+"POT-Creation-Date: 2026-06-03T07:22:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: rtcamp-publish-with-ai\n"
@@ -70,7 +70,7 @@ msgid "De-serializing instances of %s is not allowed."
 msgstr ""
 
 #. translators: %s: The plugin name.
-#: inc/Autoloader.php:46
+#: inc/Autoloader.php:50
 #, php-format
 msgid "%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`."
 msgstr ""

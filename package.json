@@ -14,6 +14,7 @@
 		"languages",
 		"templates",
 		"vendor",
+		"composer.json",
 		"README.md",
 		"readme.txt",
 		"rtcamp-publish-with-ai.php",

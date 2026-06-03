@@ -7,8 +7,8 @@
  * sessions here. Clients are never deleted — only their tokens are revoked.
  *
  * Routes (all require manage_options):
- *   GET    /wp-json/rtpwai/v1/connections
- *   DELETE /wp-json/rtpwai/v1/connections/{client_id}/users/{user_id}
+ *   GET    /wp-json/pwai/v1/connections
+ *   DELETE /wp-json/pwai/v1/connections/{client_id}/users/{user_id}
  *
  * @package rtCamp\Publish_With_AI\Modules\Settings\Connections
  */
@@ -176,13 +176,13 @@ class REST_Controller extends Abstract_REST_Controller {
 		$user_id   = (int) $request->get_param( 'user_id' );
 
 		if ( null === Client_Store::get_by_client_id( $client_id ) ) {
-			return new \WP_Error( 'not_found', __( 'Connection not found.', 'rtcamp-publish-with-ai' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'not_found', __( 'Connection not found.', 'publish-with-ai' ), [ 'status' => 404 ] );
 		}
 
 		$tokens_deleted = Token_Store::revoke_for_client( $user_id, $client_id );
 
 		if ( false === $tokens_deleted ) {
-			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'rtcamp-publish-with-ai' ), [ 'status' => 500 ] );
+			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'publish-with-ai' ), [ 'status' => 500 ] );
 		}
 
 		return new WP_REST_Response( [ 'tokens_deleted' => $tokens_deleted ], 200 );

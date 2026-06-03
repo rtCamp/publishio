@@ -34,7 +34,7 @@ final class Templates {
 	/**
 	 * The theme dir for template overrides
 	 */
-	private const TEMPLATE_THEME_DIR = 'rtcamp-publish-with-ai';
+	private const TEMPLATE_THEME_DIR = 'publish-with-ai';
 
 	/**
 	 * {@inheritDoc}
@@ -42,7 +42,7 @@ final class Templates {
 	protected function __construct() {
 		$this->hook_prefix        = self::HOOK_PREFIX;
 		$this->template_theme_dir = self::TEMPLATE_THEME_DIR;
-		$this->template_dir       = RTCAMP_PUBLISH_WITH_AI_PATH . self::TEMPLATE_DIR;
+		$this->template_dir       = PUBLISH_WITH_AI_PATH . self::TEMPLATE_DIR;
 	}
 
 	/**

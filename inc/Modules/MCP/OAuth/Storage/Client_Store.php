@@ -16,7 +16,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
  * Class - Client_Store
  */
 class Client_Store {
-	private const TABLE_SUFFIX = 'rtpwai_oauth_clients';
+	private const TABLE_SUFFIX = 'pwai_oauth_clients';
 	public const PAGE_SIZE     = 10;
 
 	/**

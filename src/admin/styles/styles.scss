@@ -1,6 +1,6 @@
 @import "@wordpress/dataviews/build-style/style.css";
 
-.rtpwai-admin-page {
+.pwai-admin-page {
 
 	#wpcontent {
 		padding: 0;
@@ -13,11 +13,11 @@
 	}
 }
 
-.rtpwai-header-content {
+.pwai-header-content {
 	view-transition-name: admin-header-content;
 }
 
-.rtpwai-header-actions {
+.pwai-header-actions {
 	view-transition-name: admin-header-actions;
 }
 
@@ -28,7 +28,7 @@
 	mix-blend-mode: normal;
 }
 
-@keyframes rtpwai-slide-in {
+@keyframes pwai-slide-in {
 
 	from {
 		opacity: 0;
@@ -36,7 +36,7 @@
 	}
 }
 
-@keyframes rtpwai-slide-out {
+@keyframes pwai-slide-out {
 
 	to {
 		opacity: 0;
@@ -48,12 +48,12 @@
 
 	&::view-transition-old(admin-header-content),
 	&::view-transition-old(admin-header-actions) {
-		animation: 150ms ease-out both rtpwai-slide-out;
+		animation: 150ms ease-out both pwai-slide-out;
 	}
 
 	&::view-transition-new(admin-header-content),
 	&::view-transition-new(admin-header-actions) {
-		animation: 150ms ease-out both rtpwai-slide-in;
+		animation: 150ms ease-out both pwai-slide-in;
 	}
 }
 
@@ -61,11 +61,11 @@
 
 	&::view-transition-old(admin-header-content),
 	&::view-transition-old(admin-header-actions) {
-		animation: 150ms ease-out both rtpwai-slide-in reverse;
+		animation: 150ms ease-out both pwai-slide-in reverse;
 	}
 
 	&::view-transition-new(admin-header-content),
 	&::view-transition-new(admin-header-actions) {
-		animation: 150ms ease-out both rtpwai-slide-out reverse;
+		animation: 150ms ease-out both pwai-slide-out reverse;
 	}
 }

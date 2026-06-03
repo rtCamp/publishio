@@ -38,7 +38,7 @@ tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
 		// Require ( to bypass require_once ).
-		require TESTS_REPO_ROOT_DIR . '/rtcamp-publish-with-ai.php';
+		require TESTS_REPO_ROOT_DIR . '/publish-with-ai.php';
 	}
 );
 

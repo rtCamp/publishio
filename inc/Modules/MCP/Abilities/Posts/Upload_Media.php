@@ -18,11 +18,11 @@ class Upload_Media {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/upload-media',
+			'pwai/upload-media',
 			[
-				'label'               => __( 'Upload Media', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Upload Media', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Uploads an image to the media library from a URL. Returns the attachment ID and URL.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Uploads an image to the media library from a URL. Returns the attachment ID and URL.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'url', 'filename', 'title', 'alt', 'caption', 'description' ],
@@ -88,7 +88,7 @@ class Upload_Media {
 					$filename    = sanitize_file_name( $input['filename'] ?? '' );
 
 					if ( empty( $url ) ) {
-						return new \WP_Error( 'missing_source', __( 'A url is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_source', __( 'A url is required.', 'publish-with-ai' ) );
 					}
 
 					// Load required admin files.
@@ -127,7 +127,7 @@ class Upload_Media {
 	 */
 	private static function upload_from_url( string $url, int $post_id, string $title, string $alt, string $caption, string $description, string $filename ): array|\WP_Error {
 		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || esc_url_raw( $url ) !== $url ) {
-			return new \WP_Error( 'invalid_url', __( 'Invalid URL provided.', 'rtcamp-publish-with-ai' ) );
+			return new \WP_Error( 'invalid_url', __( 'Invalid URL provided.', 'publish-with-ai' ) );
 		}
 
 		$attachment_id = self::sideload_by_content( $url, $post_id, $title, $filename );
@@ -168,7 +168,7 @@ class Upload_Media {
 
 		if ( ! $image_type || ! isset( $allowed[ $image_type ] ) ) {
 			wp_delete_file( $tmp_file );
-			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'rtcamp-publish-with-ai' ) );
+			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'publish-with-ai' ) );
 		}
 
 		$file_array = [

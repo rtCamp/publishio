@@ -2,7 +2,7 @@
 /**
  * Access and refresh token storage using a custom database table.
  *
- * Tokens are stored in {prefix}rtpwai_oauth_tokens and looked up by
+ * Tokens are stored in {prefix}pwai_oauth_tokens and looked up by
  * hash for fast, indexed access.
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
@@ -23,7 +23,7 @@ class Token_Store {
 	 */
 	private static function table_name(): string {
 		global $wpdb;
-		return $wpdb->prefix . 'rtpwai_oauth_tokens';
+		return $wpdb->prefix . 'pwai_oauth_tokens';
 	}
 
 	/**
@@ -249,7 +249,7 @@ class Token_Store {
 		global $wpdb;
 
 		$tokens_table  = self::table_name();
-		$clients_table = $wpdb->prefix . 'rtpwai_oauth_clients';
+		$clients_table = $wpdb->prefix . 'pwai_oauth_clients';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
@@ -281,7 +281,7 @@ class Token_Store {
 		global $wpdb;
 
 		$tokens_table  = self::table_name();
-		$clients_table = $wpdb->prefix . 'rtpwai_oauth_clients';
+		$clients_table = $wpdb->prefix . 'pwai_oauth_clients';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(

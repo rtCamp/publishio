@@ -112,7 +112,7 @@ Code contributions, bug reports, and feature requests are welcome! The following
 │       ├── bootstrap.php     # PHPUnit bootstrapper.
 │       └── TestCase.php      # Base test case class.
 │
-├── rtcamp-publish-with-ai.php # Root plugin entrypoint.
+├── publish-with-ai.php # Root plugin entrypoint.
 ├── uninstall.php         # Plugin uninstall script.
 │
 ├── readme.txt   # WordPress plugin readme.
@@ -220,8 +220,8 @@ You should now have a fully functional local development environment with the pl
 
 - `npm run wp-env -- start`: Start the local development environment.
 - `npm run wp-env -- stop`: Stop the local development environment.
-- `npm run wp-env run cli -- --env-cwd=wp-content/plugins/rtcamp-publish-with-ai {YOUR_CMD_HERE}`: Run WP-CLI commands in the local environment.
-- `npm run wp-env:test -- run cli -- --env-cwd=wp-content/plugins/rtcamp-publish-with-ai {YOUR_CMD_HERE}`: Run Composer/PHP tooling in the tests container.
+- `npm run wp-env run cli -- --env-cwd=wp-content/plugins/publish-with-ai {YOUR_CMD_HERE}`: Run WP-CLI commands in the local environment.
+- `npm run wp-env:test -- run cli -- --env-cwd=wp-content/plugins/publish-with-ai {YOUR_CMD_HERE}`: Run Composer/PHP tooling in the tests container.
 - `npm run wp-env -- clean all`: Resets the wp-env database.
 
 For more information on using `wp-env`, see the [wp-env documentation](https://developer.wordpress.org/block-editor/packages/packages-env/).

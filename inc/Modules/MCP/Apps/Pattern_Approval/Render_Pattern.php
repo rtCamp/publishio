@@ -24,11 +24,11 @@ class Render_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/render-pattern',
+			'pwai/render-pattern',
 			[
-				'label'               => __( 'Render Pattern to HTML (App Only)', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Render Pattern to HTML (App Only)', 'publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
-				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'pattern_name', 'schema' ],
@@ -75,7 +75,7 @@ class Render_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
 								$pattern_name
 							)
 						);
@@ -84,7 +84,7 @@ class Render_Pattern {
 					$pattern = $registry->get_registered( $pattern_name );
 					$markup  = Pattern_Schema::apply( $pattern['content'] ?? '', $schema );
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publish-with-ai' ) );
 					}
 
 					// Ensure core block styles handle is registered before rendering.

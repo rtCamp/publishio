@@ -2,7 +2,7 @@ declare module '*.scss';
 declare module '*.css';
 
 interface Window {
-	__rtpwai?: {
+	__pwai?: {
 		siteUrl: string;
 		siteName: string;
 	};

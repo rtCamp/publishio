@@ -18,11 +18,11 @@ class Get_Pattern_Schema {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-pattern-schema',
+			'pwai/get-pattern-schema',
 			[
-				'label'               => __( 'Get Pattern Schema', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Pattern Schema', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Parses a block pattern and returns a schema of its replaceable content fields (text, links, images, button labels). Use this schema as the input for the apply-pattern-schema ability.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Parses a block pattern and returns a schema of its replaceable content fields (text, links, images, button labels). Use this schema as the input for the apply-pattern-schema ability.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'name' ],
@@ -61,7 +61,7 @@ class Get_Pattern_Schema {
 					$name = sanitize_text_field( $input['name'] ?? '' );
 
 					if ( ! $name ) {
-						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'publish-with-ai' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -71,7 +71,7 @@ class Get_Pattern_Schema {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
 								$name
 							)
 						);
@@ -81,7 +81,7 @@ class Get_Pattern_Schema {
 					$content = $pattern['content'] ?? '';
 
 					if ( empty( $content ) ) {
-						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'publish-with-ai' ) );
 					}
 
 					return Pattern_Schema::extract( $content );

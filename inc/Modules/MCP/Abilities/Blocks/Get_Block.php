@@ -18,11 +18,11 @@ class Get_Block {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-block',
+			'pwai/get-block',
 			[
-				'label'               => __( 'Get Block Details', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Block Details', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,
-				'description'         => __( 'Returns full details of a single registered block type including attributes, example, supports, and styles.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns full details of a single registered block type including attributes, example, supports, and styles.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'name' ],
@@ -123,7 +123,7 @@ class Get_Block {
 					$name = sanitize_text_field( $input['name'] ?? '' );
 
 					if ( ! $name ) {
-						return new \WP_Error( 'missing_name', __( 'Block name is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_name', __( 'Block name is required.', 'publish-with-ai' ) );
 					}
 
 					$registry   = \WP_Block_Type_Registry::get_instance();
@@ -134,7 +134,7 @@ class Get_Block {
 							'block_not_found',
 							sprintf(
 								/* translators: %s: block name */
-								__( 'No block found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No block found with name "%s".', 'publish-with-ai' ),
 								$name
 							)
 						);

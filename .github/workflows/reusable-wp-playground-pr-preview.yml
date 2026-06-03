@@ -8,15 +8,15 @@ on:
         required: true
         type: string
       artifact-prefix:
-        description: 'Prefix for the artifact name (e.g., rtcamp-publish-with-ai-pr)'
+        description: 'Prefix for the artifact name (e.g., publish-with-ai-pr)'
         required: false
         type: string
-        default: 'rtcamp-publish-with-ai-pr'
+        default: 'publish-with-ai-pr'
       artifact-filename:
         description: 'Filename of the zip inside the artifact'
         required: false
         type: string
-        default: 'rtcamp-publish-with-ai.zip'
+        default: 'publish-with-ai.zip'
       artifacts-to-keep:
         description: 'Number of artifacts to keep per PR'
         required: false

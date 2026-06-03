@@ -70,7 +70,7 @@ class Bearer_Token_Auth {
 		if ( ! $token_data ) {
 			return new \WP_Error(
 				'rest_oauth_invalid_token',
-				__( 'Invalid or expired access token.', 'rtcamp-publish-with-ai' ),
+				__( 'Invalid or expired access token.', 'publish-with-ai' ),
 				[ 'status' => 401 ]
 			);
 		}
@@ -83,7 +83,7 @@ class Bearer_Token_Auth {
 		if ( empty( $token_resource ) || $token_resource !== $expected_resource ) {
 			return new \WP_Error(
 				'rest_oauth_invalid_audience',
-				__( 'Token was not issued for this resource.', 'rtcamp-publish-with-ai' ),
+				__( 'Token was not issued for this resource.', 'publish-with-ai' ),
 				[ 'status' => 401 ]
 			);
 		}

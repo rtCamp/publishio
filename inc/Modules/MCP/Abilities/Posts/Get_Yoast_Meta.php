@@ -18,11 +18,11 @@ class Get_Yoast_Meta {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-yoast-meta',
+			'pwai/get-yoast-meta',
 			[
-				'label'               => __( 'Get Yoast SEO Metadata', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Yoast SEO Metadata', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Returns Yoast SEO metadata for a post — SEO title, meta description, focus keyphrase, canonical URL, and robots settings. Returns an error if Yoast SEO is not active.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns Yoast SEO metadata for a post — SEO title, meta description, focus keyphrase, canonical URL, and robots settings. Returns an error if Yoast SEO is not active.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
@@ -59,16 +59,16 @@ class Get_Yoast_Meta {
 				},
 				'execute_callback'    => static function ( array $input ) {
 					if ( ! defined( 'WPSEO_VERSION' ) ) {
-						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publish-with-ai' ) );
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
 					if ( ! get_post( $post_id ) ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
 					}
 
 					$get = static function ( string $key ) use ( $post_id ): string {

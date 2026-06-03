@@ -18,11 +18,11 @@ class Get_Taxonomy_Terms {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-taxonomy-terms',
+			'pwai/get-taxonomy-terms',
 			[
-				'label'               => __( 'List Taxonomy Terms', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'List Taxonomy Terms', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Returns available terms for a taxonomy (e.g. "category", "post_tag"). Use this to discover valid categories or tags before assigning them to a post.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns available terms for a taxonomy (e.g. "category", "post_tag"). Use this to discover valid categories or tags before assigning them to a post.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'taxonomy' ],
@@ -74,7 +74,7 @@ class Get_Taxonomy_Terms {
 					$taxonomy = sanitize_key( $input['taxonomy'] ?? '' );
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publish-with-ai' ) );
 					}
 
 					$args = [

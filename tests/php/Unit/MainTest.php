@@ -58,7 +58,7 @@ class MainTest extends TestCase {
 
 		Main::activate();
 
-		$this->assertEquals( RTCAMP_PUBLISH_WITH_AI_VERSION, get_option( 'publish_with_ai_version' ) );
+		$this->assertEquals( PUBLISH_WITH_AI_VERSION, get_option( 'publish_with_ai_version' ) );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class MainTest extends TestCase {
 
 		Main::get_instance();
 
-		$this->assertNotFalse( has_action( 'activate_' . plugin_basename( RTCAMP_PUBLISH_WITH_AI_FILE ) ) );
-		$this->assertNotFalse( has_action( 'deactivate_' . plugin_basename( RTCAMP_PUBLISH_WITH_AI_FILE ) ) );
+		$this->assertNotFalse( has_action( 'activate_' . plugin_basename( PUBLISH_WITH_AI_FILE ) ) );
+		$this->assertNotFalse( has_action( 'deactivate_' . plugin_basename( PUBLISH_WITH_AI_FILE ) ) );
 	}
 }

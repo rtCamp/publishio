@@ -18,11 +18,11 @@ class Apply_Pattern_Schema {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/apply-pattern-schema',
+			'pwai/apply-pattern-schema',
 			[
-				'label'               => __( 'Apply Pattern Schema', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Apply Pattern Schema', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the block markup with the new content hydrated in. Only content fields (text, links, images, labels) are replaced — layout and styles are preserved. Optionally renders the result to HTML.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Takes a pattern name and a filled content schema (from the get-pattern-schema ability) and returns the block markup with the new content hydrated in. Only content fields (text, links, images, labels) are replaced — layout and styles are preserved. Optionally renders the result to HTML.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'pattern_name', 'schema' ],
@@ -79,11 +79,11 @@ class Apply_Pattern_Schema {
 					$render       = ! empty( $input['render'] );
 
 					if ( ! $pattern_name ) {
-						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'publish-with-ai' ) );
 					}
 
 					if ( ! is_array( $schema ) ) {
-						return new \WP_Error( 'invalid_schema', __( 'Schema must be an array.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_schema', __( 'Schema must be an array.', 'publish-with-ai' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -93,7 +93,7 @@ class Apply_Pattern_Schema {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
 								$pattern_name
 							)
 						);
@@ -103,7 +103,7 @@ class Apply_Pattern_Schema {
 					$content = $pattern['content'] ?? '';
 
 					if ( empty( $content ) ) {
-						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'publish-with-ai' ) );
 					}
 
 					$markup = empty( $schema ) ? $content : Pattern_Schema::apply( $content, $schema );

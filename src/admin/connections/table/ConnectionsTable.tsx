@@ -32,7 +32,7 @@ const DEFAULT_CONFIG = { perPageSizes: [ PAGE_SIZE ] };
 const connectionFields: Field< OAuthConnection >[] = [
 	{
 		id: 'client_name',
-		label: __( 'Name', 'rtcamp-publish-with-ai' ),
+		label: __( 'Name', 'publish-with-ai' ),
 		enableSorting: true,
 		enableGlobalSearch: true,
 		getValue: ( { item } ) => item.client_name,
@@ -40,14 +40,14 @@ const connectionFields: Field< OAuthConnection >[] = [
 	},
 	{
 		id: 'user',
-		label: __( 'User', 'rtcamp-publish-with-ai' ),
+		label: __( 'User', 'publish-with-ai' ),
 		getValue: ( { item } ) => `${ item.user.name } ${ item.user.email }`,
 		enableGlobalSearch: true,
 		render: ( { item } ) => <UserField user={ item.user } />,
 	},
 	{
 		id: 'last_active_at',
-		label: __( 'Last Active', 'rtcamp-publish-with-ai' ),
+		label: __( 'Last Active', 'publish-with-ai' ),
 		enableSorting: true,
 		getValue: ( { item } ) =>
 			new Date( item.last_active_at * 1000 ).toISOString(),
@@ -55,7 +55,7 @@ const connectionFields: Field< OAuthConnection >[] = [
 	},
 	{
 		id: 'registered_at',
-		label: __( 'Registered', 'rtcamp-publish-with-ai' ),
+		label: __( 'Registered', 'publish-with-ai' ),
 		enableSorting: true,
 		getValue: ( { item } ) =>
 			new Date( item.registered_at * 1000 ).toISOString(),
@@ -90,8 +90,8 @@ export function ConnectionsTable( {
 	const actions: Action< OAuthConnection >[] = [
 		{
 			id: 'delete',
-			label: __( 'Delete', 'rtcamp-publish-with-ai' ),
-			modalHeader: __( 'Delete Connection', 'rtcamp-publish-with-ai' ),
+			label: __( 'Delete', 'publish-with-ai' ),
+			modalHeader: __( 'Delete Connection', 'publish-with-ai' ),
 			modalSize: 'small',
 			RenderModal: ( { items, closeModal } ) => (
 				<DeleteConnectionDialog
@@ -145,7 +145,7 @@ export function ConnectionsTable( {
 					<EmptyState
 						message={ __(
 							'No AI apps have connected yet. Claude.ai and other AI tools will appear here after a user signs in for the first time.',
-							'rtcamp-publish-with-ai'
+							'publish-with-ai'
 						) }
 					/>
 				}

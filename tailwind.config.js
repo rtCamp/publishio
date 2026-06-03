@@ -1,3 +1,3 @@
 module.exports = {
-	important: '.rtpwai-tailwind',
+	important: '.pwai-tailwind',
 };

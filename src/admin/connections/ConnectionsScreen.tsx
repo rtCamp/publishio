@@ -27,7 +27,7 @@ export function ConnectionsScreen() {
 				/* translators: 1: user name, 2: app name */
 				__(
 					'%1$s\'s access to "%2$s" has been revoked.',
-					'rtcamp-publish-with-ai'
+					'publish-with-ai'
 				),
 				connection.user.name,
 				name
@@ -39,10 +39,10 @@ export function ConnectionsScreen() {
 	return (
 		<>
 			<AdminHeader
-				title={ __( 'Connections', 'rtcamp-publish-with-ai' ) }
+				title={ __( 'Connections', 'publish-with-ai' ) }
 				description={ __(
 					'AI apps that have connected to your site. These are registered automatically the first time an app signs in.',
-					'rtcamp-publish-with-ai'
+					'publish-with-ai'
 				) }
 			/>
 

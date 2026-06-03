@@ -25,11 +25,11 @@ class Insert_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/insert-pattern-confirmed',
+			'pwai/insert-pattern-confirmed',
 			[
-				'label'               => __( 'Insert Approved Pattern (App Only)', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Insert Approved Pattern (App Only)', 'publish-with-ai' ),
 				'category'            => Posts_Category::SLUG,
-				'description'         => __( 'Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
@@ -86,18 +86,18 @@ class Insert_Pattern {
 
 					$post = get_post( $page_id );
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'publish-with-ai' ) );
 					}
 					if ( 'page' !== $post->post_type ) {
-						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $page_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'publish-with-ai' ) );
 					}
 
 					if ( empty( $schema ) || ! is_array( $schema ) ) {
-						return new \WP_Error( 'missing_schema', __( 'A filled content schema is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_schema', __( 'A filled content schema is required.', 'publish-with-ai' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -106,7 +106,7 @@ class Insert_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
 								$pattern_name
 							)
 						);
@@ -115,12 +115,12 @@ class Insert_Pattern {
 					$pattern = $registry->get_registered( $pattern_name );
 					$content = $pattern['content'] ?? '';
 					if ( empty( $content ) ) {
-						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'publish-with-ai' ) );
 					}
 
 					$markup = Pattern_Schema::apply( $content, $schema );
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publish-with-ai' ) );
 					}
 
 					$new_blocks = parse_blocks( $markup );
@@ -140,7 +140,7 @@ class Insert_Pattern {
 							'invalid_position',
 							sprintf(
 								/* translators: 1: requested position, 2: maximum valid position. */
-								__( 'Position %1$d is out of range (0–%2$d).', 'rtcamp-publish-with-ai' ),
+								__( 'Position %1$d is out of range (0–%2$d).', 'publish-with-ai' ),
 								$position,
 								count( $blocks )
 							)

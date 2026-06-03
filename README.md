@@ -1,4 +1,4 @@
-# Publish With AI
+# Publish With AI - Publish pages directly from AI assistants
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
@@ -10,7 +10,7 @@
 
 Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content using the Block Editor.
 
-[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publish-with-ai/releases/latest/download/rtcamp-publish-with-ai.zip)
+[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publish-with-ai/releases/latest/download/publish-with-ai.zip)
 
 ## ✨ Features
 

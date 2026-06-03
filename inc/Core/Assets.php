@@ -21,7 +21,7 @@ final class Assets implements Registrable {
 	/**
 	 * Prefix for all asset handles.
 	 */
-	private const PREFIX = 'rtpwai-';
+	private const PREFIX = 'pwai-';
 
 	/**
 	 * Asset handles
@@ -42,8 +42,8 @@ final class Assets implements Registrable {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->plugin_dir = (string) RTCAMP_PUBLISH_WITH_AI_PATH;
-		$this->plugin_url = (string) RTCAMP_PUBLISH_WITH_AI_URL;
+		$this->plugin_dir = (string) PUBLISH_WITH_AI_PATH;
+		$this->plugin_url = (string) PUBLISH_WITH_AI_URL;
 		$this->assets_dir = 'build';
 	}
 

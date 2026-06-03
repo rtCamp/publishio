@@ -57,8 +57,8 @@ export function CopyField( {
 					icon={ revealed ? unseen : seen }
 					label={
 						revealed
-							? __( 'Hide', 'rtcamp-publish-with-ai' )
-							: __( 'Reveal', 'rtcamp-publish-with-ai' )
+							? __( 'Hide', 'publish-with-ai' )
+							: __( 'Reveal', 'publish-with-ai' )
 					}
 					onClick={ () => setRevealed( ( v ) => ! v ) }
 					size="compact"
@@ -69,12 +69,8 @@ export function CopyField( {
 				icon={ copied ? check : copy }
 				label={
 					copied
-						? __( 'Copied!', 'rtcamp-publish-with-ai' )
-						: _x(
-								'Copy',
-								'copy to clipboard',
-								'rtcamp-publish-with-ai'
-						  )
+						? __( 'Copied!', 'publish-with-ai' )
+						: _x( 'Copy', 'copy to clipboard', 'publish-with-ai' )
 				}
 				onClick={ handleCopy }
 				size="compact"

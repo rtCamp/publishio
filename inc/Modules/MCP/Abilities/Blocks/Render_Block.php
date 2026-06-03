@@ -18,11 +18,11 @@ class Render_Block {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/render-block',
+			'pwai/render-block',
 			[
-				'label'               => __( 'Render Block Markup', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Render Block Markup', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,
-				'description'         => __( 'Renders block markup to see what it outputs and validates whether the block markup is valid or not.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Renders block markup to see what it outputs and validates whether the block markup is valid or not.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'markup' ],
@@ -63,7 +63,7 @@ class Render_Block {
 						return [
 							'html'     => '',
 							'is_valid' => false,
-							'errors'   => [ __( 'Block markup is required.', 'rtcamp-publish-with-ai' ) ],
+							'errors'   => [ __( 'Block markup is required.', 'publish-with-ai' ) ],
 						];
 					}
 
@@ -73,7 +73,7 @@ class Render_Block {
 						return [
 							'html'     => '',
 							'is_valid' => false,
-							'errors'   => [ __( 'Could not parse any blocks from the provided markup.', 'rtcamp-publish-with-ai' ) ],
+							'errors'   => [ __( 'Could not parse any blocks from the provided markup.', 'publish-with-ai' ) ],
 						];
 					}
 
@@ -91,7 +91,7 @@ class Render_Block {
 							if ( ! $registry->is_registered( $block['blockName'] ) ) {
 								$errors[] = sprintf(
 									/* translators: %s: block name */
-									__( 'Block type "%s" is not registered.', 'rtcamp-publish-with-ai' ),
+									__( 'Block type "%s" is not registered.', 'publish-with-ai' ),
 									$block['blockName']
 								);
 							}

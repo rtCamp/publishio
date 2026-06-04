@@ -29,10 +29,10 @@ class AutoloaderTest extends TestCase {
 	}
 
 	/**
-	 * Tests that autoload returns true when RTCAMP_PUBLISH_WITH_AI_AUTOLOAD is false.
+	 * Tests that autoload returns true when PUBLISH_WITH_AI_AUTOLOAD is false.
 	 */
 	public function test_autoload_returns_true_when_autoload_disabled(): void {
-		define( 'RTCAMP_PUBLISH_WITH_AI_AUTOLOAD', false );
+		define( 'PUBLISH_WITH_AI_AUTOLOAD', false );
 		$this->assertTrue( Autoloader::autoload() );
 	}
 
@@ -52,7 +52,7 @@ class AutoloaderTest extends TestCase {
 	 */
 	public function test_autoload_uses_correct_path(): void {
 		// Verify the autoloader path is constructed correctly.
-		$expected_path = RTCAMP_PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
+		$expected_path = PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
 		$this->assertStringEndsWith( 'vendor/autoload.php', $expected_path );
 		$this->assertTrue( Autoloader::autoload() );
 	}

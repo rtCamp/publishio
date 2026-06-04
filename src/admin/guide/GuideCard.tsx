@@ -41,7 +41,7 @@ export function GuideCard( { guide, onClick }: GuideCardProps ) {
 					onClick={ () => onClick( guide ) }
 					className="shrink-0"
 				>
-					{ __( 'Open Guide →', 'rtcamp-publish-with-ai' ) }
+					{ __( 'Open Guide →', 'publish-with-ai' ) }
 				</Button>
 			</CardBody>
 		</Card>

@@ -8,8 +8,8 @@
  * 3. Shows a consent screen
  * 4. On approval, issues an auth code and redirects back
  *
- * Registered at: GET /wp-json/rtpwai-oauth/v1/authorize
- *                POST /wp-json/rtpwai-oauth/v1/authorize (consent form submit)
+ * Registered at: GET /wp-json/pwai-oauth/v1/authorize
+ *                POST /wp-json/pwai-oauth/v1/authorize (consent form submit)
  *
  * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
  */
@@ -61,7 +61,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Only act on the authorize endpoint.
 		// GET: shows consent screen (no state change — safe).
-		// POST: protected by wp_verify_nonce('rtpwai_oauth_consent').
+		// POST: protected by wp_verify_nonce('pwai_oauth_consent').
 		$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$expected     = '/' . rest_get_url_prefix() . '/' . Config::OAUTH_REST_NAMESPACE . '/authorize';
@@ -132,7 +132,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Ensure the user has permission to authorize MCP clients.
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publish-with-ai' ), [ 'status' => 403 ] );
 		}
 
 		// User is logged in — show consent screen.
@@ -159,12 +159,12 @@ class Authorize extends Abstract_REST_Controller {
 		}
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'rtcamp-publish-with-ai' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publish-with-ai' ), [ 'status' => 403 ] );
 		}
 
 		// Verify nonce.
 		$nonce = $request->get_param( '_wpnonce' );
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'rtpwai_oauth_consent' ) ) {
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'pwai_oauth_consent' ) ) {
 			return new \WP_Error( 'invalid_nonce', 'Invalid or expired form submission.', [ 'status' => 403 ] );
 		}
 
@@ -315,12 +315,12 @@ class Authorize extends Abstract_REST_Controller {
 		$scopes       = $params['scope'] ? implode( ', ', explode( ' ', $params['scope'] ) ) : 'full access'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$display_name = $user->display_name; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$user_email   = $user->user_email; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$css_url      = RTCAMP_PUBLISH_WITH_AI_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$css_url      = PUBLISH_WITH_AI_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_url     = home_url( '/' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$resource_url       = $params['resource'];
 		$_server            = $this->find_server_by_resource_url( $resource_url );
-		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'rtcamp-publish-with-ai' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'publish-with-ai' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$server_description = $_server ? $_server->get_server_description() : ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$response = new \WP_REST_Response( null, 200 );
@@ -331,7 +331,7 @@ class Authorize extends Abstract_REST_Controller {
 			'rest_pre_serve_request',
 			// @phpstan-ignore-next-line
 			static function ( $_served ) use ( $client_name, $client_uri, $logo_uri, $tos_uri, $policy_uri, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $server_description, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
-				include RTCAMP_PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
+				include PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
 				return true;
 			}
 		);

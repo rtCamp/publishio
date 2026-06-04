@@ -18,11 +18,11 @@ class Create_Post {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/create-post',
+			'pwai/create-post',
 			[
-				'label'               => __( 'Create Empty Post or Page', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Create Empty Post or Page', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Creates a new draft post or page with no content. Pass post_type as "page" for pages. Returns the post ID so you can append patterns to it.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Creates a new draft post or page with no content. Pass post_type as "page" for pages. Returns the post ID so you can append patterns to it.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'title' ],
@@ -61,16 +61,16 @@ class Create_Post {
 					$post_type = sanitize_key( $input['post_type'] ?? 'post' );
 
 					if ( ! $title ) {
-						return new \WP_Error( 'missing_title', __( 'Post title is required.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'missing_title', __( 'Post title is required.', 'publish-with-ai' ) );
 					}
 
 					if ( ! post_type_exists( $post_type ) ) {
-						return new \WP_Error( 'invalid_post_type', __( 'Invalid post type.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post_type', __( 'Invalid post type.', 'publish-with-ai' ) );
 					}
 
 					$post_type_obj = get_post_type_object( $post_type );
 					if ( ! $post_type_obj || ! current_user_can( $post_type_obj->cap->create_posts ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to create this post type.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to create this post type.', 'publish-with-ai' ) );
 					}
 
 					$post_id = wp_insert_post(

@@ -34,7 +34,7 @@ export function DeleteConnectionDialog( {
 			setError(
 				__(
 					'Failed to delete connection. Please try again.',
-					'rtcamp-publish-with-ai'
+					'publish-with-ai'
 				)
 			);
 		} finally {
@@ -54,7 +54,7 @@ export function DeleteConnectionDialog( {
 					/* translators: 1: user name, 2: app name */
 					__(
 						'Are you sure you want to revoke %1$s\'s access to "%2$s"?',
-						'rtcamp-publish-with-ai'
+						'publish-with-ai'
 					),
 					connection.user.name,
 					connection.client_name
@@ -63,14 +63,11 @@ export function DeleteConnectionDialog( {
 			<p className="text-sm text-gray-700">
 				{ __(
 					'This will immediately sign out this user. They will need to reconnect the next time they use this app.',
-					'rtcamp-publish-with-ai'
+					'publish-with-ai'
 				) }
 			</p>
 			<p className="text-sm font-medium text-red-600">
-				{ __(
-					'This action cannot be undone.',
-					'rtcamp-publish-with-ai'
-				) }
+				{ __( 'This action cannot be undone.', 'publish-with-ai' ) }
 			</p>
 
 			<div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
@@ -81,14 +78,14 @@ export function DeleteConnectionDialog( {
 					disabled={ isDeleting }
 					onClick={ handleConfirm }
 				>
-					{ __( 'Revoke Access', 'rtcamp-publish-with-ai' ) }
+					{ __( 'Revoke Access', 'publish-with-ai' ) }
 				</Button>
 				<Button
 					variant="tertiary"
 					onClick={ onCancel }
 					disabled={ isDeleting }
 				>
-					{ __( 'Cancel', 'rtcamp-publish-with-ai' ) }
+					{ __( 'Cancel', 'publish-with-ai' ) }
 				</Button>
 			</div>
 		</>

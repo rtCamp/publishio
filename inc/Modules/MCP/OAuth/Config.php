@@ -14,8 +14,8 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
  */
 class Config {
 	public const MCP_ROUTE_NAMESPACE  = 'mcp';
-	public const MCP_ROUTE            = 'rt-publish-with-ai';
-	public const OAUTH_REST_NAMESPACE = 'rtpwai-oauth/v1';
+	public const MCP_ROUTE            = 'publish-with-ai';
+	public const OAUTH_REST_NAMESPACE = 'pwai-oauth/v1';
 	public const ACCESS_TOKEN_TTL     = 3600;
 	public const REFRESH_TOKEN_TTL    = 2592000;
 	public const AUTH_CODE_TTL        = 120;

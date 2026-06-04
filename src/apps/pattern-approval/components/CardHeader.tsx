@@ -2,8 +2,8 @@ import { Logo } from './Logo';
 import { ExternalLink } from './Icons';
 
 export function CardHeader() {
-	const siteName = window.__rtpwai?.siteName;
-	const siteUrl = window.__rtpwai?.siteUrl;
+	const siteName = window.__pwai?.siteName;
+	const siteUrl = window.__pwai?.siteUrl;
 
 	return (
 		<div className="flex items-center gap-2 px-3 py-2 border-b border-(--rule-soft)">

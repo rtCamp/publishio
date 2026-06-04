@@ -22,7 +22,7 @@ function getSteps( mcpUrl: string, images: ClaudeImages ): GuideStep[] {
 		{
 			content: (
 				<>
-					{ __( 'Go to', 'rtcamp-publish-with-ai' ) }{ ' ' }
+					{ __( 'Go to', 'publish-with-ai' ) }{ ' ' }
 					<a
 						href="https://claude.ai/customize/connectors"
 						target="_blank"
@@ -31,44 +31,32 @@ function getSteps( mcpUrl: string, images: ClaudeImages ): GuideStep[] {
 					>
 						Claude › Customize › Connectors
 					</a>{ ' ' }
-					{ __(
-						'and click on "Add Connector"',
-						'rtcamp-publish-with-ai'
-					) }
+					{ __( 'and click on "Add Connector"', 'publish-with-ai' ) }
 				</>
 			),
 		},
 		{
-			content: __(
-				'Choose "Add Custom Connector"',
-				'rtcamp-publish-with-ai'
-			),
+			content: __( 'Choose "Add Custom Connector"', 'publish-with-ai' ),
 			image: images.connectorMenu,
 		},
 		{
-			content: __( 'In the name field, use', 'rtcamp-publish-with-ai' ),
+			content: __( 'In the name field, use', 'publish-with-ai' ),
 			image: images.connectorForm,
 			extra: (
 				<div className="mt-3">
 					<CopyField
-						label={ __(
-							'Connector name',
-							'rtcamp-publish-with-ai'
-						) }
+						label={ __( 'Connector name', 'publish-with-ai' ) }
 						value="Publish With AI — rtCamp"
 					/>
 				</div>
 			),
 		},
 		{
-			content: __( 'Copy this MCP Server URL', 'rtcamp-publish-with-ai' ),
+			content: __( 'Copy this MCP Server URL', 'publish-with-ai' ),
 			extra: (
 				<div className="mt-3">
 					<CopyField
-						label={ __(
-							'MCP Server URL',
-							'rtcamp-publish-with-ai'
-						) }
+						label={ __( 'MCP Server URL', 'publish-with-ai' ) }
 						value={ mcpUrl }
 					/>
 				</div>
@@ -77,30 +65,30 @@ function getSteps( mcpUrl: string, images: ClaudeImages ): GuideStep[] {
 		{
 			content: __(
 				'Paste it in the "Remote MCP server URL" field',
-				'rtcamp-publish-with-ai'
+				'publish-with-ai'
 			),
 		},
 		{
-			content: __( 'Click on "Add"', 'rtcamp-publish-with-ai' ),
+			content: __( 'Click on "Add"', 'publish-with-ai' ),
 		},
 		{
 			content: __(
 				'Choose the connector and click on "Connect"',
-				'rtcamp-publish-with-ai'
+				'publish-with-ai'
 			),
 			image: images.clickConnect,
 		},
 		{
 			content: __(
 				'Claude will redirect you to your website for authorization. Check the details and click "Allow"',
-				'rtcamp-publish-with-ai'
+				'publish-with-ai'
 			),
 			image: images.consent,
 		},
 		{
 			content: __(
 				'You are all set! You can now use Claude to generate content for your WordPress site.',
-				'rtcamp-publish-with-ai'
+				'publish-with-ai'
 			),
 		},
 	];

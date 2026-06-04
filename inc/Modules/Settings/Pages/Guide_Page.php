@@ -17,15 +17,15 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page;
  * Class - Guide_Page
  */
 class Guide_Page extends Abstract_Admin_Page {
-	public const SLUG = 'rtcamp-publish-with-ai';
+	public const SLUG = 'publish-with-ai';
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function register(): string {
 		$hook_suffix = add_menu_page(
-			__( 'Publish With AI', 'rtcamp-publish-with-ai' ),
-			__( 'Publish With AI', 'rtcamp-publish-with-ai' ),
+			__( 'Publish With AI', 'publish-with-ai' ),
+			__( 'Publish With AI', 'publish-with-ai' ),
 			'edit_posts',
 			self::SLUG,
 			[ $this, 'render' ]
@@ -33,8 +33,8 @@ class Guide_Page extends Abstract_Admin_Page {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Guide', 'rtcamp-publish-with-ai' ),
-			__( 'Guide', 'rtcamp-publish-with-ai' ),
+			__( 'Guide', 'publish-with-ai' ),
+			__( 'Guide', 'publish-with-ai' ),
 			'edit_posts',
 			self::SLUG,
 			[ $this, 'render' ],

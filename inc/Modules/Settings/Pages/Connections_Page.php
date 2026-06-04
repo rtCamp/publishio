@@ -17,7 +17,7 @@ use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page;
  * Class - Connections_Page
  */
 class Connections_Page extends Abstract_Admin_Page {
-	public const SLUG = 'rtcamp-publish-with-ai-connections';
+	public const SLUG = 'publish-with-ai-connections';
 
 	/**
 	 * {@inheritDoc}
@@ -25,8 +25,8 @@ class Connections_Page extends Abstract_Admin_Page {
 	public function register(): string|false {
 		return add_submenu_page(
 			Guide_Page::SLUG,
-			__( 'Connections', 'rtcamp-publish-with-ai' ),
-			__( 'Connections', 'rtcamp-publish-with-ai' ),
+			__( 'Connections', 'publish-with-ai' ),
+			__( 'Connections', 'publish-with-ai' ),
 			'manage_options',
 			self::SLUG,
 			[ $this, 'render' ]

@@ -15,7 +15,7 @@
  * Author URI:        https://rtcamp.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       rtcamp-publish-with-ai
+ * Text Domain:       publish-with-ai
  * Domain Path:       /languages
  * Requires PHP:      8.2
  * Requires at least: 6.9
@@ -36,22 +36,22 @@ function constants(): void {
 	/**
 	 * File path to the plugin's main file.
 	 */
-	define( 'RTCAMP_PUBLISH_WITH_AI_FILE', __FILE__ );
+	define( 'PUBLISH_WITH_AI_FILE', __FILE__ );
 
 	/**
 	 * Version of the plugin.
 	 */
-	define( 'RTCAMP_PUBLISH_WITH_AI_VERSION', '0.2.0' );
+	define( 'PUBLISH_WITH_AI_VERSION', '0.2.0' );
 
 	/**
 	 * Root path to the plugin directory.
 	 */
-	define( 'RTCAMP_PUBLISH_WITH_AI_PATH', plugin_dir_path( RTCAMP_PUBLISH_WITH_AI_FILE ) );
+	define( 'PUBLISH_WITH_AI_PATH', plugin_dir_path( PUBLISH_WITH_AI_FILE ) );
 
 	/**
 	 * Root URL to the plugin directory.
 	 */
-	define( 'RTCAMP_PUBLISH_WITH_AI_URL', plugin_dir_url( RTCAMP_PUBLISH_WITH_AI_FILE ) );
+	define( 'PUBLISH_WITH_AI_URL', plugin_dir_url( PUBLISH_WITH_AI_FILE ) );
 }
 
 constants();

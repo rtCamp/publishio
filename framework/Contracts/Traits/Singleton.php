@@ -51,7 +51,7 @@ trait Singleton {
 			__FUNCTION__,
 			sprintf(
 				// translators: %s: Class name.
-				esc_html__( 'The %s class should not be cloned.', 'rtcamp-publish-with-ai' ),
+				esc_html__( 'The %s class should not be cloned.', 'publish-with-ai' ),
 				esc_html( static::class ),
 			),
 			'0.0.1'
@@ -66,7 +66,7 @@ trait Singleton {
 			__FUNCTION__,
 			sprintf(
 				// translators: %s: Class name.
-				esc_html__( 'De-serializing instances of %s is not allowed.', 'rtcamp-publish-with-ai' ),
+				esc_html__( 'De-serializing instances of %s is not allowed.', 'publish-with-ai' ),
 				esc_html( static::class ),
 			),
 			'0.0.1'

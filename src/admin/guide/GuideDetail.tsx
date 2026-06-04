@@ -34,7 +34,7 @@ export function GuideDetail( { guide, onBack }: GuideDetailProps ) {
 				description={ guide.description }
 				actions={
 					<Button variant="tertiary" onClick={ onBack }>
-						{ __( '← Back', 'rtcamp-publish-with-ai' ) }
+						{ __( '← Back', 'publish-with-ai' ) }
 					</Button>
 				}
 			/>

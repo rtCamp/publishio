@@ -36,9 +36,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        # Comment this out on private repositories to allow sharing of credentials with subsequent jobs.
-        # with:
-        #  persist-credentials: false
+        with:
+          persist-credentials: false
 
       - name: Detect file changes
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
@@ -189,7 +188,7 @@ jobs:
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
-      artifact-name: rtcamp-publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+      artifact-name: publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
     secrets: inherit
 
   playground-preview:
@@ -204,5 +203,5 @@ jobs:
       pull-requests: write
     with:
       run-id: ${{ github.run_id }}
-      artifact-prefix: 'rtcamp-publish-with-ai-pr'
-      artifact-filename: 'rtcamp-publish-with-ai.zip'
+      artifact-prefix: 'publish-with-ai-pr'
+      artifact-filename: 'publish-with-ai.zip'

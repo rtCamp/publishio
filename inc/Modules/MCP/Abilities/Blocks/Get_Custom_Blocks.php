@@ -18,11 +18,11 @@ class Get_Custom_Blocks {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-custom-blocks',
+			'pwai/get-custom-blocks',
 			[
-				'label'               => __( 'Get Custom Blocks', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get Custom Blocks', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,
-				'description'         => __( 'Returns a list of all registered custom blocks (excludes core blocks). These are blocks added by plugins and themes.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns a list of all registered custom blocks (excludes core blocks). These are blocks added by plugins and themes.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

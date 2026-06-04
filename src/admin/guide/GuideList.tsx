@@ -16,7 +16,7 @@ const GUIDES: Guide[] = [
 		title: 'Claude AI',
 		description: __(
 			'Learn how to set up Claude AI as your publishing assistant.',
-			'rtcamp-publish-with-ai'
+			'publish-with-ai'
 		),
 		app: 'claude',
 	},
@@ -30,10 +30,10 @@ export function GuideList( { onOpen }: GuideListProps ) {
 	return (
 		<>
 			<AdminHeader
-				title={ __( 'Guide', 'rtcamp-publish-with-ai' ) }
+				title={ __( 'Guide', 'publish-with-ai' ) }
 				description={ __(
 					'Step-by-step setup guides for connecting with AI apps.',
-					'rtcamp-publish-with-ai'
+					'publish-with-ai'
 				) }
 			/>
 			<div className="flex flex-col gap-3 p-6 max-w-2xl mx-auto w-full">
@@ -45,10 +45,7 @@ export function GuideList( { onOpen }: GuideListProps ) {
 					/>
 				) ) }
 				<p className="text-sm text-gray-500 text-center pt-2">
-					{ __(
-						'More guides coming soon.',
-						'rtcamp-publish-with-ai'
-					) }
+					{ __( 'More guides coming soon.', 'publish-with-ai' ) }
 				</p>
 			</div>
 		</>

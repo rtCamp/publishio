@@ -11,7 +11,7 @@ import { ConnectionsScreen } from './ConnectionsScreen';
 import '../../tailwind.scss';
 import '../styles/styles.scss';
 
-const root = document.querySelector( '#rtpwai-connections-screen-root' );
+const root = document.querySelector( '#pwai-connections-screen-root' );
 
 if ( root ) {
 	createRoot( root ).render(

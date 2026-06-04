@@ -18,11 +18,11 @@ class Set_Featured_Image {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/set-featured-image',
+			'pwai/set-featured-image',
 			[
-				'label'               => __( 'Set Featured Image for Post or Page', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Set Featured Image for Post or Page', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Sets or removes the featured image (post thumbnail) for a post or page. Pass an attachment ID to set, or 0 to remove.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Sets or removes the featured image (post thumbnail) for a post or page. Pass an attachment ID to set, or 0 to remove.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'attachment_id' ],
@@ -59,11 +59,11 @@ class Set_Featured_Image {
 					$attachment_id = (int) ( $input['attachment_id'] ?? -1 );
 
 					if ( ! get_post( $post_id ) ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
 					}
 
 					if ( 0 === $attachment_id ) {
@@ -75,13 +75,13 @@ class Set_Featured_Image {
 					}
 
 					if ( ! get_post( $attachment_id ) || get_post_type( $attachment_id ) !== 'attachment' ) {
-						return new \WP_Error( 'invalid_attachment', __( 'Attachment not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_attachment', __( 'Attachment not found.', 'publish-with-ai' ) );
 					}
 
 					$result = set_post_thumbnail( $post_id, $attachment_id );
 
 					if ( ! $result ) {
-						return new \WP_Error( 'failed', __( 'Could not set featured image.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'failed', __( 'Could not set featured image.', 'publish-with-ai' ) );
 					}
 
 					return [

@@ -3,41 +3,41 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Publish With AI 0.2.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/rtcamp-publish-with-ai\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/publish-with-ai\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-02T11:56:44+00:00\n"
+"POT-Creation-Date: 2026-06-03T07:22:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: rtcamp-publish-with-ai\n"
+"X-Domain: publish-with-ai\n"
 
 #. Plugin Name of the plugin
-#: rtcamp-publish-with-ai.php
+#: publish-with-ai.php
 #: inc/Modules/Settings/Pages/Guide_Page.php:27
 #: inc/Modules/Settings/Pages/Guide_Page.php:28
 msgid "Publish With AI"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: rtcamp-publish-with-ai.php
+#: publish-with-ai.php
 msgid "https://github.com/rtCamp/publish-with-ai"
 msgstr ""
 
 #. Description of the plugin
-#: rtcamp-publish-with-ai.php
+#: publish-with-ai.php
 msgid "Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant."
 msgstr ""
 
 #. Author of the plugin
-#: rtcamp-publish-with-ai.php
+#: publish-with-ai.php
 msgid "rtCamp"
 msgstr ""
 
 #. Author URI of the plugin
-#: rtcamp-publish-with-ai.php
+#: publish-with-ai.php
 msgid "https://rtcamp.com"
 msgstr ""
 
@@ -70,7 +70,7 @@ msgid "De-serializing instances of %s is not allowed."
 msgstr ""
 
 #. translators: %s: The plugin name.
-#: inc/Autoloader.php:46
+#: inc/Autoloader.php:50
 #, php-format
 msgid "%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`."
 msgstr ""
@@ -379,7 +379,7 @@ msgid "Set Post Categories or Tags"
 msgstr ""
 
 #: inc/Modules/MCP/Abilities/Posts/Set_Post_Terms.php:25
-msgid "Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use rtpwai/get-taxonomy-terms first to discover valid values."
+msgid "Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use pwai/get-taxonomy-terms first to discover valid values."
 msgstr ""
 
 #. translators: 1: taxonomy slug, 2: post type slug

@@ -15,7 +15,7 @@ use rtCamp\Publish_With_AI\Modules\MCP\Apps\McpAppResource;
  * Class - App
  */
 class App extends McpAppResource {
-	public const URI = 'ui://rtpwai/pattern-approval';
+	public const URI = 'ui://pwai/pattern-approval';
 
 	/**
 	 * {@inheritDoc}
@@ -66,13 +66,13 @@ class App extends McpAppResource {
 	 * placeholder with the real asset base URL so <link>/<script> tags resolve.
 	 */
 	protected function build_html(): string {
-		$build_file = RTCAMP_PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval.html';
+		$build_file = PUBLISH_WITH_AI_PATH . 'build-apps/pattern-approval.html';
 
 		if ( ! is_readable( $build_file ) ) {
 			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build</code> to generate the Pattern Approval app.</body></html>';
 		}
 
-		$plugin_url = RTCAMP_PUBLISH_WITH_AI_URL . 'build-apps';
+		$plugin_url = PUBLISH_WITH_AI_URL . 'build-apps';
 
 		$site_data = (string) wp_json_encode(
 			[

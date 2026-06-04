@@ -50,7 +50,7 @@ final class Menu_Loader implements Registrable {
 		add_action( 'admin_enqueue_scripts', [ $this, 'maybe_enqueue_page_assets' ], 20 );
 		add_filter( 'admin_body_class', [ $this, 'add_admin_body_class' ] );
 		add_filter(
-			'plugin_action_links_' . plugin_basename( RTCAMP_PUBLISH_WITH_AI_FILE ),
+			'plugin_action_links_' . plugin_basename( PUBLISH_WITH_AI_FILE ),
 			[ $this, 'add_action_links' ],
 			2
 		);
@@ -78,9 +78,9 @@ final class Menu_Loader implements Registrable {
 		wp_add_inline_style(
 			Assets::ADMIN_MENU_ICON_HANDLE,
 			sprintf(
-				'#toplevel_page_%s { --rtpwai-menu-icon-url: url("%s"); }',
+				'#toplevel_page_%s { --pwai-menu-icon-url: url("%s"); }',
 				esc_attr( Guide_Page::SLUG ),
-				esc_url( plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ) )
+				esc_url( plugins_url( 'assets/images/logo.svg', PUBLISH_WITH_AI_FILE ) )
 			)
 		);
 	}
@@ -113,7 +113,7 @@ final class Menu_Loader implements Registrable {
 		$links[] = sprintf(
 			'<a href="%s">%s</a>',
 			esc_url( admin_url( 'admin.php?page=' . Guide_Page::SLUG ) ),
-			__( 'Settings', 'rtcamp-publish-with-ai' )
+			__( 'Settings', 'publish-with-ai' )
 		);
 
 		return $links;
@@ -132,7 +132,7 @@ final class Menu_Loader implements Registrable {
 		}
 
 		if ( str_contains( $screen->id, Guide_Page::SLUG ) ) {
-			$classes .= ' rtpwai-admin-page';
+			$classes .= ' pwai-admin-page';
 		}
 
 		return $classes;
@@ -145,20 +145,20 @@ final class Menu_Loader implements Registrable {
 	 */
 	private function get_localized_data(): array {
 		return [
-			'pluginVersion' => RTCAMP_PUBLISH_WITH_AI_VERSION,
-			'logoUrl'       => plugins_url( 'assets/images/logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+			'pluginVersion' => PUBLISH_WITH_AI_VERSION,
+			'logoUrl'       => plugins_url( 'assets/images/logo.svg', PUBLISH_WITH_AI_FILE ),
 			'appLogos'      => [
-				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
-				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', RTCAMP_PUBLISH_WITH_AI_FILE ),
+				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', PUBLISH_WITH_AI_FILE ),
+				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', PUBLISH_WITH_AI_FILE ),
+				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', PUBLISH_WITH_AI_FILE ),
 			],
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
 			'guideImages'   => [
 				'claude' => [
-					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
-					'connectorForm' => plugins_url( 'assets/images/guide/claude/step-connector-form.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
-					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
-					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', RTCAMP_PUBLISH_WITH_AI_FILE ),
+					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', PUBLISH_WITH_AI_FILE ),
+					'connectorForm' => plugins_url( 'assets/images/guide/claude/step-connector-form.png', PUBLISH_WITH_AI_FILE ),
+					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', PUBLISH_WITH_AI_FILE ),
+					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', PUBLISH_WITH_AI_FILE ),
 				],
 			],
 		];

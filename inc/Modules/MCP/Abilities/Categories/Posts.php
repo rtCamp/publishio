@@ -13,7 +13,7 @@ namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
  * Class - Posts
  */
 class Posts {
-	public const SLUG = 'rtpwai-content';
+	public const SLUG = 'pwai-content';
 
 	/**
 	 * Register the category.
@@ -22,8 +22,8 @@ class Posts {
 		wp_register_ability_category(
 			self::SLUG,
 			[
-				'label'       => __( 'Content', 'rtcamp-publish-with-ai' ),
-				'description' => __( 'Manage posts and pages — create, edit blocks, and assemble content.', 'rtcamp-publish-with-ai' ),
+				'label'       => __( 'Content', 'publish-with-ai' ),
+				'description' => __( 'Manage posts and pages — create, edit blocks, and assemble content.', 'publish-with-ai' ),
 			]
 		);
 	}

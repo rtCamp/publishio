@@ -10,6 +10,10 @@
 
 declare(strict_types = 1);
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>

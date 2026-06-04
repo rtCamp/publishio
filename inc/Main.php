@@ -52,8 +52,8 @@ final class Main {
 		$this->load();
 
 		// Register activation and deactivation hooks.
-		register_activation_hook( RTCAMP_PUBLISH_WITH_AI_FILE, [ self::class, 'activate' ] );
-		register_deactivation_hook( RTCAMP_PUBLISH_WITH_AI_FILE, [ self::class, 'deactivate' ] );
+		register_activation_hook( PUBLISH_WITH_AI_FILE, [ self::class, 'activate' ] );
+		register_deactivation_hook( PUBLISH_WITH_AI_FILE, [ self::class, 'deactivate' ] );
 
 		// Run schema migrations when the plugin version changes.
 		add_action( 'plugins_loaded', [ self::class, 'maybe_upgrade' ] );
@@ -71,10 +71,10 @@ final class Main {
 					__METHOD__,
 					sprintf(
 						/* translators: %s: class name */
-						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'rtcamp-publish-with-ai' ),
+						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'publish-with-ai' ),
 						$class_name //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
-					RTCAMP_PUBLISH_WITH_AI_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					PUBLISH_WITH_AI_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				);
 				continue;
 			}
@@ -102,7 +102,7 @@ final class Main {
 	public static function maybe_upgrade(): void {
 		$stored = (string) get_option( 'publish_with_ai_version', '0.0.0' );
 
-		if ( version_compare( $stored, RTCAMP_PUBLISH_WITH_AI_VERSION, '<' ) ) {
+		if ( version_compare( $stored, PUBLISH_WITH_AI_VERSION, '<' ) ) {
 			self::run_migrations();
 		}
 	}
@@ -113,7 +113,7 @@ final class Main {
 	private static function run_migrations(): void {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
-		update_option( 'publish_with_ai_version', RTCAMP_PUBLISH_WITH_AI_VERSION );
+		update_option( 'publish_with_ai_version', PUBLISH_WITH_AI_VERSION );
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 

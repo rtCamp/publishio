@@ -18,11 +18,11 @@ class Get_Patterns {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/get-patterns',
+			'pwai/get-patterns',
 			[
-				'label'               => __( 'Get All Patterns', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Get All Patterns', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Returns a list of all registered block patterns with metadata. Pattern content is excluded.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Returns a list of all registered block patterns with metadata. Pattern content is excluded.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

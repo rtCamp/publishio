@@ -18,11 +18,11 @@ class Search_Posts {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/search-posts',
+			'pwai/search-posts',
 			[
-				'label'               => __( 'Search Posts and Pages', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Search Posts and Pages', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Searches posts and pages by keyword, post type, and status. Returns matching results with basic metadata.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Searches posts and pages by keyword, post type, and status. Returns matching results with basic metadata.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

@@ -17,7 +17,7 @@ use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns as Patterns
  * Lightweight model-facing tool. Validates the pattern and echoes back the
  * insertion parameters so the Pattern Approval MCP App receives them via
  * ui/notifications/tool-result. The app then calls the app-only
- * rtpwai/render-pattern tool to fetch a fully-rendered HTML preview.
+ * pwai/render-pattern tool to fetch a fully-rendered HTML preview.
  */
 class Preview_Pattern {
 	/**
@@ -25,11 +25,11 @@ class Preview_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'rtpwai/preview-pattern',
+			'pwai/preview-pattern',
 			[
-				'label'               => __( 'Present Pattern for User Approval', 'rtcamp-publish-with-ai' ),
+				'label'               => __( 'Present Pattern for User Approval', 'publish-with-ai' ),
 				'category'            => Patterns_Category::SLUG,
-				'description'         => __( 'Presents a filled pattern to the user for visual review. The Pattern Approval UI opens automatically showing the rendered preview with two choices: Insert (inserts the pattern into the page and sends a confirmation back — the model resumes from that message) or Show alternative (asks the model for a different pattern). Returns an error immediately if the pattern name is not registered. Do not call any further tools — wait for the user to act.', 'rtcamp-publish-with-ai' ),
+				'description'         => __( 'Presents a filled pattern to the user for visual review. The Pattern Approval UI opens automatically showing the rendered preview with two choices: Insert (inserts the pattern into the page and sends a confirmation back — the model resumes from that message) or Show alternative (asks the model for a different pattern). Returns an error immediately if the pattern name is not registered. Do not call any further tools — wait for the user to act.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
@@ -77,11 +77,11 @@ class Preview_Pattern {
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
 
 					if ( ! get_post( $page_id ) ) {
-						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'publish-with-ai' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $page_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'rtcamp-publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'publish-with-ai' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -91,7 +91,7 @@ class Preview_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'rtcamp-publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
 								$pattern_name
 							)
 						);
@@ -102,7 +102,7 @@ class Preview_Pattern {
 						'position'     => (int) ( $input['position'] ?? 0 ),
 						'pattern_name' => $pattern_name,
 						'schema'       => $input['schema'] ?? [],
-						'message'      => __( 'The pattern preview is now displayed to the user. Waiting for their approval before inserting.', 'rtcamp-publish-with-ai' ),
+						'message'      => __( 'The pattern preview is now displayed to the user. Waiting for their approval before inserting.', 'publish-with-ai' ),
 					];
 				},
 				'meta'                => [

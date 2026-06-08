@@ -78,6 +78,10 @@ class Set_Featured_Image {
 						return new \WP_Error( 'invalid_attachment', __( 'Attachment not found.', 'publish-with-ai' ) );
 					}
 
+					if ( ! current_user_can( 'read_post', $attachment_id ) ) {
+						return new \WP_Error( 'forbidden_attachment', __( 'You do not have permission to use this attachment.', 'publish-with-ai' ) );
+					}
+
 					$result = set_post_thumbnail( $post_id, $attachment_id );
 
 					if ( ! $result ) {

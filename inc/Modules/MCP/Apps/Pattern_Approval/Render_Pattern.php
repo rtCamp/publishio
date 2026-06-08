@@ -64,7 +64,7 @@ class Render_Pattern {
 						],
 					],
 				],
-				'permission_callback' => static fn () => current_user_can( 'edit_posts' ),
+				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
 					$schema       = $input['schema'] ?? [];

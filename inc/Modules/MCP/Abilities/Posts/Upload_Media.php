@@ -91,6 +91,17 @@ class Upload_Media {
 						return new \WP_Error( 'missing_source', __( 'A url is required.', 'publish-with-ai' ) );
 					}
 
+					// If attaching to a parent post, ensure the user can edit it.
+					if ( $post_id > 0 ) {
+						if ( ! get_post( $post_id ) ) {
+							return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						}
+
+						if ( ! current_user_can( 'edit_post', $post_id ) ) {
+							return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						}
+					}
+
 					// Load required admin files.
 					require_once ABSPATH . 'wp-admin/includes/media.php';
 					require_once ABSPATH . 'wp-admin/includes/file.php';

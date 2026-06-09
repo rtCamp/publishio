@@ -26,7 +26,17 @@ class Server implements Registrable {
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
+		add_action( 'init', [ $this, 'init_mcp_adapter' ] );
 		add_action( 'mcp_adapter_init', [ $this, 'create' ] );
+	}
+
+	/**
+	 * Ensure the MCP Adapter is initialized so we can register our server.
+	 */
+	public function init_mcp_adapter(): void {
+		if ( class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+			\WP\MCP\Core\McpAdapter::instance();
+		}
 	}
 
 	/**
@@ -48,6 +58,17 @@ class Server implements Registrable {
 			$this->get_tools(),
 			$this->get_resources(), // @phpstan-ignore argument.type
 		);
+	}
+
+	/**
+	 * Get this plugin's registered MCP server, if available.
+	 */
+	public static function get_server(): ?\WP\MCP\Core\McpServer {
+		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+			return null;
+		}
+
+		return \WP\MCP\Core\McpAdapter::instance()->get_server( self::SERVER_ID );
 	}
 
 	/**

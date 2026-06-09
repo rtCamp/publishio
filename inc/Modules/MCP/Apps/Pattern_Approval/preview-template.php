@@ -35,8 +35,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			margin: 0 !important;
 			padding: 0 !important;
 		}
-
-		<?php printf( '%s { display: none !important; }', '#wpadminbar' ); ?>
 	</style>
 </head>
 

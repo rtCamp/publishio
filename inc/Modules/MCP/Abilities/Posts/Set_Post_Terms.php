@@ -22,7 +22,7 @@ class Set_Post_Terms {
 			[
 				'label'               => __( 'Set Post Categories or Tags', 'publish-with-ai' ),
 				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy. Pass term slugs or IDs. Use pwai/get-taxonomy-terms first to discover valid values.', 'publish-with-ai' ),
+				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy — terms omitted from the list are removed. Pass term slugs or IDs, or an empty array to remove all terms. Requires permission to assign every term being added or removed; returns an error naming any term you are not allowed to change. Use pwai/get-taxonomy-terms first to discover valid values.', 'publish-with-ai' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'taxonomy', 'terms' ],
@@ -105,6 +105,15 @@ class Set_Post_Terms {
 						);
 					}
 
+					$taxonomy_obj = get_taxonomy( $taxonomy );
+					if ( ! $taxonomy_obj || ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publish-with-ai' ) );
+					}
+
+					if ( ! is_array( $terms ) ) {
+						return new \WP_Error( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publish-with-ai' ) );
+					}
+
 					// Resolve slugs to term IDs.
 					$term_ids = [];
 					foreach ( $terms as $term ) {
@@ -125,6 +134,30 @@ class Set_Post_Terms {
 							}
 							$term_ids[] = $term_obj->term_id;
 						}
+					}
+
+					$current_ids = wp_get_object_terms( $post_id, $taxonomy, [ 'fields' => 'ids' ] );
+					$current_ids = is_wp_error( $current_ids ) ? [] : array_map( 'intval', $current_ids );
+					$removed_ids = array_diff( $current_ids, $term_ids );
+					$changed_ids = array_unique( array_merge( $term_ids, $removed_ids ) );
+
+					$forbidden = [];
+					foreach ( $changed_ids as $term_id ) {
+						if ( ! current_user_can( 'assign_term', $term_id ) ) {
+							$term        = get_term( $term_id, $taxonomy );
+							$forbidden[] = $term instanceof \WP_Term ? sprintf( '%s (%d)', $term->slug, $term_id ) : (string) $term_id;
+						}
+					}
+
+					if ( ! empty( $forbidden ) ) {
+						return new \WP_Error(
+							'forbidden',
+							sprintf(
+								/* translators: %s: comma-separated list of term slugs/IDs the user cannot assign or remove. */
+								__( 'You do not have permission to assign or remove the following terms: %s', 'publish-with-ai' ),
+								implode( ', ', $forbidden )
+							)
+						);
 					}
 
 					$result = wp_set_post_terms( $post_id, $term_ids, $taxonomy );

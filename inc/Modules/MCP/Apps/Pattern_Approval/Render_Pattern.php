@@ -64,7 +64,7 @@ class Render_Pattern {
 						],
 					],
 				],
-				'permission_callback' => static fn () => current_user_can( 'edit_posts' ),
+				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
 					$schema       = $input['schema'] ?? [];
@@ -87,8 +87,7 @@ class Render_Pattern {
 						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publish-with-ai' ) );
 					}
 
-					// Ensure core block styles handle is registered before rendering.
-					wp_enqueue_style( 'wp-block-library' );
+					show_admin_bar( false ); // phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 
 					$html = do_blocks( $markup ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 

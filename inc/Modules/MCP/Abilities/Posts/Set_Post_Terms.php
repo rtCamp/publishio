@@ -110,6 +110,10 @@ class Set_Post_Terms {
 						return new \WP_Error( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publish-with-ai' ) );
 					}
 
+					if ( ! is_array( $terms ) ) {
+						return new \WP_Error( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publish-with-ai' ) );
+					}
+
 					// Resolve slugs to term IDs.
 					$term_ids = [];
 					foreach ( $terms as $term ) {

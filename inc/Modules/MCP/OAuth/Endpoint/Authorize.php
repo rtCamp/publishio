@@ -23,6 +23,7 @@ use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
 use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publish_With_AI\Modules\MCP\Server\Server;
 
 /**
  * Class - Authorize
@@ -265,12 +266,7 @@ class Authorize extends Abstract_REST_Controller {
 			return new \WP_Error( 'invalid_target', 'The resource parameter is required.', [ 'status' => 400 ] );
 		}
 
-		$valid_resources = array_map(
-			static fn ( string $path ) => untrailingslashit( rest_url( $path ) ),
-			Config::get_all_mcp_endpoint_paths()
-		);
-
-		if ( ! in_array( untrailingslashit( $params['resource'] ), $valid_resources, true ) ) {
+		if ( untrailingslashit( $params['resource'] ) !== Config::get_mcp_resource_claim() ) {
 			return new \WP_Error( 'invalid_target', 'The resource parameter does not identify a known protected resource.', [ 'status' => 400 ] );
 		}
 
@@ -319,7 +315,7 @@ class Authorize extends Abstract_REST_Controller {
 		$site_url     = home_url( '/' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$resource_url       = $params['resource'];
-		$_server            = $this->find_server_by_resource_url( $resource_url );
+		$_server            = Server::get_server();
 		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'publish-with-ai' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$server_description = $_server ? $_server->get_server_description() : ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
@@ -337,33 +333,5 @@ class Authorize extends Abstract_REST_Controller {
 		);
 
 		return $response;
-	}
-
-	/**
-	 * Locate a registered MCP server that matches the given resource URL path.
-	 *
-	 * @param string $resource_url The full resource URL.
-	 */
-	private function find_server_by_resource_url( string $resource_url ): ?\WP\MCP\Core\McpServer {
-		if ( empty( $resource_url ) || ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
-			return null;
-		}
-
-		$path = wp_parse_url( $resource_url, PHP_URL_PATH );
-		if ( ! $path ) {
-			return null;
-		}
-
-		$adapter = \WP\MCP\Core\McpAdapter::instance();
-
-		foreach ( $adapter->get_servers() as $server ) {
-			$server_path = $server->get_server_route_namespace() . '/' . $server->get_server_route();
-
-			if ( str_ends_with( rtrim( $path, '/' ), $server_path ) ) {
-				return $server;
-			}
-		}
-
-		return null;
 	}
 }

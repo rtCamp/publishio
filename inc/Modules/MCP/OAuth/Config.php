@@ -62,23 +62,13 @@ class Config {
 	}
 
 	/**
-	 * Get all registered MCP endpoint paths.
+	 * Get the canonical resource claim (audience) for the MCP endpoint.
 	 *
-	 * @return string[]
+	 * This is the untrailingslashed resource URL used as the OAuth resource
+	 * identifier (RFC 8707) for token audience validation and discovery.
 	 */
-	public static function get_all_mcp_endpoint_paths(): array {
-		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
-			return [ self::get_mcp_endpoint_path() ];
-		}
-
-		$adapter = \WP\MCP\Core\McpAdapter::instance();
-		$paths   = [];
-
-		foreach ( $adapter->get_servers() as $server ) {
-			$paths[] = $server->get_server_route_namespace() . '/' . $server->get_server_route();
-		}
-
-		return ! empty( $paths ) ? $paths : [ self::get_mcp_endpoint_path() ];
+	public static function get_mcp_resource_claim(): string {
+		return untrailingslashit( rest_url( self::get_mcp_endpoint_path() ) );
 	}
 
 	/**

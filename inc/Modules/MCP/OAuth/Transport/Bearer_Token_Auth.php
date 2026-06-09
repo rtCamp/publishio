@@ -76,7 +76,7 @@ class Bearer_Token_Auth {
 		}
 
 		// Validate the resource claim matches this MCP endpoint.
-		$expected_resource = untrailingslashit( rest_url( $matched_path ) );
+		$expected_resource = Config::get_mcp_resource_claim();
 		$token_resource    = isset( $token_data['resource'] ) ? untrailingslashit( $token_data['resource'] ) : '';
 
 		// Resource claim is required — reject tokens without one to prevent cross-resource usage.
@@ -108,16 +108,9 @@ class Bearer_Token_Auth {
 
 		// Only add the header for protected MCP endpoint requests.
 		$route        = $request->get_route();
-		$matched_path = null;
+		$matched_path = Config::get_mcp_endpoint_path();
 
-		foreach ( Config::get_all_mcp_endpoint_paths() as $path ) {
-			if ( '/' . $path === $route ) {
-				$matched_path = $path;
-				break;
-			}
-		}
-
-		if ( ! $matched_path ) {
+		if ( untrailingslashit( $route ) !== '/' . $matched_path ) {
 			return $response;
 		}
 
@@ -145,15 +138,10 @@ class Bearer_Token_Auth {
 
 		$request_path = untrailingslashit( (string) wp_parse_url( $request_uri, PHP_URL_PATH ) );
 
-		foreach ( Config::get_all_mcp_endpoint_paths() as $endpoint_path ) {
-			$expected_path = untrailingslashit( (string) wp_parse_url( rest_url( $endpoint_path ), PHP_URL_PATH ) );
+		$endpoint_path = Config::get_mcp_endpoint_path();
+		$expected_path = untrailingslashit( (string) wp_parse_url( rest_url( $endpoint_path ), PHP_URL_PATH ) );
 
-			if ( $request_path === $expected_path ) {
-				return $endpoint_path;
-			}
-		}
-
-		return null;
+		return $request_path === $expected_path ? $endpoint_path : null;
 	}
 
 	/**

@@ -1,4 +1,4 @@
-=== Publishio - Publish pages directly from AI assistants ===
+=== Publishio – Build & Publish Pages & Posts with AI Using Your Own Block Patterns ===
 Contributors:      rtCamp, utsavladani, iamdanih17, aviral89, hiabhaykulkarni, justlevine, muralig, dipankardas011
 Tags:              Publish, AI, Editorial Workflow, Abilities, MCP
 License:           GPLv2 or later
@@ -8,11 +8,15 @@ Requires at least: 6.9
 Tested up to:      7.0
 Stable tag:        0.2.0
 
-Build WordPress pages and posts with AI. Auto-discovers patterns for Block Editor-compatible content with in-chat previews and MCP integration.
+Connect any AI to WordPress and build pages and posts from your site's own block patterns, without changing your design.
 
 == Description ==
 
-Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content without manual markup insertion.
+**Publishio** connects any AI assistant — ChatGPT, Claude, or any tool that supports the Model Context Protocol (MCP) — directly to your WordPress site, so you can create and publish pages and posts just by chatting.
+
+Publishio is not an AI itself. It is the bridge between the AI you already use and your WordPress site. The key difference from generic AI content tools is that Publishio builds everything from *your site's own block patterns* — the patterns your designers already created. Your layout, spacing, colours, and brand stay exactly as intended, because the AI assembles pages from your approved building blocks rather than inventing new markup.
+
+That means editors and content teams can spin up landing pages, blog posts, and campaign pages in minutes, in plain language, without touching the designer's work and without breaking the design system.
 
 = Features =
 

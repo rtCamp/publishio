@@ -93,7 +93,6 @@ final class Main {
 	 */
 	public static function activate(): void {
 		self::run_migrations();
-		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 
 	/**
@@ -114,7 +113,17 @@ final class Main {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
 		update_option( 'publishio_version', PUBLISHIO_VERSION );
+
+		self::register_rewrite_rules();
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
+	}
+
+	/**
+	 * Register custom rewrite rules so a flush before `init` still persists them.
+	 */
+	private static function register_rewrite_rules(): void {
+		( new Modules\MCP\OAuth\Well_Known\Auth_Server_Metadata() )->add_rewrite_rules();
+		( new Modules\MCP\OAuth\Well_Known\Protected_Resource() )->add_rewrite_rules();
 	}
 
 	/**

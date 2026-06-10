@@ -114,6 +114,19 @@ final class Main {
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
 		update_option( 'publishio_version', PUBLISHIO_VERSION );
 
+		self::maybe_flush_rewrite_rules();
+	}
+
+	/**
+	 * Register and flush rewrite rules, deferring to `init` if it hasn't fired
+	 * yet (e.g. on `plugins_loaded`), since `$wp_rewrite` isn't ready until then.
+	 */
+	public static function maybe_flush_rewrite_rules(): void {
+		if ( ! did_action( 'init' ) ) {
+			add_action( 'init', [ self::class, 'maybe_flush_rewrite_rules' ], 20 );
+			return;
+		}
+
 		self::register_rewrite_rules();
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}

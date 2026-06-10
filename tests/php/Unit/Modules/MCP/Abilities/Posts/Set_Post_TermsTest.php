@@ -2,16 +2,16 @@
 /**
  * Permission-check tests for the Set_Post_Terms ability.
  *
- * @package rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Post_Terms;
-use rtCamp\Publish_With_AI\Tests\Abstracts\Ability_TestCase;
+use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
+use rtCamp\Publishio\Tests\Abstracts\Ability_TestCase;
 
 /**
  * Class - Set_Post_TermsTest
@@ -25,13 +25,13 @@ class Set_Post_TermsTest extends Ability_TestCase {
 	/**
 	 * Slug of the custom taxonomy registered for the taxonomy-level denial test.
 	 */
-	private const CUSTOM_TAXONOMY = 'pwai_test_tax';
+	private const CUSTOM_TAXONOMY = 'publishio_test_tax';
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected function ability_name(): string {
-		return 'pwai/set-post-terms';
+		return 'publishio/set-post-terms';
 	}
 
 	/**
@@ -54,10 +54,10 @@ class Set_Post_TermsTest extends Ability_TestCase {
 			'post',
 			[
 				'capabilities' => [
-					'manage_terms' => 'manage_pwai_terms',
-					'edit_terms'   => 'manage_pwai_terms',
-					'delete_terms' => 'manage_pwai_terms',
-					'assign_terms' => 'manage_pwai_terms',
+					'manage_terms' => 'manage_publishio_terms',
+					'edit_terms'   => 'manage_publishio_terms',
+					'delete_terms' => 'manage_publishio_terms',
+					'assign_terms' => 'manage_publishio_terms',
 				],
 			]
 		);

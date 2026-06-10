@@ -20,9 +20,9 @@ parameters:
 		min: 80200
 		max: 80500
 	bootstrapFiles:
-		- publish-with-ai.php
+		- publishio.php
 	paths:
-		- publish-with-ai.php
+		- publishio.php
 		- uninstall.php
 		- framework/
 		- inc/

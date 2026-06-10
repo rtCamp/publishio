@@ -24,7 +24,7 @@ interface Props {
 }
 
 export function NameField( { item }: Props ) {
-	const logos = window.rtPublishWithAIAdmin?.appLogos ?? {};
+	const logos = window.rtPublishioAdmin?.appLogos ?? {};
 
 	const logoEl = item.logo_uri ? (
 		<img

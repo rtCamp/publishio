@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <ruleset
-	name="Publish with AI Coding Standards"
+	name="Publishio Coding Standards"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/PHPCSStandards/PHP_CodeSniffer/master/phpcs.xsd"
 >
-	<description>Sniffs for Publish with AI</description>
+	<description>Sniffs for Publishio</description>
 
 	<!-- What to scan: include any root-level PHP files and any folders that contain PHP -->
 	<file>./framework/</file>
 	<file>./inc/</file>
 	<file>./templates/</file>
 	<file>./tests/php/</file>
-	<file>./publish-with-ai.php</file>
+	<file>./publishio.php</file>
 	<file>./uninstall.php</file>
 
 	<!-- These are excluded from the above paths.-->
@@ -94,9 +94,9 @@
 		<exclude-pattern>**/tests/**</exclude-pattern>
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="PUBLISH_WITH_AI" /><!-- Constant -->
-				<element value="rtCamp\Publish_With_AI" /><!-- Class -->
-				<element value="publish_with_ai_" /><!-- Function/variable -->
+				<element value="PUBLISHIO" /><!-- Constant -->
+				<element value="rtCamp\Publishio" /><!-- Class -->
+				<element value="publishio_" /><!-- Function/variable -->
 			</property>
 		</properties>
 	</rule>
@@ -105,7 +105,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="publish-with-ai" />
+				<element value="publishio" />
 			</property>
 		</properties>
 	</rule>

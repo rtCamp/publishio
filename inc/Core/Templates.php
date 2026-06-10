@@ -2,15 +2,15 @@
 /**
  * Handles efficient plugin template loading (and overloading).
  *
- * @package rtCamp\Publish_With_AI
+ * @package rtCamp\Publishio
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Core;
+namespace rtCamp\Publishio\Core;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Traits\Singleton;
-use rtCamp\Publish_With_AI\Framework\TemplateLoaderTrait;
+use rtCamp\Publishio\Framework\Contracts\Traits\Singleton;
+use rtCamp\Publishio\Framework\TemplateLoaderTrait;
 
 /**
  * Class Templates
@@ -24,7 +24,7 @@ final class Templates {
 	/**
 	 * The hook prefix for all filters and actions in this trait.
 	 */
-	private const HOOK_PREFIX = 'publish_with_ai';
+	private const HOOK_PREFIX = 'publishio';
 
 	/**
 	 * The relative template dir.
@@ -34,7 +34,7 @@ final class Templates {
 	/**
 	 * The theme dir for template overrides
 	 */
-	private const TEMPLATE_THEME_DIR = 'publish-with-ai';
+	private const TEMPLATE_THEME_DIR = 'publishio';
 
 	/**
 	 * {@inheritDoc}
@@ -42,7 +42,7 @@ final class Templates {
 	protected function __construct() {
 		$this->hook_prefix        = self::HOOK_PREFIX;
 		$this->template_theme_dir = self::TEMPLATE_THEME_DIR;
-		$this->template_dir       = PUBLISH_WITH_AI_PATH . self::TEMPLATE_DIR;
+		$this->template_dir       = PUBLISHIO_PATH . self::TEMPLATE_DIR;
 	}
 
 	/**

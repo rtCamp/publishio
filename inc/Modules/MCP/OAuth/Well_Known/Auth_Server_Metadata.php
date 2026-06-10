@@ -4,15 +4,15 @@
  *
  * Responds to: /.well-known/oauth-authorization-server
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Well_Known
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Well_Known
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Well_Known;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Well_Known;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 
 /**
  * Class - Auth_Server_Metadata
@@ -45,7 +45,7 @@ class Auth_Server_Metadata implements Registrable {
 	public function add_rewrite_rules(): void {
 		add_rewrite_rule(
 			'^\.well-known/oauth-authorization-server/?$',
-			'index.php?pwai_oauth_as_metadata=1',
+			'index.php?publishio_oauth_as_metadata=1',
 			'top'
 		);
 	}
@@ -58,7 +58,7 @@ class Auth_Server_Metadata implements Registrable {
 	 * @return array<string>
 	 */
 	public function add_query_vars( array $vars ): array {
-		$vars[] = 'pwai_oauth_as_metadata';
+		$vars[] = 'publishio_oauth_as_metadata';
 		return $vars;
 	}
 
@@ -68,7 +68,7 @@ class Auth_Server_Metadata implements Registrable {
 	 * @param \WP $wp The WordPress environment instance.
 	 */
 	public function handle_request( \WP $wp ): void {
-		if ( empty( $wp->query_vars['pwai_oauth_as_metadata'] ) ) {
+		if ( empty( $wp->query_vars['publishio_oauth_as_metadata'] ) ) {
 			return;
 		}
 

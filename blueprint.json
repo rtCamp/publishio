@@ -1,7 +1,7 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Publish With AI Demo",
+		"title": "Publishio Demo",
 		"description": "@Todo: Your demo description goes here.",
 		"author": "rtCamp",
 		"categories": [ "plugin", "skeleton", "development", "enterprise" ]
@@ -23,7 +23,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/rtCamp/publish-with-ai/releases/latest/download/publish-with-ai.zip"
+				"url": "https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip"
 			},
 			"options": {
 				"activate": true

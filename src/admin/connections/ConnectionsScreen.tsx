@@ -25,10 +25,7 @@ export function ConnectionsScreen() {
 		createSuccessNotice(
 			sprintf(
 				/* translators: 1: user name, 2: app name */
-				__(
-					'%1$s\'s access to "%2$s" has been revoked.',
-					'publish-with-ai'
-				),
+				__( '%1$s\'s access to "%2$s" has been revoked.', 'publishio' ),
 				connection.user.name,
 				name
 			),
@@ -39,10 +36,10 @@ export function ConnectionsScreen() {
 	return (
 		<>
 			<AdminHeader
-				title={ __( 'Connections', 'publish-with-ai' ) }
+				title={ __( 'Connections', 'publishio' ) }
 				description={ __(
 					'AI apps that have connected to your site. These are registered automatically the first time an app signs in.',
-					'publish-with-ai'
+					'publishio'
 				) }
 			/>
 

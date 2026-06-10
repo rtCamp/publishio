@@ -1,4 +1,4 @@
-=== Publish With AI - Publish pages directly from AI assistants ===
+=== Publishio - Publish pages directly from AI assistants ===
 Contributors:      rtCamp, utsavladani, iamdanih17, aviral89, hiabhaykulkarni, justlevine, muralig, dipankardas011
 Tags:              Publish, AI, Editorial Workflow, Abilities, MCP
 License:           GPLv2 or later
@@ -31,7 +31,7 @@ The skill is served automatically to any connected AI assistant via MCP. Editors
 
 To use the skill in Claude (claude.ai):
 
-1. <a href="https://raw.githubusercontent.com/rtCamp/publish-with-ai/main/skills/rt-publish-with-ai/SKILL.md">Download the skill file</a>
+1. <a href="https://raw.githubusercontent.com/rtCamp/publishio/main/skills/publishio/SKILL.md">Download the skill file</a>
 2. Open Claude and go to Customize → Skills → Upload Skill
 3. Upload the downloaded file
 4. Start prompting Claude to build WordPress pages using your theme's patterns
@@ -70,13 +70,13 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 
 1. Install and activate the plugin in your WordPress dashboard.
 2. Ensure you meet the requirements (WordPress 6.9+).
-3. Open the **Publish With AI** page in your WordPress dashboard — it includes a step-by-step guide to connect Claude to your site.
+3. Open the **Publishio** page in your WordPress dashboard — it includes a step-by-step guide to connect Claude to your site.
 4. Start prompting Claude to build WordPress pages using your theme's patterns.
 
 == Frequently Asked Questions ==
 
 = How do I connect Claude to my WordPress site? =
-Open the **Publish With AI** page in your WordPress dashboard. It contains a complete setup guide — including how to add your site's MCP server to Claude and authenticate the connection.
+Open the **Publishio** page in your WordPress dashboard. It contains a complete setup guide — including how to add your site's MCP server to Claude and authenticate the connection.
 
 = Do I need a specific theme? =
 No, it works with any theme, but themes with well-described patterns (like Twenty Twenty-Five) yield the best results.
@@ -98,15 +98,15 @@ Yes. The plugin works with any registered post type — pages, posts, and custom
 
 == Documentation ==
 
-* **Connection Guide** — Open the Publish With AI page in your WordPress dashboard for the Claude setup guide.
-* <a href="https://github.com/rtCamp/publish-with-ai/blob/main/docs/DEVELOPMENT.md">Development Guide</a> — Setup, commands, testing, and contribution.
-* <a href="https://github.com/rtCamp/publish-with-ai/blob/main/docs/CONTRIBUTING.md">Contributing</a>
-* <a href="https://github.com/rtCamp/publish-with-ai/blob/main/docs/CODE_OF_CONDUCT.md">Code of Conduct</a>
-* <a href="https://github.com/rtCamp/publish-with-ai/blob/main/docs/SECURITY.md">Security</a>
+* **Connection Guide** — Open the Publishio page in your WordPress dashboard for the Claude setup guide.
+* <a href="https://github.com/rtCamp/publishio/blob/main/docs/DEVELOPMENT.md">Development Guide</a> — Setup, commands, testing, and contribution.
+* <a href="https://github.com/rtCamp/publishio/blob/main/docs/CONTRIBUTING.md">Contributing</a>
+* <a href="https://github.com/rtCamp/publishio/blob/main/docs/CODE_OF_CONDUCT.md">Code of Conduct</a>
+* <a href="https://github.com/rtCamp/publishio/blob/main/docs/SECURITY.md">Security</a>
 
 == Source Code ==
 
-The source code is available on <a href="https://github.com/rtCamp/publish-with-ai">GitHub</a>.
+The source code is available on <a href="https://github.com/rtCamp/publishio">GitHub</a>.
 
 == Screenshots ==
 
@@ -120,7 +120,7 @@ The source code is available on <a href="https://github.com/rtCamp/publish-with-
 * Yoast SEO metadata support.
 * AI Skill file for guided content generation.
 
-For the full changelog see <a href="https://github.com/rtCamp/publish-with-ai/blob/main/CHANGELOG.md" target="_blank">GitHub</a>.
+For the full changelog see <a href="https://github.com/rtCamp/publishio/blob/main/CHANGELOG.md" target="_blank">GitHub</a>.
 
 == Upgrade Notice ==
 

@@ -2,12 +2,12 @@
 /**
  * Get Pattern ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns;
 
 /**
  * Class - Get_Pattern
@@ -18,11 +18,11 @@ class Get_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-pattern',
+			'publishio/get-pattern',
 			[
-				'label'               => __( 'Get Pattern by Name', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Returns full details of a single block pattern including its block markup content.', 'publish-with-ai' ),
+				'label'               => __( 'Get Pattern by Name', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Patterns::SLUG,
+				'description'         => __( 'Returns full details of a single block pattern including its block markup content.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'name' ],
@@ -81,7 +81,7 @@ class Get_Pattern {
 					$name = sanitize_text_field( $input['name'] ?? '' );
 
 					if ( ! $name ) {
-						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'publish-with-ai' ) );
+						return new \WP_Error( 'missing_name', __( 'Pattern name is required.', 'publishio' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -91,7 +91,7 @@ class Get_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publishio' ),
 								$name
 							)
 						);

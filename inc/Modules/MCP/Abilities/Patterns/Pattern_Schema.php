@@ -2,12 +2,12 @@
 /**
  * Pattern Schema.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns;
 
 /**
  * Extracts and applies content schemas for block patterns.

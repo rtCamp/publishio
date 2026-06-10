@@ -32,7 +32,7 @@ export default [
 			'@wordpress/i18n-text-domain': [
 				'error',
 				{
-					allowedTextDomain: 'publish-with-ai',
+					allowedTextDomain: 'publishio',
 				},
 			],
 

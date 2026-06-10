@@ -6,18 +6,18 @@
  * owns registration, asset enqueueing, menu icon, body class, and the plugin
  * action links — keeping those cross-cutting concerns out of individual pages.
  *
- * @package rtCamp\Publish_With_AI\Modules\Settings
+ * @package rtCamp\Publishio\Modules\Settings
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\Settings;
+namespace rtCamp\Publishio\Modules\Settings;
 
-use rtCamp\Publish_With_AI\Core\Assets;
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config as MCP_Config;
-use rtCamp\Publish_With_AI\Modules\Settings\Pages\Connections_Page;
-use rtCamp\Publish_With_AI\Modules\Settings\Pages\Guide_Page;
+use rtCamp\Publishio\Core\Assets;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config as MCP_Config;
+use rtCamp\Publishio\Modules\Settings\Pages\Connections_Page;
+use rtCamp\Publishio\Modules\Settings\Pages\Guide_Page;
 
 /**
  * Class - Menu_Loader
@@ -27,7 +27,7 @@ final class Menu_Loader implements Registrable {
 	 * Ordered list of page classes to register.
 	 * Top-level pages must appear before their children.
 	 *
-	 * @var class-string<\rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page>[]
+	 * @var class-string<\rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page>[]
 	 */
 	private const PAGE_CLASSES = [
 		Guide_Page::class,
@@ -37,7 +37,7 @@ final class Menu_Loader implements Registrable {
 	/**
 	 * Instantiated pages, keyed by hook suffix after admin_menu fires.
 	 *
-	 * @var array<string, \rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page>
+	 * @var array<string, \rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page>
 	 */
 	private array $pages_by_hook = [];
 
@@ -50,7 +50,7 @@ final class Menu_Loader implements Registrable {
 		add_action( 'admin_enqueue_scripts', [ $this, 'maybe_enqueue_page_assets' ], 20 );
 		add_filter( 'admin_body_class', [ $this, 'add_admin_body_class' ] );
 		add_filter(
-			'plugin_action_links_' . plugin_basename( PUBLISH_WITH_AI_FILE ),
+			'plugin_action_links_' . plugin_basename( PUBLISHIO_FILE ),
 			[ $this, 'add_action_links' ],
 			2
 		);
@@ -78,9 +78,9 @@ final class Menu_Loader implements Registrable {
 		wp_add_inline_style(
 			Assets::ADMIN_MENU_ICON_HANDLE,
 			sprintf(
-				'#toplevel_page_%s { --pwai-menu-icon-url: url("%s"); }',
+				'#toplevel_page_%s { --publishio-menu-icon-url: url("%s"); }',
 				esc_attr( Guide_Page::SLUG ),
-				esc_url( plugins_url( 'assets/images/logo.svg', PUBLISH_WITH_AI_FILE ) )
+				esc_url( plugins_url( 'assets/images/logo.svg', PUBLISHIO_FILE ) )
 			)
 		);
 	}
@@ -113,7 +113,7 @@ final class Menu_Loader implements Registrable {
 		$links[] = sprintf(
 			'<a href="%s">%s</a>',
 			esc_url( admin_url( 'admin.php?page=' . Guide_Page::SLUG ) ),
-			__( 'Settings', 'publish-with-ai' )
+			__( 'Settings', 'publishio' )
 		);
 
 		return $links;
@@ -132,7 +132,7 @@ final class Menu_Loader implements Registrable {
 		}
 
 		if ( str_contains( $screen->id, Guide_Page::SLUG ) ) {
-			$classes .= ' pwai-admin-page';
+			$classes .= ' publishio-admin-page';
 		}
 
 		return $classes;
@@ -145,20 +145,20 @@ final class Menu_Loader implements Registrable {
 	 */
 	private function get_localized_data(): array {
 		return [
-			'pluginVersion' => PUBLISH_WITH_AI_VERSION,
-			'logoUrl'       => plugins_url( 'assets/images/logo.svg', PUBLISH_WITH_AI_FILE ),
+			'pluginVersion' => PUBLISHIO_VERSION,
+			'logoUrl'       => plugins_url( 'assets/images/logo.svg', PUBLISHIO_FILE ),
 			'appLogos'      => [
-				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', PUBLISH_WITH_AI_FILE ),
-				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', PUBLISH_WITH_AI_FILE ),
-				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', PUBLISH_WITH_AI_FILE ),
+				'claude' => plugins_url( 'assets/images/provider/claude-logo.svg', PUBLISHIO_FILE ),
+				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', PUBLISHIO_FILE ),
+				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', PUBLISHIO_FILE ),
 			],
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
 			'guideImages'   => [
 				'claude' => [
-					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', PUBLISH_WITH_AI_FILE ),
-					'connectorForm' => plugins_url( 'assets/images/guide/claude/step-connector-form.png', PUBLISH_WITH_AI_FILE ),
-					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', PUBLISH_WITH_AI_FILE ),
-					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', PUBLISH_WITH_AI_FILE ),
+					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', PUBLISHIO_FILE ),
+					'connectorForm' => plugins_url( 'assets/images/guide/claude/step-connector-form.png', PUBLISHIO_FILE ),
+					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', PUBLISHIO_FILE ),
+					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', PUBLISHIO_FILE ),
 				],
 			],
 		];

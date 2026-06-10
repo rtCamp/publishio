@@ -2,12 +2,12 @@
 /**
  * Get Taxonomy Terms ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Get_Taxonomy_Terms
@@ -18,11 +18,11 @@ class Get_Taxonomy_Terms {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-taxonomy-terms',
+			'publishio/get-taxonomy-terms',
 			[
-				'label'               => __( 'List Taxonomy Terms', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Returns available terms for a taxonomy (e.g. "category", "post_tag"). Use this to discover valid categories or tags before assigning them to a post.', 'publish-with-ai' ),
+				'label'               => __( 'List Taxonomy Terms', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Returns available terms for a taxonomy (e.g. "category", "post_tag"). Use this to discover valid categories or tags before assigning them to a post.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'taxonomy' ],
@@ -74,7 +74,7 @@ class Get_Taxonomy_Terms {
 					$taxonomy = sanitize_key( $input['taxonomy'] ?? '' );
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
 					}
 
 					$args = [

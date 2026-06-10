@@ -3,15 +3,15 @@
  * Adds an "MCP OAuth Sessions" section to the user profile page
  * so users can view and revoke their active OAuth tokens.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Admin
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Admin;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - Profile_Section
@@ -23,8 +23,8 @@ class Profile_Section {
 	public function register(): void {
 		add_action( 'show_user_profile', [ $this, 'render_section' ] );
 		add_action( 'edit_user_profile', [ $this, 'render_section' ] );
-		add_action( 'admin_post_pwai_oauth_revoke', [ $this, 'handle_revoke' ] );
-		add_action( 'admin_post_pwai_oauth_revoke_client', [ $this, 'handle_revoke_client' ] );
+		add_action( 'admin_post_publishio_oauth_revoke', [ $this, 'handle_revoke' ] );
+		add_action( 'admin_post_publishio_oauth_revoke_client', [ $this, 'handle_revoke_client' ] );
 	}
 
 	/**
@@ -35,26 +35,26 @@ class Profile_Section {
 
 		// Verify nonce.
 		if ( ! isset( $_GET['_wpnonce'] ) ||
-			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'pwai_oauth_revoke_' . $user_id )
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'publishio_oauth_revoke_' . $user_id )
 		) {
-			wp_die( esc_html__( 'Invalid or expired request.', 'publish-with-ai' ), 403 );
+			wp_die( esc_html__( 'Invalid or expired request.', 'publishio' ), 403 );
 		}
 
 		if ( ! $user_id ) {
-			wp_die( esc_html__( 'Invalid user.', 'publish-with-ai' ), 400 );
+			wp_die( esc_html__( 'Invalid user.', 'publishio' ), 400 );
 		}
 
 		// Only allow: own tokens, or admins editing other users.
 		if ( get_current_user_id() !== $user_id && ! current_user_can( 'edit_user', $user_id ) ) {
-			wp_die( esc_html__( 'You do not have permission to revoke these sessions.', 'publish-with-ai' ), 403 );
+			wp_die( esc_html__( 'You do not have permission to revoke these sessions.', 'publishio' ), 403 );
 		}
 
 		Token_Store::revoke_all( $user_id );
 
 		// Redirect back to profile with a success message.
 		$redirect = get_current_user_id() === $user_id
-			? admin_url( 'profile.php?pwai_oauth_revoked=1' )
-			: admin_url( 'user-edit.php?user_id=' . $user_id . '&pwai_oauth_revoked=1' );
+			? admin_url( 'profile.php?publishio_oauth_revoked=1' )
+			: admin_url( 'user-edit.php?user_id=' . $user_id . '&publishio_oauth_revoked=1' );
 
 		wp_safe_redirect( $redirect );
 		exit;
@@ -68,24 +68,24 @@ class Profile_Section {
 		$client_id = isset( $_GET['client_id'] ) ? sanitize_text_field( wp_unslash( $_GET['client_id'] ) ) : '';
 
 		if ( ! isset( $_GET['_wpnonce'] ) ||
-			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'pwai_oauth_revoke_client_' . $user_id . '_' . $client_id )
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'publishio_oauth_revoke_client_' . $user_id . '_' . $client_id )
 		) {
-			wp_die( esc_html__( 'Invalid or expired request.', 'publish-with-ai' ), 403 );
+			wp_die( esc_html__( 'Invalid or expired request.', 'publishio' ), 403 );
 		}
 
 		if ( ! $user_id || ! $client_id ) {
-			wp_die( esc_html__( 'Invalid request.', 'publish-with-ai' ), 400 );
+			wp_die( esc_html__( 'Invalid request.', 'publishio' ), 400 );
 		}
 
 		if ( get_current_user_id() !== $user_id && ! current_user_can( 'edit_user', $user_id ) ) {
-			wp_die( esc_html__( 'You do not have permission to revoke these sessions.', 'publish-with-ai' ), 403 );
+			wp_die( esc_html__( 'You do not have permission to revoke these sessions.', 'publishio' ), 403 );
 		}
 
 		Token_Store::revoke_for_client( $user_id, $client_id );
 
 		$redirect = get_current_user_id() === $user_id
-			? admin_url( 'profile.php?pwai_oauth_revoked=client' )
-			: admin_url( 'user-edit.php?user_id=' . $user_id . '&pwai_oauth_revoked=client' );
+			? admin_url( 'profile.php?publishio_oauth_revoked=client' )
+			: admin_url( 'user-edit.php?user_id=' . $user_id . '&publishio_oauth_revoked=client' );
 
 		wp_safe_redirect( $redirect );
 		exit;
@@ -107,35 +107,35 @@ class Profile_Section {
 				$client_names[ $cid ] = $cid;
 			}
 		}
-		$revoked = isset( $_GET['pwai_oauth_revoked'] ) ? sanitize_text_field( wp_unslash( $_GET['pwai_oauth_revoked'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$revoked = isset( $_GET['publishio_oauth_revoked'] ) ? sanitize_text_field( wp_unslash( $_GET['publishio_oauth_revoked'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		?>
-		<h2><?php esc_html_e( 'MCP OAuth Sessions', 'publish-with-ai' ); ?></h2>
+		<h2><?php esc_html_e( 'MCP OAuth Sessions', 'publishio' ); ?></h2>
 
 		<?php if ( 'client' === $revoked ) : ?>
-			<div class="notice notice-success inline"><p><?php esc_html_e( 'MCP OAuth session revoked.', 'publish-with-ai' ); ?></p></div>
+			<div class="notice notice-success inline"><p><?php esc_html_e( 'MCP OAuth session revoked.', 'publishio' ); ?></p></div>
 		<?php elseif ( $revoked ) : ?>
-			<div class="notice notice-success inline"><p><?php esc_html_e( 'All MCP OAuth sessions have been revoked.', 'publish-with-ai' ); ?></p></div>
+			<div class="notice notice-success inline"><p><?php esc_html_e( 'All MCP OAuth sessions have been revoked.', 'publishio' ); ?></p></div>
 		<?php endif; ?>
 
 		<?php if ( empty( $active ) ) : ?>
-			<p class="description"><?php esc_html_e( 'No active MCP OAuth sessions.', 'publish-with-ai' ); ?></p>
+			<p class="description"><?php esc_html_e( 'No active MCP OAuth sessions.', 'publishio' ); ?></p>
 		<?php else : ?>
 			<table class="widefat fixed striped">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Client', 'publish-with-ai' ); ?></th>
-						<th><?php esc_html_e( 'Scope', 'publish-with-ai' ); ?></th>
-						<th><?php esc_html_e( 'Created', 'publish-with-ai' ); ?></th>
-						<th><?php esc_html_e( 'Expires', 'publish-with-ai' ); ?></th>
-						<th><?php esc_html_e( 'Actions', 'publish-with-ai' ); ?></th>
+						<th><?php esc_html_e( 'Client', 'publishio' ); ?></th>
+						<th><?php esc_html_e( 'Scope', 'publishio' ); ?></th>
+						<th><?php esc_html_e( 'Created', 'publishio' ); ?></th>
+						<th><?php esc_html_e( 'Expires', 'publishio' ); ?></th>
+						<th><?php esc_html_e( 'Actions', 'publishio' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php foreach ( $active as $token ) : ?>
 						<?php
 						$revoke_client_url = wp_nonce_url(
-							admin_url( 'admin-post.php?action=pwai_oauth_revoke_client&user_id=' . $user->ID . '&client_id=' . rawurlencode( $token['client_id'] ) ),
-							'pwai_oauth_revoke_client_' . $user->ID . '_' . $token['client_id']
+							admin_url( 'admin-post.php?action=publishio_oauth_revoke_client&user_id=' . $user->ID . '&client_id=' . rawurlencode( $token['client_id'] ) ),
+							'publishio_oauth_revoke_client_' . $user->ID . '_' . $token['client_id']
 						);
 						?>
 					<tr>
@@ -145,8 +145,8 @@ class Profile_Section {
 						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['refresh_expires_at'] ) ); ?></td>
 						<td>
 							<a href="<?php echo esc_url( $revoke_client_url ); ?>" class="button button-small button-secondary"
-								onclick="return confirm('<?php echo esc_js( __( 'Revoke your access to this app? You will need to sign in again.', 'publish-with-ai' ) ); ?>');">
-								<?php esc_html_e( 'Revoke', 'publish-with-ai' ); ?>
+								onclick="return confirm('<?php echo esc_js( __( 'Revoke your access to this app? You will need to sign in again.', 'publishio' ) ); ?>');">
+								<?php esc_html_e( 'Revoke', 'publishio' ); ?>
 							</a>
 						</td>
 					</tr>
@@ -156,14 +156,14 @@ class Profile_Section {
 
 			<?php
 			$revoke_url = wp_nonce_url(
-				admin_url( 'admin-post.php?action=pwai_oauth_revoke&user_id=' . $user->ID ),
-				'pwai_oauth_revoke_' . $user->ID
+				admin_url( 'admin-post.php?action=publishio_oauth_revoke&user_id=' . $user->ID ),
+				'publishio_oauth_revoke_' . $user->ID
 			);
 			?>
 			<p style="margin-top: 12px;">
 				<a href="<?php echo esc_url( $revoke_url ); ?>" class="button button-secondary"
-					onclick="return confirm('<?php echo esc_js( __( 'Revoke all MCP OAuth sessions? You will need to sign in to each app again.', 'publish-with-ai' ) ); ?>');">
-					<?php esc_html_e( 'Revoke All Sessions', 'publish-with-ai' ); ?>
+					onclick="return confirm('<?php echo esc_js( __( 'Revoke all MCP OAuth sessions? You will need to sign in to each app again.', 'publishio' ) ); ?>');">
+					<?php esc_html_e( 'Revoke All Sessions', 'publishio' ); ?>
 				</a>
 			</p>
 		<?php endif; ?>

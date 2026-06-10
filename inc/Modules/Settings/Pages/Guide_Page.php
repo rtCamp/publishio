@@ -2,30 +2,30 @@
 /**
  * Admin page definition for the Guide (main) page.
  *
- * @package rtCamp\Publish_With_AI\Modules\Settings\Pages
+ * @package rtCamp\Publishio\Modules\Settings\Pages
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\Settings\Pages;
+namespace rtCamp\Publishio\Modules\Settings\Pages;
 
-use rtCamp\Publish_With_AI\Core\Assets;
-use rtCamp\Publish_With_AI\Core\Templates;
-use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page;
+use rtCamp\Publishio\Core\Assets;
+use rtCamp\Publishio\Core\Templates;
+use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page;
 
 /**
  * Class - Guide_Page
  */
 class Guide_Page extends Abstract_Admin_Page {
-	public const SLUG = 'publish-with-ai';
+	public const SLUG = 'publishio';
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function register(): string {
 		$hook_suffix = add_menu_page(
-			__( 'Publish With AI', 'publish-with-ai' ),
-			__( 'Publish With AI', 'publish-with-ai' ),
+			__( 'Publishio', 'publishio' ),
+			__( 'Publishio', 'publishio' ),
 			'edit_posts',
 			self::SLUG,
 			[ $this, 'render' ]
@@ -33,8 +33,8 @@ class Guide_Page extends Abstract_Admin_Page {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Guide', 'publish-with-ai' ),
-			__( 'Guide', 'publish-with-ai' ),
+			__( 'Guide', 'publishio' ),
+			__( 'Guide', 'publishio' ),
 			'edit_posts',
 			self::SLUG,
 			[ $this, 'render' ],
@@ -48,7 +48,7 @@ class Guide_Page extends Abstract_Admin_Page {
 	 * {@inheritDoc}
 	 */
 	public function enqueue( array $localized_data ): void {
-		wp_localize_script( Assets::ADMIN_HANDLE, 'rtPublishWithAIAdmin', $localized_data );
+		wp_localize_script( Assets::ADMIN_HANDLE, 'rtPublishioAdmin', $localized_data );
 		wp_enqueue_script( Assets::ADMIN_HANDLE );
 		wp_enqueue_style( Assets::ADMIN_HANDLE );
 	}

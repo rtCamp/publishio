@@ -2,12 +2,12 @@
 /**
  * Set Post Terms ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Set_Post_Terms
@@ -18,11 +18,11 @@ class Set_Post_Terms {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/set-post-terms',
+			'publishio/set-post-terms',
 			[
-				'label'               => __( 'Set Post Categories or Tags', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy — terms omitted from the list are removed. Pass term slugs or IDs, or an empty array to remove all terms. Requires permission to assign every term being added or removed; returns an error naming any term you are not allowed to change. Use pwai/get-taxonomy-terms first to discover valid values.', 'publish-with-ai' ),
+				'label'               => __( 'Set Post Categories or Tags', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Assigns taxonomy terms (categories, tags, or custom taxonomies) to a post, replacing any existing terms for that taxonomy — terms omitted from the list are removed. Pass term slugs or IDs, or an empty array to remove all terms. Requires permission to assign every term being added or removed; returns an error naming any term you are not allowed to change. Use publishio/get-taxonomy-terms first to discover valid values.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'taxonomy', 'terms' ],
@@ -82,15 +82,15 @@ class Set_Post_Terms {
 
 					$post = get_post( $post_id );
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
 					}
 
 					if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -98,7 +98,7 @@ class Set_Post_Terms {
 							'taxonomy_not_registered',
 							sprintf(
 								/* translators: 1: taxonomy slug, 2: post type slug */
-								__( 'Taxonomy "%1$s" is not registered for post type "%2$s".', 'publish-with-ai' ),
+								__( 'Taxonomy "%1$s" is not registered for post type "%2$s".', 'publishio' ),
 								$taxonomy,
 								$post->post_type
 							)
@@ -107,11 +107,11 @@ class Set_Post_Terms {
 
 					$taxonomy_obj = get_taxonomy( $taxonomy );
 					if ( ! $taxonomy_obj || ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publishio' ) );
 					}
 
 					if ( ! is_array( $terms ) ) {
-						return new \WP_Error( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publishio' ) );
 					}
 
 					// Resolve slugs to term IDs.
@@ -126,7 +126,7 @@ class Set_Post_Terms {
 									'invalid_term',
 									sprintf(
 										/* translators: 1: term slug, 2: taxonomy slug */
-										__( 'Term "%1$s" not found in taxonomy "%2$s".', 'publish-with-ai' ),
+										__( 'Term "%1$s" not found in taxonomy "%2$s".', 'publishio' ),
 										$term,
 										$taxonomy
 									)
@@ -154,7 +154,7 @@ class Set_Post_Terms {
 							'forbidden',
 							sprintf(
 								/* translators: %s: comma-separated list of term slugs/IDs the user cannot assign or remove. */
-								__( 'You do not have permission to assign or remove the following terms: %s', 'publish-with-ai' ),
+								__( 'You do not have permission to assign or remove the following terms: %s', 'publishio' ),
 								implode( ', ', $forbidden )
 							)
 						);

@@ -1,16 +1,16 @@
-# Publish With AI - Publish pages directly from AI assistants
+# Publishio - Publish pages directly from AI assistants
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
 [![WordPress](https://img.shields.io/badge/WordPress-7.0-blue?logo=wordpress)](https://wordpress.org)<br>
-[![CI](https://github.com/rtCamp/publish-with-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publish-with-ai/actions/workflows/ci.yml)
-[![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publish-with-ai/latest)](https://github.com/rtCamp/publish-with-ai/releases)
+[![CI](https://github.com/rtCamp/publishio/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publishio/actions/workflows/ci.yml)
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publishio/latest)](https://github.com/rtCamp/publishio/releases)
 
 ---
 
 Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content using the Block Editor.
 
-[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publish-with-ai/releases/latest/download/publish-with-ai.zip)
+[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip)
 
 ## ✨ Features
 
@@ -23,7 +23,7 @@ Build WordPress pages and posts using your existing patterns directly from your 
 
 ## 🧠 AI Skill
 
-[<img src="https://img.shields.io/badge/Download-Skill-blue?style=for-the-badge&logo=markdown" alt="Download Skill" height="40">](https://raw.githubusercontent.com/rtCamp/publish-with-ai/main/skills/rt-publish-with-ai/SKILL.md)
+[<img src="https://img.shields.io/badge/Download-Skill-blue?style=for-the-badge&logo=markdown" alt="Download Skill" height="40">](https://raw.githubusercontent.com/rtCamp/publishio/main/skills/publishio/SKILL.md)
 
 This plugin includes a skill file that teaches AI assistants how to generate WordPress content correctly — using your site's existing patterns, building pages incrementally, and following your design system rather than inventing markup.
 

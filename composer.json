@@ -1,5 +1,5 @@
 {
-	"name": "rtcamp/publish-with-ai",
+	"name": "rtcamp/publishio",
 	"version": "0.3.0",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
@@ -21,9 +21,9 @@
 	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
-			"rtCamp\\Publish_With_AI\\": "inc/",
-			"rtCamp\\Publish_With_AI\\Framework\\": "framework/",
-			"rtCamp\\Publish_With_AI\\Tests\\": "tests/php/"
+			"rtCamp\\Publishio\\": "inc/",
+			"rtCamp\\Publishio\\Framework\\": "framework/",
+			"rtCamp\\Publishio\\Tests\\": "tests/php/"
 		}
 	},
 	"repositories": [

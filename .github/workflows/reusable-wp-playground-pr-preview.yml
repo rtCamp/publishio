@@ -8,15 +8,15 @@ on:
         required: true
         type: string
       artifact-prefix:
-        description: 'Prefix for the artifact name (e.g., publish-with-ai-pr)'
+        description: 'Prefix for the artifact name (e.g., publishio-pr)'
         required: false
         type: string
-        default: 'publish-with-ai-pr'
+        default: 'publishio-pr'
       artifact-filename:
         description: 'Filename of the zip inside the artifact'
         required: false
         type: string
-        default: 'publish-with-ai.zip'
+        default: 'publishio.zip'
       artifacts-to-keep:
         description: 'Number of artifacts to keep per PR'
         required: false

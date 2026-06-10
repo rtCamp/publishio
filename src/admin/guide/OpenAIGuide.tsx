@@ -11,7 +11,7 @@ import { EmptyState } from '../shared/EmptyState';
 export function OpenAIGuide() {
 	return (
 		<EmptyState
-			message={ __( 'Guide for OpenAI coming soon.', 'publish-with-ai' ) }
+			message={ __( 'Guide for OpenAI coming soon.', 'publishio' ) }
 		/>
 	);
 }

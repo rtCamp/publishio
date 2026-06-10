@@ -4,15 +4,15 @@
  *
  * Includes the shared namespace, version and hook registration.
  *
- * @package rtCamp\Publish_With_AI\Framework\Contracts\Abstracts
+ * @package rtCamp\Publishio\Framework\Contracts\Abstracts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework\Contracts\Abstracts;
+namespace rtCamp\Publishio\Framework\Contracts\Abstracts;
 
 use WP_REST_Controller;
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
 
 /**
  * Class - Abstract_REST_Controller
@@ -25,7 +25,7 @@ abstract class Abstract_REST_Controller extends WP_REST_Controller implements Re
 	 *
 	 * @var string
 	 */
-	protected $namespace = 'pwai/v';
+	protected $namespace = 'publishio/v';
 
 	/**
 	 * Version number for the REST API routes.

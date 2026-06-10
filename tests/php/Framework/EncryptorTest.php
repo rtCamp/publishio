@@ -2,22 +2,22 @@
 /**
  * Unit tests for Encryptor class.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Framework;
+namespace rtCamp\Publishio\Tests\Framework;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use rtCamp\Publish_With_AI\Framework\Encryptor;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Framework\Encryptor;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - EncryptorTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Framework\Encryptor::class )]
+#[CoversClass( \rtCamp\Publishio\Framework\Encryptor::class )]
 class EncryptorTest extends TestCase {
 	/**
 	 * Test that encrypting and then decrypting returns the original value.
@@ -94,8 +94,8 @@ class EncryptorTest extends TestCase {
 	 * Test that custom key is used for encryption and decryption.
 	 */
 	public function test_encrypt_and_decrypt_with_custom_key(): void {
-		if ( ! defined( 'PUBLISH_WITH_AI_ENCRYPTION_KEY' ) ) {
-			define( 'PUBLISH_WITH_AI_ENCRYPTION_KEY', 'custom-key-123' );
+		if ( ! defined( 'PUBLISHIO_ENCRYPTION_KEY' ) ) {
+			define( 'PUBLISHIO_ENCRYPTION_KEY', 'custom-key-123' );
 		}
 
 		$raw       = 'custom key test';

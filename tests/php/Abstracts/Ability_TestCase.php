@@ -2,14 +2,14 @@
 /**
  * Base test case for Abilities API ability tests.
  *
- * @package rtCamp\Publish_With_AI\Tests\Abstracts
+ * @package rtCamp\Publishio\Tests\Abstracts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Abstracts;
+namespace rtCamp\Publishio\Tests\Abstracts;
 
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - Ability_TestCase
@@ -26,7 +26,7 @@ abstract class Ability_TestCase extends TestCase {
 	private array $cap_filters = [];
 
 	/**
-	 * The fully-qualified ability name under test, e.g. `pwai/set-post-terms`.
+	 * The fully-qualified ability name under test, e.g. `publishio/set-post-terms`.
 	 */
 	abstract protected function ability_name(): string;
 

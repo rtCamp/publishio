@@ -2,18 +2,18 @@
 /**
  * This will be executed when the plugin is uninstalled.
  *
- * @package rtCamp\Publish_With_AI
+ * @package rtCamp\Publishio
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI;
+namespace rtCamp\Publishio;
 
 // Only uninstall if called by WordPress.
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 // We use local constants so this plugin can be uninstalled even if the autoloader is corrupted or missing.
-const PLUGIN_PREFIX = 'publish_with_ai_';
+const PLUGIN_PREFIX = 'publishio_';
 
 /**
  * Uninstalls the plugin. If multisite, uninstalls from all sites.
@@ -89,8 +89,8 @@ function delete_tables(): void {
 	global $wpdb;
 
 	$tables = [
-		$wpdb->prefix . 'pwai_oauth_tokens',
-		$wpdb->prefix . 'pwai_oauth_clients',
+		$wpdb->prefix . 'publishio_oauth_tokens',
+		$wpdb->prefix . 'publishio_oauth_clients',
 	];
 
 	foreach ( $tables as $table ) {

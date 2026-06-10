@@ -4,12 +4,12 @@
  *
  * Wraps the Composer autoloader to provide graceful failure if it is missing.
  *
- * @package rtCamp\Publish_With_AI;
+ * @package rtCamp\Publishio;
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework;
+namespace rtCamp\Publishio\Framework;
 
 /**
  * Class - AutoloaderTrait

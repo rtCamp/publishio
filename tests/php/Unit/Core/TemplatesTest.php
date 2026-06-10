@@ -2,21 +2,21 @@
 /**
  * Unit tests for Templates class.
  *
- * @package rtCamp\Publish_With_AI\Tests\Unit\Core
+ * @package rtCamp\Publishio\Tests\Unit\Core
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit\Core;
+namespace rtCamp\Publishio\Tests\Unit\Core;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Core\Templates;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Core\Templates;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - TemplatesTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Core\Templates::class )]
+#[CoversClass( \rtCamp\Publishio\Core\Templates::class )]
 class TemplatesTest extends TestCase {
 	/**
 	 * Reset the Templates singleton instance.
@@ -40,10 +40,10 @@ class TemplatesTest extends TestCase {
 	 */
 	protected function tearDown(): void {
 		$this->reset_templates_instance();
-		remove_all_filters( 'publish_with_ai/template_args' );
-		remove_all_filters( 'publish_with_ai/located_template' );
-		remove_all_filters( 'publish_with_ai/template_paths' );
-		remove_all_actions( 'publish_with_ai/get_template_part_test' );
+		remove_all_filters( 'publishio/template_args' );
+		remove_all_filters( 'publishio/located_template' );
+		remove_all_filters( 'publishio/template_paths' );
+		remove_all_actions( 'publishio/get_template_part_test' );
 
 		parent::tearDown();
 	}
@@ -68,7 +68,7 @@ class TemplatesTest extends TestCase {
 
 		$captured = [];
 		add_action(
-			'publish_with_ai/get_template_part_test',
+			'publishio/get_template_part_test',
 			static function ( string $slug, ?string $name, array $args ) use ( &$captured ): void {
 				$captured = [
 					'slug' => $slug,
@@ -101,7 +101,7 @@ class TemplatesTest extends TestCase {
 
 		// Add filter to locate our temp template.
 		add_filter(
-			'publish_with_ai/located_template',
+			'publishio/located_template',
 			static function ( $located, $templates ) use ( $template_path ) {
 				if ( in_array( 'test-template.php', $templates, true ) ) {
 					return $template_path;

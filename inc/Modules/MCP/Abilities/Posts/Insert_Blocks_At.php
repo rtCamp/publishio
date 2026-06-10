@@ -2,12 +2,12 @@
 /**
  * Insert Blocks At ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Insert_Blocks_At
@@ -18,11 +18,11 @@ class Insert_Blocks_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/insert-blocks-at',
+			'publishio/insert-blocks-at',
 			[
-				'label'               => __( 'Insert Blocks at Position in Post', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Inserts raw block markup at a specific top-level position in a post. Only works for posts (not pages).', 'publish-with-ai' ),
+				'label'               => __( 'Insert Blocks at Position in Post', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Inserts raw block markup at a specific top-level position in a post. Only works for posts (not pages).', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'position', 'markup' ],
@@ -69,21 +69,21 @@ class Insert_Blocks_At {
 					$post     = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					if ( 'page' === $post->post_type ) {
-						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use insert-pattern-at instead.', 'publish-with-ai' ) );
+						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use insert-pattern-at instead.', 'publishio' ) );
 					}
 
 					$markup = trim( $input['markup'] ?? '' );
 
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'missing_markup', __( 'Block markup is required.', 'publish-with-ai' ) );
+						return new \WP_Error( 'missing_markup', __( 'Block markup is required.', 'publishio' ) );
 					}
 
 					$new_blocks = parse_blocks( $markup );
@@ -101,7 +101,7 @@ class Insert_Blocks_At {
 							'invalid_position',
 							sprintf(
 								// translators: 1: requested position, 2: maximum valid position.
-								__( 'Position %1$d is out of range (0–%2$d).', 'publish-with-ai' ),
+								__( 'Position %1$d is out of range (0–%2$d).', 'publishio' ),
 								$position,
 								count( $blocks )
 							)

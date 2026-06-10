@@ -2,15 +2,15 @@
 /**
  * Enqueue plugin assets, like styles, scripts, and blocks.
  *
- * @package rtCamp\Publish_With_AI\Core
+ * @package rtCamp\Publishio\Core
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Core;
+namespace rtCamp\Publishio\Core;
 
-use rtCamp\Publish_With_AI\Framework\AssetLoaderTrait;
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Framework\AssetLoaderTrait;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
 
 /**
  * Class Assets
@@ -21,7 +21,7 @@ final class Assets implements Registrable {
 	/**
 	 * Prefix for all asset handles.
 	 */
-	private const PREFIX = 'pwai-';
+	private const PREFIX = 'publishio-';
 
 	/**
 	 * Asset handles
@@ -42,8 +42,8 @@ final class Assets implements Registrable {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->plugin_dir = (string) PUBLISH_WITH_AI_PATH;
-		$this->plugin_url = (string) PUBLISH_WITH_AI_URL;
+		$this->plugin_dir = (string) PUBLISHIO_PATH;
+		$this->plugin_url = (string) PUBLISHIO_URL;
 		$this->assets_dir = 'build';
 	}
 

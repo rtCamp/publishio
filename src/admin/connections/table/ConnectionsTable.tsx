@@ -32,7 +32,7 @@ const DEFAULT_CONFIG = { perPageSizes: [ PAGE_SIZE ] };
 const connectionFields: Field< OAuthConnection >[] = [
 	{
 		id: 'client_name',
-		label: __( 'Name', 'publish-with-ai' ),
+		label: __( 'Name', 'publishio' ),
 		enableSorting: true,
 		enableGlobalSearch: true,
 		getValue: ( { item } ) => item.client_name,
@@ -40,14 +40,14 @@ const connectionFields: Field< OAuthConnection >[] = [
 	},
 	{
 		id: 'user',
-		label: __( 'User', 'publish-with-ai' ),
+		label: __( 'User', 'publishio' ),
 		getValue: ( { item } ) => `${ item.user.name } ${ item.user.email }`,
 		enableGlobalSearch: true,
 		render: ( { item } ) => <UserField user={ item.user } />,
 	},
 	{
 		id: 'last_active_at',
-		label: __( 'Last Active', 'publish-with-ai' ),
+		label: __( 'Last Active', 'publishio' ),
 		enableSorting: true,
 		getValue: ( { item } ) =>
 			new Date( item.last_active_at * 1000 ).toISOString(),
@@ -55,7 +55,7 @@ const connectionFields: Field< OAuthConnection >[] = [
 	},
 	{
 		id: 'registered_at',
-		label: __( 'Registered', 'publish-with-ai' ),
+		label: __( 'Registered', 'publishio' ),
 		enableSorting: true,
 		getValue: ( { item } ) =>
 			new Date( item.registered_at * 1000 ).toISOString(),
@@ -90,8 +90,8 @@ export function ConnectionsTable( {
 	const actions: Action< OAuthConnection >[] = [
 		{
 			id: 'delete',
-			label: __( 'Delete', 'publish-with-ai' ),
-			modalHeader: __( 'Delete Connection', 'publish-with-ai' ),
+			label: __( 'Delete', 'publishio' ),
+			modalHeader: __( 'Delete Connection', 'publishio' ),
 			modalSize: 'small',
 			RenderModal: ( { items, closeModal } ) => (
 				<DeleteConnectionDialog
@@ -145,7 +145,7 @@ export function ConnectionsTable( {
 					<EmptyState
 						message={ __(
 							'No AI apps have connected yet. Claude.ai and other AI tools will appear here after a user signs in for the first time.',
-							'publish-with-ai'
+							'publishio'
 						) }
 					/>
 				}

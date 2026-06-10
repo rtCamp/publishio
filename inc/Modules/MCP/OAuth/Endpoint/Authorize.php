@@ -8,22 +8,22 @@
  * 3. Shows a consent screen
  * 4. On approval, issues an auth code and redirects back
  *
- * Registered at: GET /wp-json/pwai-oauth/v1/authorize
- *                POST /wp-json/pwai-oauth/v1/authorize (consent form submit)
+ * Registered at: GET /wp-json/publishio-oauth/v1/authorize
+ *                POST /wp-json/publishio-oauth/v1/authorize (consent form submit)
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Endpoint
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Endpoint;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\Server\Server;
+use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Registry;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
  * Class - Authorize
@@ -62,7 +62,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Only act on the authorize endpoint.
 		// GET: shows consent screen (no state change — safe).
-		// POST: protected by wp_verify_nonce('pwai_oauth_consent').
+		// POST: protected by wp_verify_nonce('publishio_oauth_consent').
 		$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 		$expected     = '/' . rest_get_url_prefix() . '/' . Config::OAUTH_REST_NAMESPACE . '/authorize';
@@ -133,7 +133,7 @@ class Authorize extends Abstract_REST_Controller {
 
 		// Ensure the user has permission to authorize MCP clients.
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publish-with-ai' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publishio' ), [ 'status' => 403 ] );
 		}
 
 		// User is logged in — show consent screen.
@@ -160,12 +160,12 @@ class Authorize extends Abstract_REST_Controller {
 		}
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publish-with-ai' ), [ 'status' => 403 ] );
+			return new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publishio' ), [ 'status' => 403 ] );
 		}
 
 		// Verify nonce.
 		$nonce = $request->get_param( '_wpnonce' );
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'pwai_oauth_consent' ) ) {
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'publishio_oauth_consent' ) ) {
 			return new \WP_Error( 'invalid_nonce', 'Invalid or expired form submission.', [ 'status' => 403 ] );
 		}
 
@@ -311,12 +311,12 @@ class Authorize extends Abstract_REST_Controller {
 		$scopes       = $params['scope'] ? implode( ', ', explode( ' ', $params['scope'] ) ) : 'full access'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$display_name = $user->display_name; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$user_email   = $user->user_email; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$css_url      = PUBLISH_WITH_AI_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$css_url      = PUBLISHIO_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$site_url     = home_url( '/' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$resource_url       = $params['resource'];
 		$_server            = Server::get_server();
-		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'publish-with-ai' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'publishio' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 		$server_description = $_server ? $_server->get_server_description() : ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 
 		$response = new \WP_REST_Response( null, 200 );
@@ -327,7 +327,7 @@ class Authorize extends Abstract_REST_Controller {
 			'rest_pre_serve_request',
 			// @phpstan-ignore-next-line
 			static function ( $_served ) use ( $client_name, $client_uri, $logo_uri, $tos_uri, $policy_uri, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $server_description, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
-				include PUBLISH_WITH_AI_PATH . 'templates/oauth/consent.php';
+				include PUBLISHIO_PATH . 'templates/oauth/consent.php';
 				return true;
 			}
 		);

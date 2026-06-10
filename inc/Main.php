@@ -2,14 +2,14 @@
 /**
  * The main plugin file.
  *
- * @package rtCamp\Publish_With_AI
+ * @package rtCamp\Publishio
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI;
+namespace rtCamp\Publishio;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Traits\Singleton;
+use rtCamp\Publishio\Framework\Contracts\Traits\Singleton;
 
 /**
  * Class - Main
@@ -21,7 +21,7 @@ final class Main {
 	 * Registrable classes are entrypoints that "hook" into WordPress.
 	 * They should implement the Registrable interface.
 	 *
-	 * @var class-string<\rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable>[]
+	 * @var class-string<\rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable>[]
 	 */
 	private const REGISTRABLE_CLASSES = [
 		Core\Assets::class,
@@ -52,8 +52,8 @@ final class Main {
 		$this->load();
 
 		// Register activation and deactivation hooks.
-		register_activation_hook( PUBLISH_WITH_AI_FILE, [ self::class, 'activate' ] );
-		register_deactivation_hook( PUBLISH_WITH_AI_FILE, [ self::class, 'deactivate' ] );
+		register_activation_hook( PUBLISHIO_FILE, [ self::class, 'activate' ] );
+		register_deactivation_hook( PUBLISHIO_FILE, [ self::class, 'deactivate' ] );
 
 		// Run schema migrations when the plugin version changes.
 		add_action( 'plugins_loaded', [ self::class, 'maybe_upgrade' ] );
@@ -71,10 +71,10 @@ final class Main {
 					__METHOD__,
 					sprintf(
 						/* translators: %s: class name */
-						esc_html__( 'Publish With AI: Class %s not found. Skipping registration.', 'publish-with-ai' ),
+						esc_html__( 'Publishio: Class %s not found. Skipping registration.', 'publishio' ),
 						$class_name //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
-					PUBLISH_WITH_AI_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					PUBLISHIO_VERSION // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				);
 				continue;
 			}
@@ -100,9 +100,9 @@ final class Main {
 	 * Runs schema migrations when the stored plugin version is older than the current one.
 	 */
 	public static function maybe_upgrade(): void {
-		$stored = (string) get_option( 'publish_with_ai_version', '0.0.0' );
+		$stored = (string) get_option( 'publishio_version', '0.0.0' );
 
-		if ( version_compare( $stored, PUBLISH_WITH_AI_VERSION, '<' ) ) {
+		if ( version_compare( $stored, PUBLISHIO_VERSION, '<' ) ) {
 			self::run_migrations();
 		}
 	}
@@ -113,7 +113,7 @@ final class Main {
 	private static function run_migrations(): void {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
 		Modules\MCP\OAuth\Storage\Client_Store::create_table();
-		update_option( 'publish_with_ai_version', PUBLISH_WITH_AI_VERSION );
+		update_option( 'publishio_version', PUBLISHIO_VERSION );
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules
 	}
 

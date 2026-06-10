@@ -5,12 +5,12 @@
  * Allows plugins to provide template files that themes can override.
  * Follows WordPress template hierarchy: Child Theme > Parent Theme > Plugin.
  *
- * @package rtCamp\Publish_With_AI\Framework
+ * @package rtCamp\Publishio\Framework
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework;
+namespace rtCamp\Publishio\Framework;
 
 /**
  * Trait - TemplateLoaderTrait.

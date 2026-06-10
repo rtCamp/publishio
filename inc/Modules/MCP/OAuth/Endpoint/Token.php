@@ -6,20 +6,20 @@
  * - authorization_code: exchanges code + PKCE verifier for tokens
  * - refresh_token: rotates refresh token and issues new access token
  *
- * Registered at: POST /wp-json/pwai-oauth/v1/token
+ * Registered at: POST /wp-json/publishio-oauth/v1/token
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Endpoint
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Endpoint;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client\Client_Registry;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Auth_Code_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
+use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Registry;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - Token

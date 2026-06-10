@@ -184,7 +184,7 @@ jobs:
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
-      artifact-name: publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+      artifact-name: publishio-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
     secrets: inherit
 
   playground-preview:
@@ -199,5 +199,5 @@ jobs:
       pull-requests: write
     with:
       run-id: ${{ github.run_id }}
-      artifact-prefix: 'publish-with-ai-pr'
-      artifact-filename: 'publish-with-ai.zip'
+      artifact-prefix: 'publishio-pr'
+      artifact-filename: 'publishio.zip'

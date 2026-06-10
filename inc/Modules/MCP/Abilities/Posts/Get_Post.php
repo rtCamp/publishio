@@ -2,12 +2,12 @@
 /**
  * Get Post ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Get_Post
@@ -18,11 +18,11 @@ class Get_Post {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-post',
+			'publishio/get-post',
 			[
-				'label'               => __( 'Get Post or Page', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Returns full details of a post or page including title, content (block markup), status, slug, excerpt, featured image, template, and parent.', 'publish-with-ai' ),
+				'label'               => __( 'Get Post or Page', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Returns full details of a post or page including title, content (block markup), status, slug, excerpt, featured image, template, and parent.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
@@ -113,11 +113,11 @@ class Get_Post {
 					$post    = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					$thumbnail_id = (int) get_post_thumbnail_id( $post_id );

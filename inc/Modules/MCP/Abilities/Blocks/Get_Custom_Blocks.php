@@ -2,12 +2,12 @@
 /**
  * Get Custom Blocks ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Blocks
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Blocks
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Blocks;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Blocks;
 
 /**
  * Class - Get_Custom_Blocks
@@ -18,11 +18,11 @@ class Get_Custom_Blocks {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-custom-blocks',
+			'publishio/get-custom-blocks',
 			[
-				'label'               => __( 'Get Custom Blocks', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,
-				'description'         => __( 'Returns a list of all registered custom blocks (excludes core blocks). These are blocks added by plugins and themes.', 'publish-with-ai' ),
+				'label'               => __( 'Get Custom Blocks', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Blocks::SLUG,
+				'description'         => __( 'Returns a list of all registered custom blocks (excludes core blocks). These are blocks added by plugins and themes.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

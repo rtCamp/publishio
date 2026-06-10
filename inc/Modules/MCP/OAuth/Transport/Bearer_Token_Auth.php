@@ -7,15 +7,15 @@
  * 2. Validating Bearer tokens and setting the current WP user
  * 3. Adding WWW-Authenticate headers on 401 responses
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Transport
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Transport
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Transport;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Transport;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - Bearer_Token_Auth
@@ -70,7 +70,7 @@ class Bearer_Token_Auth {
 		if ( ! $token_data ) {
 			return new \WP_Error(
 				'rest_oauth_invalid_token',
-				__( 'Invalid or expired access token.', 'publish-with-ai' ),
+				__( 'Invalid or expired access token.', 'publishio' ),
 				[ 'status' => 401 ]
 			);
 		}
@@ -83,7 +83,7 @@ class Bearer_Token_Auth {
 		if ( empty( $token_resource ) || $token_resource !== $expected_resource ) {
 			return new \WP_Error(
 				'rest_oauth_invalid_audience',
-				__( 'Token was not issued for this resource.', 'publish-with-ai' ),
+				__( 'Token was not issued for this resource.', 'publishio' ),
 				[ 'status' => 401 ]
 			);
 		}

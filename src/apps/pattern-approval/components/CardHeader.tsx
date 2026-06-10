@@ -2,8 +2,8 @@ import { Logo } from './Logo';
 import { ExternalLink } from './Icons';
 
 export function CardHeader() {
-	const siteName = window.__pwai?.siteName;
-	const siteUrl = window.__pwai?.siteUrl;
+	const siteName = window.__publishio?.siteName;
+	const siteUrl = window.__publishio?.siteUrl;
 
 	return (
 		<div className="flex items-center gap-2 px-3 py-2 border-b border-(--rule-soft)">
@@ -12,7 +12,7 @@ export function CardHeader() {
 			</div>
 			<div className="flex flex-col min-w-0 flex-1">
 				<span className="text-sm font-medium text-(--ink)">
-					Publish With AI
+					Publishio
 				</span>
 				{ siteName && siteUrl && (
 					<a

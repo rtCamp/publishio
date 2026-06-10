@@ -2,12 +2,12 @@
 /**
  * Search Attachments ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Search_Attachments
@@ -18,11 +18,11 @@ class Search_Attachments {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/search-attachments',
+			'publishio/search-attachments',
 			[
-				'label'               => __( 'Search Attachments', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata.', 'publish-with-ai' ),
+				'label'               => __( 'Search Attachments', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

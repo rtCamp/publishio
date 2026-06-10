@@ -2,18 +2,18 @@
 /**
  * Blocks ability category.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Categories
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Categories;
 
 /**
  * Class - Blocks
  */
 class Blocks {
-	public const SLUG = 'pwai-blocks';
+	public const SLUG = 'publishio-blocks';
 
 	/**
 	 * Register the category.
@@ -22,8 +22,8 @@ class Blocks {
 		wp_register_ability_category(
 			self::SLUG,
 			[
-				'label'       => __( 'Blocks', 'publish-with-ai' ),
-				'description' => __( 'Abilities to discover and inspect registered custom blocks.', 'publish-with-ai' ),
+				'label'       => __( 'Blocks', 'publishio' ),
+				'description' => __( 'Abilities to discover and inspect registered custom blocks.', 'publishio' ),
 			]
 		);
 	}

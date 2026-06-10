@@ -1,7 +1,7 @@
 <!--
 Thanks for taking the time to submit a Pull Request.
 Please make sure to review the Contribution Guidelines before submitting your PR
-https://github.com/rtCamp/publish-with-ai/blob/main/docs/CONTRIBUTING.md
+https://github.com/rtCamp/publishio/blob/main/docs/CONTRIBUTING.md
 -->
 
 ## What

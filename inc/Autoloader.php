@@ -4,19 +4,19 @@
  *
  * Wraps the Composer autoloader to provide graceful failure if it is missing.
  *
- * @package rtCamp\Publish_With_AI;
+ * @package rtCamp\Publishio;
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI;
+namespace rtCamp\Publishio;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! class_exists( 'rtCamp\Publish_With_AI\Framework\AutoloaderTrait' ) ) {
-	require_once PUBLISH_WITH_AI_PATH . 'framework/AutoloaderTrait.php';
+if ( ! class_exists( 'rtCamp\Publishio\Framework\AutoloaderTrait' ) ) { // @phpstan-ignore function.impossibleType
+	require_once PUBLISHIO_PATH . 'framework/AutoloaderTrait.php';
 }
 
 /**
@@ -32,11 +32,11 @@ final class Autoloader {
 	 */
 	public static function autoload(): bool {
 		// If we're not *supposed* to autoload anything, then return true.
-		if ( defined( 'PUBLISH_WITH_AI_AUTOLOAD' ) && false === PUBLISH_WITH_AI_AUTOLOAD ) {
+		if ( defined( 'PUBLISHIO_AUTOLOAD' ) && false === PUBLISHIO_AUTOLOAD ) {
 			return true;
 		}
 
-		$autoloader = PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
+		$autoloader = PUBLISHIO_PATH . 'vendor/autoload.php';
 
 		return self::require_autoloader( $autoloader );
 	}
@@ -47,8 +47,8 @@ final class Autoloader {
 	private static function get_autoloader_error_message(): string {
 		return sprintf(
 			/* translators: %s: The plugin name. */
-			__( '%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`.', 'publish-with-ai' ),
-			esc_html( 'Publish With AI' )
+			__( '%s: The Composer autoloader was not found. If you installed the plugin from the GitHub source code, make sure to run `composer install`.', 'publishio' ),
+			esc_html( 'Publishio' )
 		);
 	}
 }

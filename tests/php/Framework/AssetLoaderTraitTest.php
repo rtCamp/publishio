@@ -2,21 +2,21 @@
 /**
  * Unit tests for AssetLoaderTrait.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Framework;
+namespace rtCamp\Publishio\Tests\Framework;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Test double for our trait.
  */
 final class AssetLoaderTraitTestDouble {
-	use \rtCamp\Publish_With_AI\Framework\AssetLoaderTrait;
+	use \rtCamp\Publishio\Framework\AssetLoaderTrait;
 
 	/**
 	 * {@inheritDoc}
@@ -61,7 +61,7 @@ final class AssetLoaderTraitTestDouble {
 /**
  * Class - AssetLoaderTraitTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Framework\AssetLoaderTrait::class )]
+#[CoversClass( \rtCamp\Publishio\Framework\AssetLoaderTrait::class )]
 class AssetLoaderTraitTest extends TestCase {
 	/**
 	 * Tests that get_asset_file returns null and logs an incorrect usage when the asset file is missing.

@@ -2,21 +2,21 @@
 /**
  * Unit tests for Main.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit;
+namespace rtCamp\Publishio\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Main;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Main;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - MainTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Main::class )]
+#[CoversClass( \rtCamp\Publishio\Main::class )]
 class MainTest extends TestCase {
 	/**
 	 * Reset the Main singleton instance.
@@ -35,7 +35,7 @@ class MainTest extends TestCase {
 		remove_all_actions( 'init' );
 		remove_all_actions( 'admin_enqueue_scripts' );
 		remove_all_filters( 'script_loader_tag' );
-		delete_option( 'publish_with_ai_version' );
+		delete_option( 'publishio_version' );
 
 		parent::tearDown();
 	}
@@ -58,7 +58,7 @@ class MainTest extends TestCase {
 
 		Main::activate();
 
-		$this->assertEquals( PUBLISH_WITH_AI_VERSION, get_option( 'publish_with_ai_version' ) );
+		$this->assertEquals( PUBLISHIO_VERSION, get_option( 'publishio_version' ) );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class MainTest extends TestCase {
 
 		Main::get_instance();
 
-		$this->assertNotFalse( has_action( 'activate_' . plugin_basename( PUBLISH_WITH_AI_FILE ) ) );
-		$this->assertNotFalse( has_action( 'deactivate_' . plugin_basename( PUBLISH_WITH_AI_FILE ) ) );
+		$this->assertNotFalse( has_action( 'activate_' . plugin_basename( PUBLISHIO_FILE ) ) );
+		$this->assertNotFalse( has_action( 'deactivate_' . plugin_basename( PUBLISHIO_FILE ) ) );
 	}
 }

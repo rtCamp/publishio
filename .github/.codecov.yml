@@ -3,7 +3,7 @@
 
 # Fix path prefixes from Docker container paths to repo-relative paths
 fixes:
-  - '/var/www/html/wp-content/plugins/publish-with-ai/::'
+  - '/var/www/html/wp-content/plugins/publishio/::'
 
 coverage:
   status:

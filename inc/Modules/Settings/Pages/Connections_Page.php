@@ -2,22 +2,22 @@
 /**
  * Admin page definition for the Connections sub-page.
  *
- * @package rtCamp\Publish_With_AI\Modules\Settings\Pages
+ * @package rtCamp\Publishio\Modules\Settings\Pages
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\Settings\Pages;
+namespace rtCamp\Publishio\Modules\Settings\Pages;
 
-use rtCamp\Publish_With_AI\Core\Assets;
-use rtCamp\Publish_With_AI\Core\Templates;
-use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_Admin_Page;
+use rtCamp\Publishio\Core\Assets;
+use rtCamp\Publishio\Core\Templates;
+use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page;
 
 /**
  * Class - Connections_Page
  */
 class Connections_Page extends Abstract_Admin_Page {
-	public const SLUG = 'publish-with-ai-connections';
+	public const SLUG = 'publishio-connections';
 
 	/**
 	 * {@inheritDoc}
@@ -25,8 +25,8 @@ class Connections_Page extends Abstract_Admin_Page {
 	public function register(): string|false {
 		return add_submenu_page(
 			Guide_Page::SLUG,
-			__( 'Connections', 'publish-with-ai' ),
-			__( 'Connections', 'publish-with-ai' ),
+			__( 'Connections', 'publishio' ),
+			__( 'Connections', 'publishio' ),
 			'manage_options',
 			self::SLUG,
 			[ $this, 'render' ]
@@ -37,7 +37,7 @@ class Connections_Page extends Abstract_Admin_Page {
 	 * {@inheritDoc}
 	 */
 	public function enqueue( array $localized_data ): void {
-		wp_localize_script( Assets::ADMIN_CONNECTIONS_HANDLE, 'rtPublishWithAIAdmin', $localized_data );
+		wp_localize_script( Assets::ADMIN_CONNECTIONS_HANDLE, 'rtPublishioAdmin', $localized_data );
 		wp_enqueue_script( Assets::ADMIN_CONNECTIONS_HANDLE );
 		wp_enqueue_style( Assets::ADMIN_CONNECTIONS_HANDLE );
 	}

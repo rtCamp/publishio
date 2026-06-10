@@ -2,16 +2,16 @@
 /**
  * Permission-check tests for the Upload_Media ability.
  *
- * @package rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Upload_Media;
-use rtCamp\Publish_With_AI\Tests\Abstracts\Ability_TestCase;
+use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Upload_Media;
+use rtCamp\Publishio\Tests\Abstracts\Ability_TestCase;
 
 /**
  * Class - Upload_MediaTest
@@ -30,7 +30,7 @@ class Upload_MediaTest extends Ability_TestCase {
 	 * {@inheritDoc}
 	 */
 	protected function ability_name(): string {
-		return 'pwai/upload-media';
+		return 'publishio/upload-media';
 	}
 
 	/**

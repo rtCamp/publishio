@@ -2,12 +2,12 @@
 /**
  * Field Writer Interface.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer;
 
 /**
  * Interface - Field_Writer_Interface

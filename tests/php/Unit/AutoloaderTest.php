@@ -2,21 +2,21 @@
 /**
  * Unit tests for Autoloader.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit;
+namespace rtCamp\Publishio\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Autoloader;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Autoloader;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - AutoloaderTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Autoloader::class )]
+#[CoversClass( \rtCamp\Publishio\Autoloader::class )]
 class AutoloaderTest extends TestCase {
 	/**
 	 * {@inheritDoc}
@@ -29,10 +29,10 @@ class AutoloaderTest extends TestCase {
 	}
 
 	/**
-	 * Tests that autoload returns true when PUBLISH_WITH_AI_AUTOLOAD is false.
+	 * Tests that autoload returns true when PUBLISHIO_AUTOLOAD is false.
 	 */
 	public function test_autoload_returns_true_when_autoload_disabled(): void {
-		define( 'PUBLISH_WITH_AI_AUTOLOAD', false );
+		define( 'PUBLISHIO_AUTOLOAD', false );
 		$this->assertTrue( Autoloader::autoload() );
 	}
 
@@ -52,7 +52,7 @@ class AutoloaderTest extends TestCase {
 	 */
 	public function test_autoload_uses_correct_path(): void {
 		// Verify the autoloader path is constructed correctly.
-		$expected_path = PUBLISH_WITH_AI_PATH . 'vendor/autoload.php';
+		$expected_path = PUBLISHIO_PATH . 'vendor/autoload.php';
 		$this->assertStringEndsWith( 'vendor/autoload.php', $expected_path );
 		$this->assertTrue( Autoloader::autoload() );
 	}
@@ -64,7 +64,7 @@ class AutoloaderTest extends TestCase {
 		$method = new \ReflectionMethod( Autoloader::class, 'get_autoloader_error_message' );
 		$method->setAccessible( true );
 		$result = $method->invoke( null );
-		$this->assertStringContainsString( 'Publish With AI', $result );
+		$this->assertStringContainsString( 'Publishio', $result );
 		$this->assertStringContainsString( 'Composer autoloader', $result );
 	}
 }

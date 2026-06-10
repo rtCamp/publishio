@@ -18,7 +18,7 @@ export function AdminHeader( {
 	description,
 	actions,
 }: AdminHeaderProps ) {
-	const logoUrl = window.rtPublishWithAIAdmin?.logoUrl;
+	const logoUrl = window.rtPublishioAdmin?.logoUrl;
 
 	return (
 		<header className="flex items-center gap-4 px-6 py-4 border-b border-gray-200 bg-white">
@@ -32,10 +32,10 @@ export function AdminHeader( {
 			) }
 
 			<span className="text-base font-semibold text-gray-900 shrink-0">
-				{ __( 'Publish With AI', 'publish-with-ai' ) }
+				{ __( 'Publishio', 'publishio' ) }
 			</span>
 
-			<div className="pwai-header-content flex-1 min-w-0 ps-4 border-s border-gray-200">
+			<div className="publishio-header-content flex-1 min-w-0 ps-4 border-s border-gray-200">
 				<h1 className="m-0 text-sm font-medium text-gray-900">
 					{ title }
 				</h1>
@@ -47,7 +47,7 @@ export function AdminHeader( {
 			</div>
 
 			{ actions && (
-				<div className="pwai-header-actions flex items-center gap-2 shrink-0">
+				<div className="publishio-header-actions flex items-center gap-2 shrink-0">
 					{ actions }
 				</div>
 			) }

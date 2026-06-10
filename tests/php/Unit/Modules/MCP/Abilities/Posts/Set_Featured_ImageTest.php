@@ -2,16 +2,16 @@
 /**
  * Permission-check tests for the Set_Featured_Image ability.
  *
- * @package rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts\Set_Featured_Image;
-use rtCamp\Publish_With_AI\Tests\Abstracts\Ability_TestCase;
+use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
+use rtCamp\Publishio\Tests\Abstracts\Ability_TestCase;
 
 /**
  * Class - Set_Featured_ImageTest
@@ -25,7 +25,7 @@ class Set_Featured_ImageTest extends Ability_TestCase {
 	 * {@inheritDoc}
 	 */
 	protected function ability_name(): string {
-		return 'pwai/set-featured-image';
+		return 'publishio/set-featured-image';
 	}
 
 	/**

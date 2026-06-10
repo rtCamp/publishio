@@ -2,20 +2,20 @@
 /**
  * Block Field Resolver.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns;
 
 use WP_Block_Type_Registry;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Block_Attr_Writer;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Cover_Media_Writer;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Html_Attribute_Writer;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Image_Id_Writer;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Rich_Text_Writer;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Block_Attr_Writer;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Cover_Media_Writer;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Html_Attribute_Writer;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Image_Id_Writer;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Rich_Text_Writer;
 
 /**
  * Resolves which fields to extract/apply for a given block name.
@@ -59,7 +59,7 @@ class Block_Field_Resolver {
 	/**
 	 * Writer singletons.
 	 *
-	 * @var array<string, \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface>
+	 * @var array<string, \rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface>
 	 */
 	private static array $writers = [];
 
@@ -68,7 +68,7 @@ class Block_Field_Resolver {
 	 *
 	 * @param string $block_name Block name.
 	 *
-	 * @return array<string, array{field_def: array<string, mixed>, writer: \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface}>
+	 * @return array<string, array{field_def: array<string, mixed>, writer: \rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer\Field_Writer_Interface}>
 	 *               Keyed by attribute name. Each entry has the merged field
 	 *               definition and the appropriate writer instance.
 	 */

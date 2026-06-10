@@ -2,12 +2,12 @@
 /**
  * Search Posts ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Search_Posts
@@ -18,11 +18,11 @@ class Search_Posts {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/search-posts',
+			'publishio/search-posts',
 			[
-				'label'               => __( 'Search Posts and Pages', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Searches posts and pages by keyword, post type, and status. Returns matching results with basic metadata.', 'publish-with-ai' ),
+				'label'               => __( 'Search Posts and Pages', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Searches posts and pages by keyword, post type, and status. Returns matching results with basic metadata.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [
@@ -36,10 +36,13 @@ class Search_Posts {
 							'description' => 'Post type slug. Defaults to "post". Use "any" for all types.',
 						],
 						'status'    => [
-							'type'        => 'string',
-							'default'     => 'any',
-							'enum'        => [ 'publish', 'draft', 'pending', 'private', 'trash', 'future', 'any' ],
-							'description' => 'Post status filter. Defaults to "any".',
+							'type'        => 'array',
+							'items'       => [
+								'type' => 'string',
+								'enum' => [ 'publish', 'draft', 'pending', 'private', 'trash', 'future' ],
+							],
+							'default'     => [ 'publish', 'draft' ],
+							'description' => 'Post statuses to include. Defaults to publish + draft. "any" is not supported — pass explicit statuses.',
 						],
 						'per_page'  => [
 							'type'        => 'integer',
@@ -84,7 +87,7 @@ class Search_Posts {
 				'execute_callback'    => static function ( array $input ): array {
 					$args = [
 						'post_type'      => sanitize_key( $input['post_type'] ?? 'post' ),
-						'post_status'    => sanitize_key( $input['status'] ?? 'any' ),
+						'post_status'    => array_map( 'sanitize_key', (array) ( $input['status'] ?? [ 'publish', 'draft' ] ) ),
 						'posts_per_page' => min( (int) ( $input['per_page'] ?? 10 ), 50 ),
 						'orderby'        => 'date',
 						'order'          => 'DESC',

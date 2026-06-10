@@ -2,12 +2,12 @@
 /**
  * Block Attr Writer.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Field_Writer;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Field_Writer;
 
 /**
  * Handles attributes stored only in the block comment JSON (no `source` in block.json).

@@ -1,5 +1,5 @@
 /**
- * Jest configuration for Publish with AI.
+ * Jest configuration for Publishio.
  *
  * Extends @wordpress/scripts default configuration with:
  * - Custom test setup for WordPress mocks
@@ -18,7 +18,7 @@ module.exports = {
 	...defaultConfig,
 
 	// Display name for clarity in multi-project setups
-	displayName: 'publish-with-ai',
+	displayName: 'publishio',
 
 	// Root directory for tests
 	rootDir: '.',

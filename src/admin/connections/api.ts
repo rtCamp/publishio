@@ -8,7 +8,7 @@ import apiFetch from '@wordpress/api-fetch';
  */
 import type { OAuthConnection } from './types';
 
-const REST_PATH = '/pwai/v1/connections';
+const REST_PATH = '/publishio/v1/connections';
 
 export type ConnectionPage = { items: OAuthConnection[]; total: number };
 

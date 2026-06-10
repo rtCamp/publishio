@@ -1,32 +1,42 @@
 <?php
 /**
- * Registers the dedicated Publish With AI MCP server.
+ * Registers the dedicated Publishio MCP server.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Server
+ * @package rtCamp\Publishio\Modules\MCP\Server
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Server;
+namespace rtCamp\Publishio\Modules\MCP\Server;
 
 use WP\MCP\Infrastructure\ErrorHandling\ErrorLogMcpErrorHandler;
 use WP\MCP\Transport\HttpTransport;
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval\App as Pattern_Approval_App;
-use rtCamp\Publish_With_AI\Modules\MCP\Resources\Content_Guide\Content_Guide;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\App as Pattern_Approval_App;
+use rtCamp\Publishio\Modules\MCP\Resources\Content_Guide\Content_Guide;
 
 /**
  * Class - Server
  */
 class Server implements Registrable {
-	private const SERVER_ID      = 'publish-with-ai';
-	private const ABILITY_PREFIX = 'pwai/';
+	private const SERVER_ID      = 'publishio';
+	private const ABILITY_PREFIX = 'publishio/';
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
+		add_action( 'init', [ $this, 'init_mcp_adapter' ] );
 		add_action( 'mcp_adapter_init', [ $this, 'create' ] );
+	}
+
+	/**
+	 * Ensure the MCP Adapter is initialized so we can register our server.
+	 */
+	public function init_mcp_adapter(): void {
+		if ( class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+			\WP\MCP\Core\McpAdapter::instance();
+		}
 	}
 
 	/**
@@ -39,15 +49,26 @@ class Server implements Registrable {
 			self::SERVER_ID,
 			'mcp',
 			self::SERVER_ID,
-			__( 'Publish With AI — rtCamp', 'publish-with-ai' ),
-			__( 'MCP server for the Publish With AI plugin.', 'publish-with-ai' ),
-			PUBLISH_WITH_AI_VERSION,
+			__( 'Publishio — rtCamp', 'publishio' ),
+			__( 'MCP server for the Publishio plugin.', 'publishio' ),
+			PUBLISHIO_VERSION,
 			[ HttpTransport::class ],
 			ErrorLogMcpErrorHandler::class,
 			null,
 			$this->get_tools(),
 			$this->get_resources(), // @phpstan-ignore argument.type
 		);
+	}
+
+	/**
+	 * Get this plugin's registered MCP server, if available.
+	 */
+	public static function get_server(): ?\WP\MCP\Core\McpServer {
+		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+			return null;
+		}
+
+		return \WP\MCP\Core\McpAdapter::instance()->get_server( self::SERVER_ID );
 	}
 
 	/**
@@ -62,7 +83,7 @@ class Server implements Registrable {
 	}
 
 	/**
-	 * Discover all abilities registered under the pwai/ namespace.
+	 * Discover all abilities registered under the publishio/ namespace.
 	 *
 	 * @return list<string>
 	 */

@@ -2,21 +2,21 @@
 /**
  * OAuth module entry point.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth
+ * @package rtCamp\Publishio\Modules\MCP\OAuth
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
+namespace rtCamp\Publishio\Modules\MCP\OAuth;
 
-use rtCamp\Publish_With_AI\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Admin\Profile_Section;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Authorize;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Register;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Endpoint\Token;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Transport\Bearer_Token_Auth;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Well_Known\Auth_Server_Metadata;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Well_Known\Protected_Resource;
+use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Modules\MCP\OAuth\Admin\Profile_Section;
+use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Authorize;
+use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Register;
+use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Token;
+use rtCamp\Publishio\Modules\MCP\OAuth\Transport\Bearer_Token_Auth;
+use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Auth_Server_Metadata;
+use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Protected_Resource;
 
 /**
  * Class - OAuth

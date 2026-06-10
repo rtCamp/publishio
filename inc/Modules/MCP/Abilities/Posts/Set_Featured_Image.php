@@ -2,12 +2,12 @@
 /**
  * Set Featured Image ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Set_Featured_Image
@@ -18,11 +18,11 @@ class Set_Featured_Image {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/set-featured-image',
+			'publishio/set-featured-image',
 			[
-				'label'               => __( 'Set Featured Image for Post or Page', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Sets or removes the featured image (post thumbnail) for a post or page. Pass an attachment ID to set, or 0 to remove.', 'publish-with-ai' ),
+				'label'               => __( 'Set Featured Image for Post or Page', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Sets or removes the featured image (post thumbnail) for a post or page. Pass an attachment ID to set, or 0 to remove.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'attachment_id' ],
@@ -59,11 +59,11 @@ class Set_Featured_Image {
 					$attachment_id = (int) ( $input['attachment_id'] ?? -1 );
 
 					if ( ! get_post( $post_id ) ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					if ( 0 === $attachment_id ) {
@@ -75,13 +75,17 @@ class Set_Featured_Image {
 					}
 
 					if ( ! get_post( $attachment_id ) || get_post_type( $attachment_id ) !== 'attachment' ) {
-						return new \WP_Error( 'invalid_attachment', __( 'Attachment not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_attachment', __( 'Attachment not found.', 'publishio' ) );
+					}
+
+					if ( ! current_user_can( 'read_post', $attachment_id ) ) {
+						return new \WP_Error( 'forbidden_attachment', __( 'You do not have permission to use this attachment.', 'publishio' ) );
 					}
 
 					$result = set_post_thumbnail( $post_id, $attachment_id );
 
 					if ( ! $result ) {
-						return new \WP_Error( 'failed', __( 'Could not set featured image.', 'publish-with-ai' ) );
+						return new \WP_Error( 'failed', __( 'Could not set featured image.', 'publishio' ) );
 					}
 
 					return [

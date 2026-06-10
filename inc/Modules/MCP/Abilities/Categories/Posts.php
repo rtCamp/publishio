@@ -2,18 +2,18 @@
 /**
  * Posts ability category.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Categories
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Categories;
 
 /**
  * Class - Posts
  */
 class Posts {
-	public const SLUG = 'pwai-content';
+	public const SLUG = 'publishio-content';
 
 	/**
 	 * Register the category.
@@ -22,8 +22,8 @@ class Posts {
 		wp_register_ability_category(
 			self::SLUG,
 			[
-				'label'       => __( 'Content', 'publish-with-ai' ),
-				'description' => __( 'Manage posts and pages — create, edit blocks, and assemble content.', 'publish-with-ai' ),
+				'label'       => __( 'Content', 'publishio' ),
+				'description' => __( 'Manage posts and pages — create, edit blocks, and assemble content.', 'publishio' ),
 			]
 		);
 	}

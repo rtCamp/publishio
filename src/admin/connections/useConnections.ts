@@ -13,7 +13,7 @@ import type { OAuthConnection } from './types';
 import { connectionsApi } from './api';
 import { PAGE_SIZE } from '../constants';
 
-export const CONNECTIONS_NOTICES_CONTEXT = 'pwai/connections';
+export const CONNECTIONS_NOTICES_CONTEXT = 'publishio/connections';
 
 const ERROR_OPTS = {
 	type: 'snackbar' as const,
@@ -46,7 +46,7 @@ export function useConnections() {
 			.catch( () => {
 				if ( ! cancelled ) {
 					createErrorNotice(
-						__( 'Failed to load connections.', 'publish-with-ai' ),
+						__( 'Failed to load connections.', 'publishio' ),
 						ERROR_OPTS
 					);
 				}

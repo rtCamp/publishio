@@ -4,14 +4,14 @@
  *
  * Codes are stored keyed by their SHA-256 hash and consumed once.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Storage
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Storage;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 
 /**
  * Class - Auth_Code_Store
@@ -21,7 +21,7 @@ class Auth_Code_Store {
 	 * Transient key prefix for auth codes.
 	 * Kept as-is for external compatibility.
 	 */
-	private const TRANSIENT_PREFIX = 'pwai_oauth_code_';
+	private const TRANSIENT_PREFIX = 'publishio_oauth_code_';
 
 	/**
 	 * Create a new authorization code and store it as a transient.

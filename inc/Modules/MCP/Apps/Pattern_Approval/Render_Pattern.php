@@ -2,15 +2,15 @@
 /**
  * Render Pattern ability — app-only, renders a filled pattern to HTML.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval
+ * @package rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval;
+namespace rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval;
 
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns as Patterns_Category;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Pattern_Schema;
+use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Patterns as Patterns_Category;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Pattern_Schema;
 
 /**
  * Class - Render_Pattern
@@ -24,11 +24,11 @@ class Render_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/render-pattern',
+			'publishio/render-pattern',
 			[
-				'label'               => __( 'Render Pattern to HTML (App Only)', 'publish-with-ai' ),
+				'label'               => __( 'Render Pattern to HTML (App Only)', 'publishio' ),
 				'category'            => Patterns_Category::SLUG,
-				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'publish-with-ai' ),
+				'description'         => __( 'Applies a filled content schema to a pattern and renders it to HTML. Called by the Pattern Approval MCP App to generate the preview.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'pattern_name', 'schema' ],
@@ -64,7 +64,7 @@ class Render_Pattern {
 						],
 					],
 				],
-				'permission_callback' => static fn () => current_user_can( 'edit_posts' ),
+				'permission_callback' => static fn () => current_user_can( 'edit_pages' ),
 				'execute_callback'    => static function ( array $input ): array|\WP_Error {
 					$pattern_name = sanitize_text_field( $input['pattern_name'] ?? '' );
 					$schema       = $input['schema'] ?? [];
@@ -75,7 +75,7 @@ class Render_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publishio' ),
 								$pattern_name
 							)
 						);
@@ -84,11 +84,10 @@ class Render_Pattern {
 					$pattern = $registry->get_registered( $pattern_name );
 					$markup  = Pattern_Schema::apply( $pattern['content'] ?? '', $schema );
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publish-with-ai' ) );
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publishio' ) );
 					}
 
-					// Ensure core block styles handle is registered before rendering.
-					wp_enqueue_style( 'wp-block-library' );
+					show_admin_bar( false ); // phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 
 					$html = do_blocks( $markup ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 

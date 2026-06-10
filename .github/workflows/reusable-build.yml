@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
@@ -52,7 +52,7 @@ jobs:
       - name: Generate Translation files
         run: |
           curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-          php wp-cli.phar i18n make-pot . ./languages/publish-with-ai.pot --domain=publish-with-ai --include="*.php,inc,framework,src,templates" --exclude="assets,build,build-apps,node_modules,tests,vendor"
+          php wp-cli.phar i18n make-pot . ./languages/publishio.pot --domain=publishio --include="*.php,inc,framework,src,templates" --exclude="assets,build,build-apps,node_modules,tests,vendor"
 
       - name: Create plugin zip
         run: npm run plugin-zip
@@ -61,5 +61,5 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.artifact-name }}
-          path: publish-with-ai.zip
+          path: publishio.zip
           if-no-files-found: error

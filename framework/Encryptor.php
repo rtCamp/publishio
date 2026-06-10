@@ -4,12 +4,12 @@
  *
  * Useful for encrypting sensitive data before storing it in the database, with a fallback to return raw values if OpenSSL is unavailable.
  *
- * @package rtCamp\Publish_With_AI\Framework
+ * @package rtCamp\Publishio\Framework
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework;
+namespace rtCamp\Publishio\Framework;
 
 /**
  * Class - Encryptor
@@ -110,13 +110,13 @@ final class Encryptor {
 	/**
 	 * Gets the encryption key.
 	 *
-	 * Uses PUBLISH_WITH_AI_ENCRYPTION_KEY if defined, otherwise falls back to LOGGED_IN_KEY.
+	 * Uses PUBLISHIO_ENCRYPTION_KEY if defined, otherwise falls back to LOGGED_IN_KEY.
 	 *
 	 * @throws \RuntimeException If no valid encryption key is configured.
 	 */
 	private static function get_key(): string {
-		if ( defined( 'PUBLISH_WITH_AI_ENCRYPTION_KEY' ) && '' !== PUBLISH_WITH_AI_ENCRYPTION_KEY ) {
-			return hash( 'sha256', PUBLISH_WITH_AI_ENCRYPTION_KEY, true );
+		if ( defined( 'PUBLISHIO_ENCRYPTION_KEY' ) && '' !== PUBLISHIO_ENCRYPTION_KEY ) {
+			return hash( 'sha256', PUBLISHIO_ENCRYPTION_KEY, true );
 		}
 
 		if ( defined( 'LOGGED_IN_KEY' ) && '' !== LOGGED_IN_KEY ) {
@@ -124,10 +124,10 @@ final class Encryptor {
 		}
 
 		// No encryption key configured. Fail hard instead of silently using an insecure fallback.
-		// Define PUBLISH_WITH_AI_ENCRYPTION_KEY in wp-config.php with a cryptographically secure value.
+		// Define PUBLISHIO_ENCRYPTION_KEY in wp-config.php with a cryptographically secure value.
 		// WordPress core's LOGGED_IN_KEY is an acceptable fallback for sites that have it set.
 		throw new \RuntimeException(
-			'Publish With AI: No encryption key configured. Define PUBLISH_WITH_AI_ENCRYPTION_KEY in wp-config.php.'
+			'Publishio: No encryption key configured. Define PUBLISHIO_ENCRYPTION_KEY in wp-config.php.'
 		);
 	}
 }

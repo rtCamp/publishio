@@ -2,12 +2,12 @@
 /**
  * Trait for WordPress asset loading.
  *
- * @package rtCamp\Publish_With_AI
+ * @package rtCamp\Publishio
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework;
+namespace rtCamp\Publishio\Framework;
 
 /**
  * Trait - AssetLoaderTrait
@@ -46,7 +46,7 @@ trait AssetLoaderTrait {
 		if ( ! file_exists( $manifest_path ) ) {
 			_doing_it_wrong(
 				self::class,
-				esc_html__( 'Block manifest file is missing. Blocks will not be registered.', 'publish-with-ai' ),
+				esc_html__( 'Block manifest file is missing. Blocks will not be registered.', 'publishio' ),
 				'0.0.1'
 			);
 			return;
@@ -137,7 +137,7 @@ trait AssetLoaderTrait {
 				self::class,
 				sprintf(
 					/* translators: %s: The asset filename. */
-					esc_html__( 'Asset file for "%s" is missing. The script will not be registered.', 'publish-with-ai' ),
+					esc_html__( 'Asset file for "%s" is missing. The script will not be registered.', 'publishio' ),
 					esc_html( $filename )
 				),
 				'0.0.1'
@@ -153,7 +153,7 @@ trait AssetLoaderTrait {
 				self::class,
 				sprintf(
 					/* translators: %s: The asset filename. */
-					esc_html__( 'Asset file for "%s" is invalid. The script will not be registered.', 'publish-with-ai' ),
+					esc_html__( 'Asset file for "%s" is invalid. The script will not be registered.', 'publishio' ),
 					esc_html( $filename )
 				),
 				'0.0.1'

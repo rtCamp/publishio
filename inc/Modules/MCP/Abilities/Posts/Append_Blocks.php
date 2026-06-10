@@ -2,12 +2,12 @@
 /**
  * Append Blocks ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Append_Blocks
@@ -18,11 +18,11 @@ class Append_Blocks {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/append-blocks',
+			'publishio/append-blocks',
 			[
-				'label'               => __( 'Append Blocks to Post', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Appends raw block markup at the bottom of a post. Only works for posts (not pages).', 'publish-with-ai' ),
+				'label'               => __( 'Append Blocks to Post', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Appends raw block markup at the bottom of a post. Only works for posts (not pages).', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'markup' ],
@@ -58,21 +58,21 @@ class Append_Blocks {
 					$post    = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					if ( 'page' === $post->post_type ) {
-						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use append-pattern instead.', 'publish-with-ai' ) );
+						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use append-pattern instead.', 'publishio' ) );
 					}
 
 					$markup = trim( $input['markup'] ?? '' );
 
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'missing_markup', __( 'Block markup is required.', 'publish-with-ai' ) );
+						return new \WP_Error( 'missing_markup', __( 'Block markup is required.', 'publishio' ) );
 					}
 
 					$new_content  = $post->post_content;

@@ -2,20 +2,20 @@
 /**
  * Configuration constants for the OAuth module.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth
+ * @package rtCamp\Publishio\Modules\MCP\OAuth
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth;
+namespace rtCamp\Publishio\Modules\MCP\OAuth;
 
 /**
  * Class - Config
  */
 class Config {
 	public const MCP_ROUTE_NAMESPACE  = 'mcp';
-	public const MCP_ROUTE            = 'publish-with-ai';
-	public const OAUTH_REST_NAMESPACE = 'pwai-oauth/v1';
+	public const MCP_ROUTE            = 'publishio';
+	public const OAUTH_REST_NAMESPACE = 'publishio-oauth/v1';
 	public const ACCESS_TOKEN_TTL     = 3600;
 	public const REFRESH_TOKEN_TTL    = 2592000;
 	public const AUTH_CODE_TTL        = 120;
@@ -62,23 +62,13 @@ class Config {
 	}
 
 	/**
-	 * Get all registered MCP endpoint paths.
+	 * Get the canonical resource claim (audience) for the MCP endpoint.
 	 *
-	 * @return string[]
+	 * This is the untrailingslashed resource URL used as the OAuth resource
+	 * identifier (RFC 8707) for token audience validation and discovery.
 	 */
-	public static function get_all_mcp_endpoint_paths(): array {
-		if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
-			return [ self::get_mcp_endpoint_path() ];
-		}
-
-		$adapter = \WP\MCP\Core\McpAdapter::instance();
-		$paths   = [];
-
-		foreach ( $adapter->get_servers() as $server ) {
-			$paths[] = $server->get_server_route_namespace() . '/' . $server->get_server_route();
-		}
-
-		return ! empty( $paths ) ? $paths : [ self::get_mcp_endpoint_path() ];
+	public static function get_mcp_resource_claim(): string {
+		return untrailingslashit( rest_url( self::get_mcp_endpoint_path() ) );
 	}
 
 	/**
@@ -108,13 +98,13 @@ class Config {
 	 * Get the access token TTL, allowing filter overrides.
 	 */
 	public static function get_access_token_ttl(): int {
-		return (int) apply_filters( 'publish_with_ai_access_token_ttl', self::ACCESS_TOKEN_TTL );
+		return (int) apply_filters( 'publishio_access_token_ttl', self::ACCESS_TOKEN_TTL );
 	}
 
 	/**
 	 * Get the refresh token TTL, allowing filter overrides.
 	 */
 	public static function get_refresh_token_ttl(): int {
-		return (int) apply_filters( 'publish_with_ai_refresh_token_ttl', self::REFRESH_TOKEN_TTL );
+		return (int) apply_filters( 'publishio_refresh_token_ttl', self::REFRESH_TOKEN_TTL );
 	}
 }

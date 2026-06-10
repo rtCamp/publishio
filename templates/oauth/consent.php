@@ -20,7 +20,7 @@
  *   $server_name        string       MCP server display name.
  *   $server_description string       MCP server description (empty string if none).
  *
- * @package rtCamp\Publish_With_AI
+ * @package rtCamp\Publishio
  */
 
 declare( strict_types = 1 );
@@ -63,14 +63,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<img src="<?php echo esc_url( $logo_uri ); ?>" alt="<?php echo esc_attr( $client_name ); ?>" style="height:48px;max-width:120px;width:auto;object-fit:contain;" />
 			</div>
 			<?php endif; ?>
-			<h1><?php esc_html_e( 'Authorize Application', 'publish-with-ai' ); ?></h1>
+			<h1><?php esc_html_e( 'Authorize Application', 'publishio' ); ?></h1>
 			<p class="subtitle">
 				<?php if ( ! empty( $client_uri ) ) : ?>
 					<strong><a href="<?php echo esc_url( $client_uri ); ?>" class="client-link" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $client_name ); ?></a></strong>
 				<?php else : ?>
 					<strong><?php echo esc_html( $client_name ); ?></strong>
 				<?php endif; ?>
-				<?php esc_html_e( 'is requesting access to', 'publish-with-ai' ); ?>
+				<?php esc_html_e( 'is requesting access to', 'publishio' ); ?>
 				<a href="<?php echo esc_url( $site_url ); ?>" class="site-link" target="_blank" rel="noopener">
 					<?php echo esc_html( $site_name ); ?>
 				</a>
@@ -78,7 +78,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div class="consent-body">
 			<div class="section">
-				<div class="section-label"><?php esc_html_e( 'Signed in as', 'publish-with-ai' ); ?></div>
+				<div class="section-label"><?php esc_html_e( 'Signed in as', 'publishio' ); ?></div>
 				<div class="user-info">
 					<div class="user-avatar" aria-hidden="true">
 						<?php echo get_avatar( $user_email, 36, '', esc_attr( $display_name ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -91,7 +91,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 			<?php if ( ! empty( $resource_url ) ) : ?>
 			<div class="section">
-				<div class="section-label"><?php esc_html_e( 'MCP Server', 'publish-with-ai' ); ?></div>
+				<div class="section-label"><?php esc_html_e( 'MCP Server', 'publishio' ); ?></div>
 				<div class="server-info">
 					<div class="server-icon" aria-hidden="true">
 						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -109,39 +109,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 			<?php endif; ?>
 			<div class="section">
-				<div class="section-label"><?php esc_html_e( 'Permissions', 'publish-with-ai' ); ?></div>
+				<div class="section-label"><?php esc_html_e( 'Permissions', 'publishio' ); ?></div>
 				<p class="scope-note">
 					<?php
 					// translators: %s: client application name wrapped in <strong>.
-					printf( esc_html__( '%s will have access based on your WordPress role and capabilities.', 'publish-with-ai' ), '<strong>' . esc_html( $client_name ) . '</strong>' );
+					printf( esc_html__( '%s will have access based on your WordPress role and capabilities.', 'publishio' ), '<strong>' . esc_html( $client_name ) . '</strong>' );
 					?>
 				</p>
 			</div>
 		</div>
 		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="consent-footer">
 			<?php echo $hidden_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<?php wp_nonce_field( 'pwai_oauth_consent', '_wpnonce', false ); ?>
+			<?php wp_nonce_field( 'publishio_oauth_consent', '_wpnonce', false ); ?>
 			<div class="buttons">
 				<button type="submit" name="consent" value="deny" class="btn btn-deny">
-					<?php esc_html_e( 'Deny', 'publish-with-ai' ); ?>
+					<?php esc_html_e( 'Deny', 'publishio' ); ?>
 				</button>
 				<button type="submit" name="consent" value="approve" class="btn btn-allow">
-					<?php esc_html_e( 'Allow Access', 'publish-with-ai' ); ?>
+					<?php esc_html_e( 'Allow Access', 'publishio' ); ?>
 				</button>
 			</div>
 			<p class="footer-note">
-				<?php esc_html_e( 'You can revoke access from your WordPress profile page.', 'publish-with-ai' ); ?>
+				<?php esc_html_e( 'You can revoke access from your WordPress profile page.', 'publishio' ); ?>
 			</p>
 			<?php if ( ! empty( $tos_uri ) || ! empty( $policy_uri ) ) : ?>
 			<p class="footer-legal">
 				<?php if ( ! empty( $tos_uri ) ) : ?>
-					<a href="<?php echo esc_url( $tos_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Terms of Service', 'publish-with-ai' ); ?></a>
+					<a href="<?php echo esc_url( $tos_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Terms of Service', 'publishio' ); ?></a>
 				<?php endif; ?>
 				<?php if ( ! empty( $tos_uri ) && ! empty( $policy_uri ) ) : ?>
 					<span aria-hidden="true"> · </span>
 				<?php endif; ?>
 				<?php if ( ! empty( $policy_uri ) ) : ?>
-					<a href="<?php echo esc_url( $policy_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Privacy Policy', 'publish-with-ai' ); ?></a>
+					<a href="<?php echo esc_url( $policy_uri ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Privacy Policy', 'publishio' ); ?></a>
 				<?php endif; ?>
 			</p>
 			<?php endif; ?>

@@ -1,16 +1,20 @@
-# Publish With AI - Publish pages directly from AI assistants
+# Publishio – Build & Publish Pages & Posts with AI Using Your Own Block Patterns
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
 [![WordPress](https://img.shields.io/badge/WordPress-7.0-blue?logo=wordpress)](https://wordpress.org)<br>
-[![CI](https://github.com/rtCamp/publish-with-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publish-with-ai/actions/workflows/ci.yml)
-[![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publish-with-ai/latest)](https://github.com/rtCamp/publish-with-ai/releases)
+[![CI](https://github.com/rtCamp/publishio/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publishio/actions/workflows/ci.yml)
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publishio/latest)](https://github.com/rtCamp/publishio/releases)
 
 ---
 
-Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant. This plugin auto-discovers your site's patterns, allowing AI platforms like Claude and ChatGPT to build structured content using the Block Editor.
+**Publishio** connects any AI assistant — ChatGPT, Claude, or any tool that supports the Model Context Protocol (MCP) — directly to your WordPress site, so you can create and publish pages and posts just by chatting.
 
-[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publish-with-ai/releases/latest/download/publish-with-ai.zip)
+Publishio is not an AI itself. It is the bridge between the AI you already use and your WordPress site. The key difference from generic AI content tools is that Publishio builds everything from _your site's own block patterns_ — the patterns your designers already created. Your layout, spacing, colours, and brand stay exactly as intended, because the AI assembles pages from your approved building blocks rather than inventing new markup.
+
+That means editors and content teams can spin up landing pages, blog posts, and campaign pages in minutes, in plain language, without touching the designer's work and without breaking the design system.
+
+[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip)
 
 ## ✨ Features
 
@@ -23,7 +27,7 @@ Build WordPress pages and posts using your existing patterns directly from your 
 
 ## 🧠 AI Skill
 
-[<img src="https://img.shields.io/badge/Download-Skill-blue?style=for-the-badge&logo=markdown" alt="Download Skill" height="40">](https://raw.githubusercontent.com/rtCamp/publish-with-ai/main/skills/rt-publish-with-ai/SKILL.md)
+[<img src="https://img.shields.io/badge/Download-Skill-blue?style=for-the-badge&logo=markdown" alt="Download Skill" height="40">](https://raw.githubusercontent.com/rtCamp/publishio/main/skills/publishio/SKILL.md)
 
 This plugin includes a skill file that teaches AI assistants how to generate WordPress content correctly — using your site's existing patterns, building pages incrementally, and following your design system rather than inventing markup.
 

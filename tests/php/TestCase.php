@@ -2,12 +2,12 @@
 /**
  * Provide a base class for all unit tests by extending WP_UnitTestCase.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests;
+namespace rtCamp\Publishio\Tests;
 
 use WP_UnitTestCase;
 

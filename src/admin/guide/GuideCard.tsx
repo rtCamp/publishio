@@ -15,7 +15,7 @@ interface GuideCardProps {
 }
 
 export function GuideCard( { guide, onClick }: GuideCardProps ) {
-	const logoUrl = window.rtPublishWithAIAdmin?.appLogos?.[ guide.app ];
+	const logoUrl = window.rtPublishioAdmin?.appLogos?.[ guide.app ];
 
 	return (
 		<Card>
@@ -41,7 +41,7 @@ export function GuideCard( { guide, onClick }: GuideCardProps ) {
 					onClick={ () => onClick( guide ) }
 					className="shrink-0"
 				>
-					{ __( 'Open Guide →', 'publish-with-ai' ) }
+					{ __( 'Open Guide →', 'publishio' ) }
 				</Button>
 			</CardBody>
 		</Card>

@@ -2,6 +2,7 @@ version: 2
 updates:
   # Update all GitHub Actions together. If CI passes, you know it's working.
   - package-ecosystem: github-actions
+    target-branch: develop
     directory: '/'
     schedule:
       interval: weekly
@@ -15,6 +16,7 @@ updates:
         patterns: ['*']
 
   - package-ecosystem: composer
+    target-branch: develop
     directory: '/'
     schedule:
       interval: weekly
@@ -39,6 +41,7 @@ updates:
         update-types: [patch]
 
   - package-ecosystem: npm
+    target-branch: develop
     directory: '/'
     schedule:
       interval: weekly

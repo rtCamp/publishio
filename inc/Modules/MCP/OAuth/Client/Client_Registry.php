@@ -2,14 +2,14 @@
 /**
  * Manages OAuth client lookups for clients registered via the /register endpoint.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Client
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Client;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Client;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
 
 /**
  * Class - Client_Registry

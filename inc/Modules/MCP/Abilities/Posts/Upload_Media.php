@@ -2,12 +2,12 @@
 /**
  * Upload Media ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Upload_Media
@@ -18,11 +18,11 @@ class Upload_Media {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/upload-media',
+			'publishio/upload-media',
 			[
-				'label'               => __( 'Upload Media', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Uploads an image to the media library from a URL. Returns the attachment ID and URL.', 'publish-with-ai' ),
+				'label'               => __( 'Upload Media', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Uploads an image to the media library from a URL. Returns the attachment ID and URL.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'url', 'filename', 'title', 'alt', 'caption', 'description' ],
@@ -88,7 +88,18 @@ class Upload_Media {
 					$filename    = sanitize_file_name( $input['filename'] ?? '' );
 
 					if ( empty( $url ) ) {
-						return new \WP_Error( 'missing_source', __( 'A url is required.', 'publish-with-ai' ) );
+						return new \WP_Error( 'missing_source', __( 'A url is required.', 'publishio' ) );
+					}
+
+					// If attaching to a parent post, ensure the user can edit it.
+					if ( $post_id > 0 ) {
+						if ( ! get_post( $post_id ) ) {
+							return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
+						}
+
+						if ( ! current_user_can( 'edit_post', $post_id ) ) {
+							return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+						}
 					}
 
 					// Load required admin files.
@@ -127,7 +138,7 @@ class Upload_Media {
 	 */
 	private static function upload_from_url( string $url, int $post_id, string $title, string $alt, string $caption, string $description, string $filename ): array|\WP_Error {
 		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || esc_url_raw( $url ) !== $url ) {
-			return new \WP_Error( 'invalid_url', __( 'Invalid URL provided.', 'publish-with-ai' ) );
+			return new \WP_Error( 'invalid_url', __( 'Invalid URL provided.', 'publishio' ) );
 		}
 
 		$attachment_id = self::sideload_by_content( $url, $post_id, $title, $filename );
@@ -168,7 +179,7 @@ class Upload_Media {
 
 		if ( ! $image_type || ! isset( $allowed[ $image_type ] ) ) {
 			wp_delete_file( $tmp_file );
-			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'publish-with-ai' ) );
+			return new \WP_Error( 'invalid_image_type', __( 'The URL did not point to a supported image type.', 'publishio' ) );
 		}
 
 		$file_array = [

@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
@@ -143,30 +143,26 @@ jobs:
     with:
       coverage: true
 
-  # phpunit:
-  #   name: PHPUnit (PHP ${{ matrix.php }}, WP ${{ matrix.wp }})
-  #   needs: [detect, build-plugin-zip]
-  #   if: needs.detect.outputs.php == 'true' || needs.detect.outputs.phpunit == 'true'
-  #   # uses: ./.github/workflows/reusable-phpunit-public.yml
-  #   uses: ./.github/workflows/reusable-phpunit.yml
-  #   permissions:
-  #     contents: read
-  #   strategy:
-  #     fail-fast: false
-  #     # Uncomment this on private runners, which can't run multiple wp-env instances in parallel.
-  #     max-parallel: 1
-  #     matrix:
-  #       php: ['8.4', '8.3', '8.2']
-  #       wp: ['latest']
-  #       include:
-  #         - php: '8.4'
-  #           wp: 'latest'
-  #           coverage: true
-  #   with:
-  #     php-version: ${{ matrix.php }}
-  #     wp-version: ${{ matrix.wp }}
-  #     coverage: ${{ matrix.coverage == true }}
-  #   secrets: inherit
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php }}, WP ${{ matrix.wp }})
+    needs: [detect, build-plugin-zip]
+    if: needs.detect.outputs.php == 'true' || needs.detect.outputs.phpunit == 'true'
+    uses: ./.github/workflows/reusable-phpunit.yml
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        php: ['8.4', '8.3', '8.2']
+        wp: ['latest']
+        include:
+          - php: '8.4'
+            wp: 'latest'
+            coverage: true
+    with:
+      php-version: ${{ matrix.php }}
+      wp-version: ${{ matrix.wp }}
+      coverage: ${{ matrix.coverage == true }}
+    secrets: inherit
 
   # e2e:
   #   name: E2E Tests
@@ -188,7 +184,7 @@ jobs:
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
-      artifact-name: publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+      artifact-name: publishio-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
     secrets: inherit
 
   playground-preview:
@@ -203,5 +199,5 @@ jobs:
       pull-requests: write
     with:
       run-id: ${{ github.run_id }}
-      artifact-prefix: 'publish-with-ai-pr'
-      artifact-filename: 'publish-with-ai.zip'
+      artifact-prefix: 'publishio-pr'
+      artifact-filename: 'publishio.zip'

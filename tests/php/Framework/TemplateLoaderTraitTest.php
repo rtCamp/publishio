@@ -2,16 +2,16 @@
 /**
  * Unit tests for TemplateLoaderTrait.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Framework;
+namespace rtCamp\Publishio\Tests\Framework;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Framework\TemplateLoaderTrait;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Framework\TemplateLoaderTrait;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Test double for our trait.
@@ -109,7 +109,7 @@ final class TemplateLoaderTraitTestDouble {
 /**
  * Class - TemplateLoaderTraitTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Framework\TemplateLoaderTrait::class )]
+#[CoversClass( \rtCamp\Publishio\Framework\TemplateLoaderTrait::class )]
 class TemplateLoaderTraitTest extends TestCase {
 	/**
 	 * Test double instance.

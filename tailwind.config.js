@@ -1,3 +1,3 @@
 module.exports = {
-	important: '.pwai-tailwind',
+	important: '.publishio-tailwind',
 };

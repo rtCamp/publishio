@@ -5,18 +5,18 @@
  * Clients registered via the /register endpoint are stored here.
  * Supports multiple clients and distinguishes public (PKCE-only) from confidential ones.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Storage
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Storage;
 
 /**
  * Class - Client_Store
  */
 class Client_Store {
-	private const TABLE_SUFFIX = 'pwai_oauth_clients';
+	private const TABLE_SUFFIX = 'publishio_oauth_clients';
 	public const PAGE_SIZE     = 10;
 
 	/**
@@ -103,7 +103,7 @@ class Client_Store {
 
 		if ( false === $result ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'publish-with-ai: Client_Store::register() DB insert failed — ' . $wpdb->last_error );
+			error_log( 'publishio: Client_Store::register() DB insert failed — ' . $wpdb->last_error );
 			return null;
 		}
 

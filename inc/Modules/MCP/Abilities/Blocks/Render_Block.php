@@ -2,12 +2,12 @@
 /**
  * Render Block ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Blocks
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Blocks
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Blocks;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Blocks;
 
 /**
  * Class - Render_Block
@@ -18,11 +18,11 @@ class Render_Block {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/render-block',
+			'publishio/render-block',
 			[
-				'label'               => __( 'Render Block Markup', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Blocks::SLUG,
-				'description'         => __( 'Renders block markup to see what it outputs and validates whether the block markup is valid or not.', 'publish-with-ai' ),
+				'label'               => __( 'Render Block Markup', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Blocks::SLUG,
+				'description'         => __( 'Renders block markup to see what it outputs and validates whether the block markup is valid or not.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'markup' ],
@@ -63,7 +63,7 @@ class Render_Block {
 						return [
 							'html'     => '',
 							'is_valid' => false,
-							'errors'   => [ __( 'Block markup is required.', 'publish-with-ai' ) ],
+							'errors'   => [ __( 'Block markup is required.', 'publishio' ) ],
 						];
 					}
 
@@ -73,7 +73,7 @@ class Render_Block {
 						return [
 							'html'     => '',
 							'is_valid' => false,
-							'errors'   => [ __( 'Could not parse any blocks from the provided markup.', 'publish-with-ai' ) ],
+							'errors'   => [ __( 'Could not parse any blocks from the provided markup.', 'publishio' ) ],
 						];
 					}
 
@@ -91,7 +91,7 @@ class Render_Block {
 							if ( ! $registry->is_registered( $block['blockName'] ) ) {
 								$errors[] = sprintf(
 									/* translators: %s: block name */
-									__( 'Block type "%s" is not registered.', 'publish-with-ai' ),
+									__( 'Block type "%s" is not registered.', 'publishio' ),
 									$block['blockName']
 								);
 							}

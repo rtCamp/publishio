@@ -8,12 +8,12 @@
  *
  * Menu_Loader calls these methods at the right WordPress hooks.
  *
- * @package rtCamp\Publish_With_AI\Framework\Contracts\Abstracts
+ * @package rtCamp\Publishio\Framework\Contracts\Abstracts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Framework\Contracts\Abstracts;
+namespace rtCamp\Publishio\Framework\Contracts\Abstracts;
 
 /**
  * Class - Abstract_Admin_Page

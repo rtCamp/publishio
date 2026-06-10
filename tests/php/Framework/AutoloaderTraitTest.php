@@ -2,16 +2,16 @@
 /**
  * Unit tests for AutoloaderTrait.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Framework;
+namespace rtCamp\Publishio\Tests\Framework;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Framework\AutoloaderTrait;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Framework\AutoloaderTrait;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Test double for our trait.
@@ -44,7 +44,7 @@ final class AutoloaderTraitTestDouble {
 /**
  * Class - AutoloaderTraitTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Framework\AutoloaderTrait::class )]
+#[CoversClass( \rtCamp\Publishio\Framework\AutoloaderTrait::class )]
 class AutoloaderTraitTest extends TestCase {
 	/**
 	 * {@inheritDoc}

@@ -2,12 +2,12 @@
 /**
  * Get Patterns ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Patterns;
 
 /**
  * Class - Get_Patterns
@@ -18,11 +18,11 @@ class Get_Patterns {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/get-patterns',
+			'publishio/get-patterns',
 			[
-				'label'               => __( 'Get All Patterns', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Patterns::SLUG,
-				'description'         => __( 'Returns a list of all registered block patterns with metadata. Pattern content is excluded.', 'publish-with-ai' ),
+				'label'               => __( 'Get All Patterns', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Patterns::SLUG,
+				'description'         => __( 'Returns a list of all registered block patterns with metadata. Pattern content is excluded.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [

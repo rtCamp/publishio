@@ -2,17 +2,17 @@
 /**
  * Access and refresh token storage using a custom database table.
  *
- * Tokens are stored in {prefix}pwai_oauth_tokens and looked up by
+ * Tokens are stored in {prefix}publishio_oauth_tokens and looked up by
  * hash for fast, indexed access.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage
+ * @package rtCamp\Publishio\Modules\MCP\OAuth\Storage
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage;
+namespace rtCamp\Publishio\Modules\MCP\OAuth\Storage;
 
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 
 /**
  * Class - Token_Store
@@ -23,7 +23,7 @@ class Token_Store {
 	 */
 	private static function table_name(): string {
 		global $wpdb;
-		return $wpdb->prefix . 'pwai_oauth_tokens';
+		return $wpdb->prefix . 'publishio_oauth_tokens';
 	}
 
 	/**
@@ -95,7 +95,7 @@ class Token_Store {
 
 		if ( false === $inserted ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'publish-with-ai: Token_Store::issue() DB insert failed — ' . $wpdb->last_error );
+			error_log( 'publishio: Token_Store::issue() DB insert failed — ' . $wpdb->last_error );
 			return null;
 		}
 
@@ -249,7 +249,7 @@ class Token_Store {
 		global $wpdb;
 
 		$tokens_table  = self::table_name();
-		$clients_table = $wpdb->prefix . 'pwai_oauth_clients';
+		$clients_table = $wpdb->prefix . 'publishio_oauth_clients';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
@@ -281,7 +281,7 @@ class Token_Store {
 		global $wpdb;
 
 		$tokens_table  = self::table_name();
-		$clients_table = $wpdb->prefix . 'pwai_oauth_clients';
+		$clients_table = $wpdb->prefix . 'publishio_oauth_clients';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(

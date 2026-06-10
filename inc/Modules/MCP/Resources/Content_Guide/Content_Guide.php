@@ -2,12 +2,12 @@
 /**
  * Content Guide resource — rules and workflows for generating WordPress content.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Resources\Content_Guide
+ * @package rtCamp\Publishio\Modules\MCP\Resources\Content_Guide
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Resources\Content_Guide;
+namespace rtCamp\Publishio\Modules\MCP\Resources\Content_Guide;
 
 use WP\MCP\Domain\Resources\McpResource;
 
@@ -24,13 +24,13 @@ class Content_Guide {
 	public function add_resource( array $config ): array {
 		$resource = McpResource::fromArray(
 			[
-				'uri'         => 'wordpress://pwai/content-generation-guide',
-				'name'        => 'pwai/content-generation-guide',
+				'uri'         => 'wordpress://publishio/content-generation-guide',
+				'name'        => 'publishio/content-generation-guide',
 				'title'       => 'WordPress Content Generation Guide',
 				'description' => 'Rules and workflows for generating WordPress content using patterns and incremental assembly. Read this before creating any post or page.',
 				'mimeType'    => 'text/markdown',
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-				'handler'     => static fn () => file_get_contents( PUBLISH_WITH_AI_PATH . 'skills/rt-publish-with-ai/SKILL.md' ),
+				'handler'     => static fn () => file_get_contents( PUBLISHIO_PATH . 'skills/publishio/SKILL.md' ),
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),
 			]
 		);

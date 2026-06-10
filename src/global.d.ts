@@ -2,11 +2,11 @@ declare module '*.scss';
 declare module '*.css';
 
 interface Window {
-	__pwai?: {
+	__publishio?: {
 		siteUrl: string;
 		siteName: string;
 	};
-	rtPublishWithAIAdmin?: {
+	rtPublishioAdmin?: {
 		pluginVersion: string;
 		logoUrl: string;
 		appLogos: Record< string, string >;

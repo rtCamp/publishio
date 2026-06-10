@@ -5,7 +5,7 @@
  * Available variables (injected by the calling execute_callback before require):
  *
  * @var string $html Rendered block HTML from do_blocks().
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
 declare(strict_types = 1);
@@ -35,8 +35,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			margin: 0 !important;
 			padding: 0 !important;
 		}
-
-		<?php printf( '%s { display: none !important; }', '#wpadminbar' ); ?>
 	</style>
 </head>
 

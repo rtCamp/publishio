@@ -7,20 +7,20 @@
  * sessions here. Clients are never deleted — only their tokens are revoked.
  *
  * Routes (all require manage_options):
- *   GET    /wp-json/pwai/v1/connections
- *   DELETE /wp-json/pwai/v1/connections/{client_id}/users/{user_id}
+ *   GET    /wp-json/publishio/v1/connections
+ *   DELETE /wp-json/publishio/v1/connections/{client_id}/users/{user_id}
  *
- * @package rtCamp\Publish_With_AI\Modules\Settings\Connections
+ * @package rtCamp\Publishio\Modules\Settings\Connections
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\Settings\Connections;
+namespace rtCamp\Publishio\Modules\Settings\Connections;
 
 use WP_REST_Response;
-use rtCamp\Publish_With_AI\Framework\Contracts\Abstracts\Abstract_REST_Controller;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Client_Store;
-use rtCamp\Publish_With_AI\Modules\MCP\OAuth\Storage\Token_Store;
+use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - REST_Controller
@@ -176,13 +176,13 @@ class REST_Controller extends Abstract_REST_Controller {
 		$user_id   = (int) $request->get_param( 'user_id' );
 
 		if ( null === Client_Store::get_by_client_id( $client_id ) ) {
-			return new \WP_Error( 'not_found', __( 'Connection not found.', 'publish-with-ai' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'not_found', __( 'Connection not found.', 'publishio' ), [ 'status' => 404 ] );
 		}
 
 		$tokens_deleted = Token_Store::revoke_for_client( $user_id, $client_id );
 
 		if ( false === $tokens_deleted ) {
-			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'publish-with-ai' ), [ 'status' => 500 ] );
+			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'publishio' ), [ 'status' => 500 ] );
 		}
 
 		return new WP_REST_Response( [ 'tokens_deleted' => $tokens_deleted ], 200 );

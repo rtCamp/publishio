@@ -2,12 +2,12 @@
 /**
  * Abstract base for MCP App resources (SEP-1865).
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Apps
+ * @package rtCamp\Publishio\Modules\MCP\Apps
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Apps;
+namespace rtCamp\Publishio\Modules\MCP\Apps;
 
 use WP\MCP\Domain\Resources\McpResource;
 

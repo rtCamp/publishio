@@ -2,21 +2,21 @@
 /**
  * Unit tests for Assets.
  *
- * @package rtCamp\Publish_With_AI\Tests\Unit\Core
+ * @package rtCamp\Publishio\Tests\Unit\Core
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Unit\Core;
+namespace rtCamp\Publishio\Tests\Unit\Core;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Core\Assets;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Core\Assets;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Class - AssetsTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Core\Assets::class )]
+#[CoversClass( \rtCamp\Publishio\Core\Assets::class )]
 class AssetsTest extends TestCase {
 	/**
 	 * Ensure no errors are thrown when the Assets class is instantiated.

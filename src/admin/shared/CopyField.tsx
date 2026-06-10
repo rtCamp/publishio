@@ -57,8 +57,8 @@ export function CopyField( {
 					icon={ revealed ? unseen : seen }
 					label={
 						revealed
-							? __( 'Hide', 'publish-with-ai' )
-							: __( 'Reveal', 'publish-with-ai' )
+							? __( 'Hide', 'publishio' )
+							: __( 'Reveal', 'publishio' )
 					}
 					onClick={ () => setRevealed( ( v ) => ! v ) }
 					size="compact"
@@ -69,8 +69,8 @@ export function CopyField( {
 				icon={ copied ? check : copy }
 				label={
 					copied
-						? __( 'Copied!', 'publish-with-ai' )
-						: _x( 'Copy', 'copy to clipboard', 'publish-with-ai' )
+						? __( 'Copied!', 'publishio' )
+						: _x( 'Copy', 'copy to clipboard', 'publishio' )
 				}
 				onClick={ handleCopy }
 				size="compact"

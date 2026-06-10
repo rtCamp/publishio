@@ -1,6 +1,6 @@
 @import "@wordpress/dataviews/build-style/style.css";
 
-.pwai-admin-page {
+.publishio-admin-page {
 
 	#wpcontent {
 		padding: 0;
@@ -13,11 +13,11 @@
 	}
 }
 
-.pwai-header-content {
+.publishio-header-content {
 	view-transition-name: admin-header-content;
 }
 
-.pwai-header-actions {
+.publishio-header-actions {
 	view-transition-name: admin-header-actions;
 }
 
@@ -28,7 +28,7 @@
 	mix-blend-mode: normal;
 }
 
-@keyframes pwai-slide-in {
+@keyframes publishio-slide-in {
 
 	from {
 		opacity: 0;
@@ -36,7 +36,7 @@
 	}
 }
 
-@keyframes pwai-slide-out {
+@keyframes publishio-slide-out {
 
 	to {
 		opacity: 0;
@@ -48,12 +48,12 @@
 
 	&::view-transition-old(admin-header-content),
 	&::view-transition-old(admin-header-actions) {
-		animation: 150ms ease-out both pwai-slide-out;
+		animation: 150ms ease-out both publishio-slide-out;
 	}
 
 	&::view-transition-new(admin-header-content),
 	&::view-transition-new(admin-header-actions) {
-		animation: 150ms ease-out both pwai-slide-in;
+		animation: 150ms ease-out both publishio-slide-in;
 	}
 }
 
@@ -61,11 +61,11 @@
 
 	&::view-transition-old(admin-header-content),
 	&::view-transition-old(admin-header-actions) {
-		animation: 150ms ease-out both pwai-slide-in reverse;
+		animation: 150ms ease-out both publishio-slide-in reverse;
 	}
 
 	&::view-transition-new(admin-header-content),
 	&::view-transition-new(admin-header-actions) {
-		animation: 150ms ease-out both pwai-slide-out reverse;
+		animation: 150ms ease-out both publishio-slide-out reverse;
 	}
 }

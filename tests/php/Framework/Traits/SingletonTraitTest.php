@@ -2,16 +2,16 @@
 /**
  * Unit tests for Singleton trait.
  *
- * @package rtCamp\Publish_With_AI\Tests\Framework\Traits
+ * @package rtCamp\Publishio\Tests\Framework\Traits
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Tests\Framework\Traits;
+namespace rtCamp\Publishio\Tests\Framework\Traits;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use rtCamp\Publish_With_AI\Framework\Contracts\Traits\Singleton;
-use rtCamp\Publish_With_AI\Tests\TestCase;
+use rtCamp\Publishio\Framework\Contracts\Traits\Singleton;
+use rtCamp\Publishio\Tests\TestCase;
 
 /**
  * Test double for our trait.
@@ -30,7 +30,7 @@ final class SingletonTraitTestDouble {
 /**
  * Class - SingletonTraitTest
  */
-#[CoversClass( \rtCamp\Publish_With_AI\Framework\Contracts\Traits\Singleton::class )]
+#[CoversClass( \rtCamp\Publishio\Framework\Contracts\Traits\Singleton::class )]
 class SingletonTraitTest extends TestCase {
 	/**
 	 * Tests that get_instance() returns the same instance each time.

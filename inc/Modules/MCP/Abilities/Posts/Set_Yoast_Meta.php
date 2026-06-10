@@ -2,12 +2,12 @@
 /**
  * Set Yoast SEO Meta ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Set_Yoast_Meta
@@ -18,11 +18,11 @@ class Set_Yoast_Meta {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/set-yoast-meta',
+			'publishio/set-yoast-meta',
 			[
-				'label'               => __( 'Set Yoast SEO Metadata', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Writes Yoast SEO metadata for a post. Only provided fields are updated — omitted fields are left unchanged. Returns an error if Yoast SEO is not active.', 'publish-with-ai' ),
+				'label'               => __( 'Set Yoast SEO Metadata', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Writes Yoast SEO metadata for a post. Only provided fields are updated — omitted fields are left unchanged. Returns an error if Yoast SEO is not active.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
@@ -100,16 +100,16 @@ class Set_Yoast_Meta {
 				},
 				'execute_callback'    => static function ( array $input ) {
 					if ( ! defined( 'WPSEO_VERSION' ) ) {
-						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publish-with-ai' ) );
+						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
 					if ( ! get_post( $post_id ) ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					$field_map = [

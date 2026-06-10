@@ -2,12 +2,12 @@
 /**
  * Delete Block At ability.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Posts
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Abilities\Posts;
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 /**
  * Class - Delete_Block_At
@@ -18,11 +18,11 @@ class Delete_Block_At {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/delete-block-at',
+			'publishio/delete-block-at',
 			[
-				'label'               => __( 'Delete Block at Position', 'publish-with-ai' ),
-				'category'            => \rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Deletes a top-level block at a specific position in a post or page.', 'publish-with-ai' ),
+				'label'               => __( 'Delete Block at Position', 'publishio' ),
+				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
+				'description'         => __( 'Deletes a top-level block at a specific position in a post or page.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'position' ],
@@ -64,11 +64,11 @@ class Delete_Block_At {
 					$post     = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					$blocks = array_values(
@@ -85,7 +85,7 @@ class Delete_Block_At {
 							'invalid_position',
 							sprintf(
 								// translators: 1: requested position, 2: maximum valid position.
-								__( 'Position %1$d is out of range (0–%2$d).', 'publish-with-ai' ),
+								__( 'Position %1$d is out of range (0–%2$d).', 'publishio' ),
 								$position,
 								count( $blocks ) - 1
 							)

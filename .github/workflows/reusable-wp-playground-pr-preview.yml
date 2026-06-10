@@ -8,15 +8,15 @@ on:
         required: true
         type: string
       artifact-prefix:
-        description: 'Prefix for the artifact name (e.g., publish-with-ai-pr)'
+        description: 'Prefix for the artifact name (e.g., publishio-pr)'
         required: false
         type: string
-        default: 'publish-with-ai-pr'
+        default: 'publishio-pr'
       artifact-filename:
         description: 'Filename of the zip inside the artifact'
         required: false
         type: string
-        default: 'publish-with-ai.zip'
+        default: 'publishio.zip'
       artifacts-to-keep:
         description: 'Number of artifacts to keep per PR'
         required: false
@@ -87,7 +87,7 @@ jobs:
           artifacts-to-keep: ${{ inputs.artifacts-to-keep }}
 
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           sparse-checkout: blueprint.json
           sparse-checkout-cone-mode: false
@@ -100,8 +100,8 @@ jobs:
             echo "::error::ARTIFACT_URL is required"
             exit 1
           fi
-          BLUEPRINT=$(jq --arg url "$ARTIFACT_URL" '(.steps[] | select(.step == "installPlugin") | .pluginData.url) = $url' blueprint.json)
-          echo "blueprint=$(echo $BLUEPRINT | jq -c .)" >> "$GITHUB_OUTPUT"
+          BLUEPRINT=$(jq --arg url "$ARTIFACT_URL" '.plugins = [$url]' blueprint.json)
+          echo "blueprint=$(jq -c . <<<"$BLUEPRINT")" >> "$GITHUB_OUTPUT"
         env:
           ARTIFACT_URL: ${{ steps.expose.outputs.artifact-url }}
 

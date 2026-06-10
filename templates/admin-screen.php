@@ -2,7 +2,7 @@
 /**
  * Template for the Admin screen.
  *
- * @package publish-with-ai
+ * @package publishio
  */
 
 declare(strict_types = 1);
@@ -13,4 +13,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<div id="pwai-admin-screen-root" class="pwai-tailwind"></div>
+<div id="publishio-admin-screen-root" class="publishio-tailwind"></div>

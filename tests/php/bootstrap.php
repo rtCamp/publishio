@@ -2,7 +2,7 @@
 /**
  * Bootstrap the PHPUnit tests.
  *
- * @package rtCamp\Publish_With_AI\Tests
+ * @package rtCamp\Publishio\Tests
  *
  * phpcs:disable WordPressVIPMinimum.Files.IncludingFile.UsingVariable
  * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals
@@ -38,7 +38,7 @@ tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
 		// Require ( to bypass require_once ).
-		require TESTS_REPO_ROOT_DIR . '/publish-with-ai.php';
+		require TESTS_REPO_ROOT_DIR . '/publishio.php';
 	}
 );
 

@@ -2,15 +2,15 @@
 /**
  * Insert Pattern ability — app-only, called after user approves in the MCP App.
  *
- * @package rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval
+ * @package rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publish_With_AI\Modules\MCP\Apps\Pattern_Approval;
+namespace rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval;
 
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Categories\Posts as Posts_Category;
-use rtCamp\Publish_With_AI\Modules\MCP\Abilities\Patterns\Pattern_Schema;
+use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts as Posts_Category;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Pattern_Schema;
 
 /**
  * Class - Insert_Pattern
@@ -25,11 +25,11 @@ class Insert_Pattern {
 	 */
 	public function register(): void {
 		wp_register_ability(
-			'pwai/insert-pattern-confirmed',
+			'publishio/insert-pattern-confirmed',
 			[
-				'label'               => __( 'Insert Approved Pattern (App Only)', 'publish-with-ai' ),
+				'label'               => __( 'Insert Approved Pattern (App Only)', 'publishio' ),
 				'category'            => Posts_Category::SLUG,
-				'description'         => __( 'Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails.', 'publish-with-ai' ),
+				'description'         => __( 'Inserts the pre-approved pattern into the page at the specified position. Returns an error if: the page does not exist, the post type is not page, the schema is empty, the pattern is not registered, the position is out of range, or the database update fails.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'required'             => [ 'page_id', 'position', 'pattern_name', 'schema' ],
@@ -86,18 +86,18 @@ class Insert_Pattern {
 
 					$post = get_post( $page_id );
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'publish-with-ai' ) );
+						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'publishio' ) );
 					}
 					if ( 'page' !== $post->post_type ) {
-						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'publish-with-ai' ) );
+						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $page_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'publish-with-ai' ) );
+						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this page.', 'publishio' ) );
 					}
 
 					if ( empty( $schema ) || ! is_array( $schema ) ) {
-						return new \WP_Error( 'missing_schema', __( 'A filled content schema is required.', 'publish-with-ai' ) );
+						return new \WP_Error( 'missing_schema', __( 'A filled content schema is required.', 'publishio' ) );
 					}
 
 					$registry = \WP_Block_Patterns_Registry::get_instance();
@@ -106,7 +106,7 @@ class Insert_Pattern {
 							'pattern_not_found',
 							sprintf(
 								/* translators: %s: pattern name */
-								__( 'No pattern found with name "%s".', 'publish-with-ai' ),
+								__( 'No pattern found with name "%s".', 'publishio' ),
 								$pattern_name
 							)
 						);
@@ -115,12 +115,12 @@ class Insert_Pattern {
 					$pattern = $registry->get_registered( $pattern_name );
 					$content = $pattern['content'] ?? '';
 					if ( empty( $content ) ) {
-						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'publish-with-ai' ) );
+						return new \WP_Error( 'empty_pattern', __( 'Pattern has no content.', 'publishio' ) );
 					}
 
 					$markup = Pattern_Schema::apply( $content, $schema );
 					if ( empty( $markup ) ) {
-						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publish-with-ai' ) );
+						return new \WP_Error( 'empty_markup', __( 'Pattern schema application resulted in empty markup.', 'publishio' ) );
 					}
 
 					$new_blocks = parse_blocks( $markup );
@@ -140,7 +140,7 @@ class Insert_Pattern {
 							'invalid_position',
 							sprintf(
 								/* translators: 1: requested position, 2: maximum valid position. */
-								__( 'Position %1$d is out of range (0–%2$d).', 'publish-with-ai' ),
+								__( 'Position %1$d is out of range (0–%2$d).', 'publishio' ),
 								$position,
 								count( $blocks )
 							)

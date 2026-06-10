@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/rtCamp/publishio/compare/v0.3.0...v0.3.1) (2026-06-10)
+
+
+### Miscellaneous Chores
+
+* **ci:** bump actions/checkout from 6.0.2 to 6.0.3 in the github-actions-updates group ([#47](https://github.com/rtCamp/publishio/issues/47)) ([27a7dac](https://github.com/rtCamp/publishio/commit/27a7dac46add8f179b46518502219c6fac84fd99))
+* Fix node package vulnerabilities ([#51](https://github.com/rtCamp/publishio/issues/51)) ([b8d7259](https://github.com/rtCamp/publishio/commit/b8d725910f04754d59502b0dc19900fa9a29cd27))
+
 ## [0.3.0](https://github.com/rtCamp/publishio/compare/v0.2.1...v0.3.0) (2026-06-02)
 
 ### Features

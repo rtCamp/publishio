@@ -117,7 +117,6 @@ Code contributions, bug reports, and feature requests are welcome! The following
 │
 ├── readme.txt   # WordPress plugin readme.
 ├── README.md    # Main README.
-├── CHANGELOG.md # Changelog.
 │
 │   # Config files.
 ├── .browserslistrc               # Browserslist configuration.
@@ -131,7 +130,6 @@ Code contributions, bug reports, and feature requests are welcome! The following
 ├── .phpcs.xml.dist               # PHPCS configuration.
 ├── .prettierignore               # Prettier ignore patterns.
 ├── .prettierrc.js                # Prettier configuration.
-├── .release-please-manifest.json # Release Please manifest file.
 ├── .stylelint.config.js          # Stylelint configuration.
 ├── .stylelintignore              # Stylelint ignore patterns.
 ├── .wp-env.json                  # wp-env configuration.
@@ -145,7 +143,6 @@ Code contributions, bug reports, and feature requests are welcome! The following
 ├── playwright.config.ts          # Playwright configuration.
 ├── phpstan.neon.dist             # PHPStan configuration.
 ├── phpunit.xml.dist              # PHPUnit configuration.
-├── release-please-config.json    # Release Please configuration.
 ├── tsconfig.base.json            # TypeScript base configuration.
 ├── tsconfig.json                 # TypeScript configuration.
 └── webpack.config.js             # Webpack configuration.
@@ -254,7 +251,7 @@ This repository uses a single long-lived branch: `main`. Always create a new bra
 
 Branches should be prefixed with the type of change (e.g. `feat`, `chore`, `tests`, `fix`, etc.) followed by a short description of the change. For example, a branch for a new feature called "Add new feature" could be named `feat/add-new-feature`.
 
-Pull requests are **squash-merged** into `main`. Use a [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) title (for example, `feat: add settings page`) so the squash commit on `main` can drive automated releases.
+Pull requests are **squash-merged** into `main`. Use a [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) title (for example, `feat: add settings page`) to keep the `main` history readable.
 
 ### Code Quality / Code Standards
 
@@ -467,12 +464,27 @@ Underneath the hood, the plugin uses [@wordpress/scripts](https://developer.word
 
 ## Releasing
 
-Releases are automated with [Release Please](https://github.com/googleapis/release-please-action) and Conventional Commits.
+Releases are **tag-driven and manual** — you control versions and the changelog yourself.
 
-1. Merge pull requests into `main` with **squash merge** and a Conventional Commit title.
-2. Release Please updates and maintains a release PR from `main` using:
-   - [`.github/workflows/release-please.yml`](../.github/workflows/release-please.yml)
-   - [`release-please-config.json`](../release-please-config.json)
-   - [`.release-please-manifest.json`](../.release-please-manifest.json)
-3. Merge the release PR when you're ready to ship.
-4. Release Please creates the GitHub Release, which then triggers the [release workflow](../.github/workflows/release.yml) to build and upload the plugin zip asset.
+To ship a version:
+
+1. Bump the version in all places:
+   - [`publishio.php`](../publishio.php) — `Version:` header and the `PUBLISHIO_VERSION` constant.
+   - [`readme.txt`](../readme.txt) — `Stable tag:`.
+2. Update the `== Changelog ==` and `== Upgrade Notice ==` sections in [`readme.txt`](../readme.txt).
+3. Commit and merge to `main`.
+4. Tag and push using a bare `X.Y.Z` version (no `v` prefix), e.g.:
+
+   ```bash
+   git tag 0.3.0
+   git push origin 0.3.0
+   ```
+
+Pushing a bare `X.Y.Z` tag runs [`.github/workflows/release.yml`](../.github/workflows/release.yml): it builds the plugin, creates the GitHub Release with the zip attached, and deploys to WordPress.org via SVN. Notes:
+
+- The version comes from the tag name only — keep `publishio.php` and `readme.txt` in sync yourself (step 1).
+- The tag must point to a commit on `main`, or `validate` fails the release.
+- `v`-prefixed (`v0.3.0`) and pre-release (`0.3.0-beta`) tags do not trigger the workflow.
+- WordPress.org listing assets (banner, icon, screenshots) deploy to SVN `/assets` from [`.wordpress-org`](../.wordpress-org), not the plugin zip.
+
+To validate the pipeline without publishing, run the workflow via **workflow_dispatch** from `main`: the deploy runs in dry-run (no SVN commit, no GitHub Release). Dispatching from any other ref fails.

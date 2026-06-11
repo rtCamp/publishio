@@ -12,6 +12,7 @@
 		"framework",
 		"inc",
 		"languages",
+		"skills",
 		"templates",
 		"vendor",
 		"composer.json",

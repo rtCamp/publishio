@@ -124,8 +124,6 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * Yoast SEO metadata support.
 * AI Skill file for guided content generation.
 
-For the full changelog see <a href="https://github.com/rtCamp/publishio/blob/main/CHANGELOG.md" target="_blank">GitHub</a>.
-
 == Upgrade Notice ==
 
 = 0.2.0 =

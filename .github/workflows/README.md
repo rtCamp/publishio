@@ -29,13 +29,11 @@ Sets up dev environment for GitHub Copilot coding agent.
 
 ### [`pr-title.yml`](pr-title.yml)
 
-Triggers on PRs. Validates [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) format, required for release-please automation.
+Triggers on PRs. Validates [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) format to keep `main` history clean.
 
 ### [`release.yml`](release.yml)
 
-Triggers on push to `main`. Uses [release-please](https://github.com/googleapis/release-please) to automate releases based on conventional commits.
-
-When a release is created, it builds the plugin via `reusable-build.yml` and uploads the zip artifact to the GitHub release.
+Triggers on bare `X.Y.Z` tag pushes. Builds the plugin via `reusable-build.yml`, creates the GitHub Release with the zip attached, and deploys to WordPress.org via SVN. A manual `workflow_dispatch` from `main` runs the same pipeline in dry-run. See [Releasing](../../docs/DEVELOPMENT.md#releasing) for details.
 
 ## Configuration
 
@@ -44,9 +42,11 @@ When a release is created, it builds the plugin via `reusable-build.yml` and upl
 
 ### Secrets
 
-| Secret          | Required By                                                    | Notes                                                |
-| --------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| `CODECOV_TOKEN` | `reusable-phpunit-public.yml` <br />`reusable-jest-public.yml` | Optional - coverage uploads fail silently without it |
+| Secret               | Required By                                                    | Notes                                                |
+| -------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
+| `CODECOV_TOKEN`      | `reusable-phpunit-public.yml` <br />`reusable-jest-public.yml` | Optional - coverage uploads fail silently without it |
+| `WPORG_SVN_USERNAME` | `release.yml`                                                  | WordPress.org committer username.                    |
+| `WPORG_SVN_PASSWORD` | `release.yml`                                                  | WordPress.org committer password.                    |
 
 ### PR Previews
 

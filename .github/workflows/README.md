@@ -42,11 +42,11 @@ Triggers on bare `X.Y.Z` tag pushes. Builds the plugin via `reusable-build.yml`,
 
 ### Secrets
 
-| Secret               | Required By                                                    | Notes                                                |
-| -------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| `CODECOV_TOKEN`      | `reusable-phpunit-public.yml` <br />`reusable-jest-public.yml` | Optional - coverage uploads fail silently without it |
-| `WPORG_SVN_USERNAME` | `release.yml`                                                  | WordPress.org committer username.                    |
-| `WPORG_SVN_PASSWORD` | `release.yml`                                                  | WordPress.org committer password.                    |
+| Secret          | Required By                                                    | Notes                                                |
+| --------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
+| `CODECOV_TOKEN` | `reusable-phpunit-public.yml` <br />`reusable-jest-public.yml` | Optional - coverage uploads fail silently without it |
+| `SVN_USERNAME`  | `release.yml`                                                  | WordPress.org committer username.                    |
+| `SVN_PASSWORD`  | `release.yml`                                                  | WordPress.org committer password.                    |
 
 ### PR Previews
 

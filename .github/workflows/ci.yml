@@ -156,8 +156,8 @@ jobs:
     permissions:
       pull-requests: write
     with:
-      artifact-name: publish-with-ai-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
-      plugin-slug: publish-with-ai
+      artifact-name: publishio-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+      plugin-slug: publishio
 
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php }}, WP ${{ matrix.wp }})

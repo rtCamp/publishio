@@ -32,6 +32,7 @@ jobs:
       css: ${{ steps.filter.outputs.css }}
       e2e: ${{ steps.filter.outputs.e2e }}
       jest: ${{ steps.filter.outputs.jest }}
+      plugin_check: ${{ steps.filter.outputs.plugin_check }}
 
     steps:
       - name: Checkout repository
@@ -100,6 +101,10 @@ jobs:
               - 'jest.config.js'
               - 'package*.json'
               - '.wp-env.test.json'
+            plugin_check:
+              - '.github/workflows/ci.yml'
+              - '.github/workflows/reusable-plugin-check.yml'
+              - 'readme.txt'
 
   phpcs:
     name: PHPCS
@@ -142,6 +147,17 @@ jobs:
       contents: read
     with:
       coverage: true
+
+  plugin-check:
+    name: Plugin Check (PCP)
+    needs: [detect, build-plugin-zip]
+    if: needs.detect.outputs.php == 'true' || needs.detect.outputs.plugin_check == 'true'
+    uses: ./.github/workflows/reusable-plugin-check.yml
+    permissions:
+      pull-requests: write
+    with:
+      artifact-name: publishio-pr${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+      plugin-slug: publishio
 
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php }}, WP ${{ matrix.wp }})

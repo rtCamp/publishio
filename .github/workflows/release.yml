@@ -2,64 +2,66 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  release-please:
-    name: Release Please
+  validate:
+    name: Validate release trigger
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+    timeout-minutes: 5
     steps:
-      - name: Prepare release
-        id: release
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate trigger
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            # GitHub can't restrict the ref picker in YAML, so enforce main-only at runtime.
+            if [ "$REF" != "refs/heads/main" ]; then
+              echo "::error::Manual dry-run must be dispatched from main (got: $REF)."
+              exit 1
+            fi
+            echo "Manual dry-run from main — OK."
+          else
+            # Tag push: the release tag must point to a commit that is on main.
+            if ! git merge-base --is-ancestor "refs/tags/$REF_NAME" origin/main; then
+              echo "::error::Tag $REF_NAME does not point to a commit on origin/main."
+              exit 1
+            fi
+            echo "Tag $REF_NAME is on main — OK."
+          fi
 
   build:
     name: Build
-    needs: release-please
-    if: |
-      always() &&
-      (needs.release-please.outputs.release_created == 'true' ||
-       startsWith(github.ref, 'refs/tags/v') ||
-       github.event_name == 'workflow_dispatch')
+    needs: validate
     uses: ./.github/workflows/reusable-build.yml
     with:
       php-version: '8.2'
       artifact-name: publishio
     secrets: inherit
 
-  upload:
-    name: Upload release asset
-    needs: [release-please, build]
-    if: |
-      always() &&
-      needs.build.result == 'success' &&
-      (needs.release-please.outputs.release_created == 'true' ||
-       startsWith(github.ref, 'refs/tags/v') ||
-       github.event_name == 'workflow_dispatch')
+  wordpress-org-release:
+    name: Create WordPress.org release
+    needs: [validate, build]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Download artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -67,16 +69,38 @@ jobs:
           name: publishio
           path: .
 
-      - name: Upload release asset
+      - name: Unzip built plugin
+        run: unzip -q publishio.zip -d svn-build
+
+      - name: Deploy to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # v2.3.0
+        with:
+          dry-run: ${{ github.event_name == 'workflow_dispatch' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_NAME="${{ needs.release-please.outputs.tag_name }}"
-          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" == "null" ]; then
-            TAG_NAME="${GITHUB_REF#refs/tags/}"
-          fi
-          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" == "main" ] || [[ "$TAG_NAME" == refs/* ]]; then
-            echo "No valid tag name found, skipping upload."
-            exit 0
-          fi
-          gh release upload "$TAG_NAME" publishio.zip --clobber --repo ${{ github.repository }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: publishio
+          VERSION: ${{ github.ref_name }}
+          BUILD_DIR: ./svn-build/publishio
+
+  github-release:
+    name: Create GitHub release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: publishio
+          path: .
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          files: publishio.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

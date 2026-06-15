@@ -4,7 +4,9 @@
  *
  * Available variables (injected by the calling execute_callback before require):
  *
- * @var string $html Rendered block HTML from do_blocks().
+ * @var array<string, mixed> $args {
+ *     @type string $html Rendered block HTML from do_blocks().
+ * }
  * @package rtCamp\Publishio\Modules\MCP\Abilities\Patterns
  */
 
@@ -22,25 +24,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<?php wp_head(); ?>
-	<style>
-		body {
-			background: transparent !important;
-			margin: 0;
-			padding: 0;
-			zoom: 0.5;
-			transform-origin: top left;
-		}
-
-		html {
-			margin: 0 !important;
-			padding: 0 !important;
-		}
-	</style>
 </head>
 
 <body <?php body_class(); ?>>
 	<?php
-	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitised by do_blocks()
+	echo $args['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitised by do_blocks()
 	?>
 	<?php wp_footer(); ?>
 </body>

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@modelcontextprotocol/ext-apps/react';
-import type { McpUiToolResultNotification } from '@modelcontextprotocol/ext-apps';
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import type { PreviewData, PendingPattern, UiState } from '../types';
 
@@ -10,96 +10,83 @@ type RenderResponse = {
 	pattern_description?: string;
 };
 
-function startHeightReporting(): () => void {
-	const report = (): void => {
-		const h = Math.min( document.body.scrollHeight, 1200 );
-		if ( h > 0 ) {
-			window.parent.postMessage(
-				{
-					jsonrpc: '2.0',
-					method: 'ui/notifications/size-changed',
-					params: {
-						width: document.body.offsetWidth,
-						height: h,
-					},
-				},
-				window.location.origin
-			);
-		}
-	};
-	report();
-	const ro = new ResizeObserver( report );
-	ro.observe( document.body );
-	return () => ro.disconnect();
+function toPreviewData(
+	source: Record< string, unknown > | undefined
+): PreviewData | null {
+	if ( ! source || typeof source[ 'pattern_name' ] !== 'string' ) {
+		return null;
+	}
+	return source as PreviewData;
+}
+
+function firstText( content: CallToolResult[ 'content' ] ): string | undefined {
+	const block = content?.[ 0 ];
+	return block && block.type === 'text' ? block.text : undefined;
 }
 
 export function useRenderPreview() {
-	const [ toolResult, setToolResult ] = useState<
-		McpUiToolResultNotification[ 'params' ] | null
-	>( null );
+	const [ incoming, setIncoming ] = useState< PreviewData | null >( null );
 	const [ previewHtml, setPreviewHtml ] = useState( '' );
 	const [ pending, setPending ] = useState< PendingPattern | null >( null );
 	const [ uiState, setUiState ] = useState< UiState >( 'loading' );
 	const [ errorMsg, setErrorMsg ] = useState( '' );
 	const [ errorContext, setErrorContext ] = useState( '' );
+	const startedRef = useRef( false );
 
 	const { app } = useApp( {
 		appInfo: { name: 'publishio-pattern-approval', version: '1.0.0' },
 		capabilities: {},
-		autoResize: false,
+		autoResize: true,
 		onAppCreated: ( a ) => {
+			a.addEventListener( 'toolinput', ( params ) => {
+				const data = toPreviewData( params.arguments );
+				if ( data ) {
+					setIncoming( data );
+				}
+			} );
 			a.addEventListener( 'toolresult', ( params ) => {
-				setToolResult( params );
+				if ( params.isError ) {
+					setErrorMsg(
+						firstText( params.content ) ?? 'Unknown error'
+					);
+					setErrorContext(
+						'The AI assistant tried to show a pattern preview but the tool returned an error.'
+					);
+					setUiState( 'error' );
+					return;
+				}
+				const data = toPreviewData( params.structuredContent );
+				if ( data ) {
+					setIncoming( ( prev ) => prev ?? data );
+				}
 			} );
 		},
 	} );
 
-	useEffect( () => startHeightReporting(), [] );
-
 	useEffect( () => {
-		if ( ! toolResult || ! app ) {
+		if ( ! incoming || ! app || startedRef.current ) {
 			return;
 		}
-
-		if ( toolResult.isError ) {
-			const first = toolResult.content?.[ 0 ] as
-				| { text?: string }
-				| undefined;
-			const errText = first?.text ?? 'Unknown error';
-			setErrorMsg( errText );
-			setErrorContext(
-				'The AI assistant tried to show a pattern preview but the tool returned an error.'
-			);
-			setUiState( 'error' );
-			return;
-		}
-
-		const data = ( toolResult.structuredContent ?? {} ) as PreviewData;
-		if ( ! data.pattern_name ) {
-			return;
-		}
+		startedRef.current = true;
 
 		setPending( {
-			page_id: data.page_id ?? 0,
-			position: data.position ?? -1,
-			pattern_name: data.pattern_name,
-			schema: data.schema,
+			page_id: incoming.page_id ?? 0,
+			position: incoming.position ?? -1,
+			pattern_name: incoming.pattern_name as string,
+			schema: incoming.schema,
 		} );
 
 		const render = async () => {
 			const res = await app.callServerTool( {
 				name: 'publishio-render-pattern',
 				arguments: {
-					pattern_name: data.pattern_name,
-					schema: data.schema as Record< string, unknown >,
+					pattern_name: incoming.pattern_name,
+					schema: incoming.schema as Record< string, unknown >,
 				},
 			} );
 
 			if ( res.isError ) {
-				const msg = (
-					res.content?.[ 0 ] as { text?: string } | undefined
-				 )?.text;
-				throw new Error( msg ?? 'Render failed' );
+				throw new Error( firstText( res.content ) ?? 'Render failed' );
 			}
 
 			const sc = res.structuredContent as RenderResponse | undefined;
@@ -124,11 +111,11 @@ export function useRenderPreview() {
 		render().catch( ( e: unknown ) => {
 			setErrorMsg( e instanceof Error ? e.message : String( e ) );
 			setErrorContext(
-				`Tried to render a preview for the "${ data.pattern_name }" pattern.`
+				`Tried to render a preview for the "${ incoming.pattern_name }" pattern.`
 			);
 			setUiState( 'error' );
 		} );
-	}, [ toolResult, app ] );
+	}, [ incoming, app ] );
 
 	return {
 		app,

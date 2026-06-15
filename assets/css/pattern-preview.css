@@ -1,0 +1,12 @@
+body {
+	background: transparent !important;
+	margin: 0;
+	padding: 0;
+	zoom: 0.5;
+	transform-origin: top left;
+}
+
+html {
+	margin: 0 !important;
+	padding: 0 !important;
+}

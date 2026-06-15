@@ -37,7 +37,7 @@ class Connections_Page extends Abstract_Admin_Page {
 	 * {@inheritDoc}
 	 */
 	public function enqueue( array $localized_data ): void {
-		wp_localize_script( Assets::ADMIN_CONNECTIONS_HANDLE, 'rtPublishioAdmin', $localized_data );
+		wp_localize_script( Assets::ADMIN_CONNECTIONS_HANDLE, 'publishioAdmin', $localized_data );
 		wp_enqueue_script( Assets::ADMIN_CONNECTIONS_HANDLE );
 		wp_enqueue_style( Assets::ADMIN_CONNECTIONS_HANDLE );
 	}

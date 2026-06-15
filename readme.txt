@@ -116,6 +116,14 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 == Changelog ==
 
+= 0.3.1 =
+* Update plugin name to "Publishio".
+
+= 0.3.0 =
+* Add support for OAuth DCR flow for seamless AI platform integration.
+* Add SEO capabilities by integrating with Yoast SEO metadata.
+* Refactor codebase for improved maintainability and performance.
+
 = 0.2.0 =
 * Initial public release.
 * Pattern auto-discovery via WP_Block_Patterns_Registry.

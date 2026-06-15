@@ -15,7 +15,7 @@ interface GuideCardProps {
 }
 
 export function GuideCard( { guide, onClick }: GuideCardProps ) {
-	const logoUrl = window.rtPublishioAdmin?.appLogos?.[ guide.app ];
+	const logoUrl = window.publishioAdmin?.appLogos?.[ guide.app ];
 
 	return (
 		<Card>

@@ -18,6 +18,7 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\OAuth\Endpoint;
 
+use rtCamp\Publishio\Core\Templates;
 use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
 use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Registry;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
@@ -288,36 +289,41 @@ class Authorize extends Abstract_REST_Controller {
 	 * @param array<string, string> $params The OAuth parameters.
 	 */
 	private function render_consent_screen( array $params ): \WP_REST_Response {
-		$user        = wp_get_current_user();
-		$client      = Client_Store::get_by_client_id( $params['client_id'] );
-		$client_name = $client ? $client['client_name'] : $params['client_id']; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$client_uri  = $client ? ( $client['client_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$logo_uri    = $client ? ( $client['logo_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$tos_uri     = $client ? ( $client['tos_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$policy_uri  = $client ? ( $client['policy_uri'] ?? null ) : null; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$site_name   = get_bloginfo( 'name' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$action_url  = rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$user   = wp_get_current_user();
+		$client = Client_Store::get_by_client_id( $params['client_id'] );
 
 		// Build hidden fields for all OAuth params.
-		$hidden_fields = ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$hidden_fields = '';
 		foreach ( $params as $key => $value ) {
-			$hidden_fields .= sprintf( // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+			$hidden_fields .= sprintf(
 				'<input type="hidden" name="%s" value="%s" />',
 				esc_attr( $key ),
 				esc_attr( $value )
 			);
 		}
 
-		$scopes       = $params['scope'] ? implode( ', ', explode( ' ', $params['scope'] ) ) : 'full access'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$display_name = $user->display_name; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$user_email   = $user->user_email; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$css_url      = PUBLISHIO_URL . 'assets/css/consent.css'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$site_url     = home_url( '/' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		$_server = Server::get_server();
 
-		$resource_url       = $params['resource'];
-		$_server            = Server::get_server();
-		$server_name        = $_server ? $_server->get_server_name() : __( 'MCP Server', 'publishio' ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
-		$server_description = $_server ? $_server->get_server_description() : ''; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+		wp_register_style( 'publishio-consent', PUBLISHIO_URL . 'assets/css/consent.css', [], PUBLISHIO_VERSION );
+		wp_enqueue_style( 'publishio-consent' );
+
+		$args = [
+			'client_name'        => $client['client_name'] ?? $params['client_id'],
+			'client_uri'         => $client['client_uri'] ?? null,
+			'logo_uri'           => $client['logo_uri'] ?? null,
+			'tos_uri'            => $client['tos_uri'] ?? null,
+			'policy_uri'         => $client['policy_uri'] ?? null,
+			'site_name'          => get_bloginfo( 'name' ),
+			'site_url'           => home_url( '/' ),
+			'display_name'       => $user->display_name,
+			'user_email'         => $user->user_email,
+			'action_url'         => rest_url( Config::OAUTH_REST_NAMESPACE . '/authorize' ),
+			'hidden_fields'      => $hidden_fields,
+			'scopes'             => $params['scope'] ? implode( ', ', explode( ' ', $params['scope'] ) ) : 'full access',
+			'resource_url'       => $params['resource'],
+			'server_name'        => $_server ? $_server->get_server_name() : __( 'MCP Server', 'publishio' ),
+			'server_description' => $_server ? $_server->get_server_description() : '',
+		];
 
 		$response = new \WP_REST_Response( null, 200 );
 		$response->header( 'Content-Type', 'text/html; charset=utf-8' );
@@ -325,9 +331,8 @@ class Authorize extends Abstract_REST_Controller {
 
 		add_filter(
 			'rest_pre_serve_request',
-			// @phpstan-ignore-next-line
-			static function ( $_served ) use ( $client_name, $client_uri, $logo_uri, $tos_uri, $policy_uri, $site_name, $site_url, $display_name, $user_email, $css_url, $action_url, $hidden_fields, $server_name, $server_description, $resource_url, $scopes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter,SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure.UnusedInheritedVariable
-				include PUBLISHIO_PATH . 'templates/oauth/consent.php';
+			static function ( $_served ) use ( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found,SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+				Templates::get_template_part( 'oauth-consent', null, $args, true );
 				return true;
 			}
 		);

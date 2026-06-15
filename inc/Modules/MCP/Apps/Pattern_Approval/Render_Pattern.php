@@ -9,6 +9,7 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval;
 
+use rtCamp\Publishio\Core\Templates;
 use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Patterns as Patterns_Category;
 use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Pattern_Schema;
 
@@ -89,10 +90,12 @@ class Render_Pattern {
 
 					show_admin_bar( false ); // phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 
-					$html = do_blocks( $markup ); // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+					wp_enqueue_style( 'publishio-pattern-preview', PUBLISHIO_URL . 'assets/css/pattern-preview.css', [], PUBLISHIO_VERSION );
+
+					$html = do_blocks( $markup );
 
 					ob_start();
-					require __DIR__ . '/preview-template.php';
+					Templates::get_template_part( 'pattern-preview', null, [ 'html' => $html ] );
 					$preview_html = (string) ob_get_clean();
 
 					$result = [ 'preview_html' => $preview_html ];

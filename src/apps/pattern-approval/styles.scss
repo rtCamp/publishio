@@ -2,8 +2,6 @@
 @import "tailwindcss/utilities.css";
 
 :root {
-	--border: light-dark(#e5e7eb, #2a2a2a);
-	--muted: light-dark(#6b7280, #a1a1aa);
 	--font: -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
 
 	/* MCP card brand tokens */
@@ -31,13 +29,6 @@ body {
 }
 
 /* ── MCP card animations ─────────────────────────────────────────────────── */
-
-@keyframes mcp-spin {
-
-	to {
-		transform: rotate(360deg);
-	}
-}
 
 @keyframes mcp-fade-up {
 
@@ -171,17 +162,4 @@ body {
 .mcp-btn-ghost:hover:not(:disabled) {
 	background: rgba(0, 0, 0, 0.04);
 	border-color: rgba(0, 0, 0, 0.18);
-}
-
-/* ── Error state ─────────────────────────────────────────────────────────── */
-
-.loading-error {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	border: 1px solid var(--border);
-	border-radius: 10px;
-	font-size: 13px;
-	color: var(--muted);
 }

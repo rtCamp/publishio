@@ -1,3 +1,13 @@
+import type { Pattern } from './types';
+
+export function patternLabel( pattern: Pattern ): string {
+	return pattern.title ?? pattern.pattern_name;
+}
+
+export function errorMessage( error: unknown ): string {
+	return error instanceof Error ? error.message : String( error );
+}
+
 function ordinalSuffix( n: number ): string {
 	switch ( n % 10 ) {
 		case 1:

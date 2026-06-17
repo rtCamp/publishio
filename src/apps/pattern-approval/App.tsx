@@ -1,49 +1,21 @@
-import { usePatternApp } from './hooks/usePatternApp';
+import { usePatternApproval } from './hooks/usePatternApproval';
 import { McpCard } from './components/McpCard';
-import { CardHeader } from './components/CardHeader';
+import { ErrorCard } from './components/ErrorCard';
 
 export function App() {
-	const {
-		uiState,
-		errorMsg,
-		previewHtml,
-		pending,
-		busy,
-		handleInsert,
-		handleAlternative,
-		handleAskAi,
-	} = usePatternApp();
+	const { view, busy, insert, requestAlternative, askAi } =
+		usePatternApproval();
 
-	if ( uiState === 'error' ) {
-		return (
-			<div className="w-full bg-(--paper)">
-				<CardHeader />
-				<div className="px-4 py-12 flex flex-col items-center">
-					<h3 className="font-medium text-(--ink-1)">
-						Something went wrong
-					</h3>
-					<p className="text-xs text-(--ink-3) mt-1 break-words">
-						{ errorMsg }
-					</p>
-					<button
-						className="mcp-btn mcp-btn-primary mt-3"
-						onClick={ () => void handleAskAi() }
-					>
-						Ask AI for Help
-					</button>
-				</div>
-			</div>
-		);
+	if ( view.status === 'error' ) {
+		return <ErrorCard message={ view.message } onAskAi={ askAi } />;
 	}
 
 	return (
 		<McpCard
-			uiState={ uiState }
-			pending={ pending }
-			previewHtml={ previewHtml }
+			view={ view }
 			busy={ busy }
-			onInsert={ () => void handleInsert() }
-			onAlternative={ () => void handleAlternative() }
+			onInsert={ insert }
+			onAlternative={ requestAlternative }
 		/>
 	);
 }

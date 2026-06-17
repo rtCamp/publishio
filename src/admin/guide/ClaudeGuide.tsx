@@ -95,8 +95,8 @@ function getSteps( mcpUrl: string, images: ClaudeImages ): GuideStep[] {
 }
 
 export function ClaudeGuide() {
-	const mcpUrl = window.rtPublishioAdmin?.mcpServerUrl ?? '';
-	const images = window.rtPublishioAdmin?.guideImages.claude ?? {
+	const mcpUrl = window.publishioAdmin?.mcpServerUrl ?? '';
+	const images = window.publishioAdmin?.guideImages.claude ?? {
 		connectorMenu: '',
 		connectorForm: '',
 		clickConnect: '',

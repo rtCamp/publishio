@@ -1,17 +1,16 @@
 import { Check, Swap } from './Icons';
-import type { UiState, PendingPattern } from '../types';
-import { formatPosition } from '../utils';
+import { formatPosition, patternLabel } from '../utils';
+import type { LoadedView } from '../types';
 
 interface Props {
-	uiState: Exclude< UiState, 'loading' | 'error' >;
-	pending: PendingPattern | null;
+	view: LoadedView;
 }
 
-export function StatusLine( { uiState, pending }: Props ) {
-	const name = pending?.pattern_title ?? pending?.pattern_name ?? 'Pattern';
-	const position = formatPosition( pending?.position );
+export function StatusLine( { view }: Props ) {
+	const name = patternLabel( view.pattern );
+	const position = formatPosition( view.pattern.position );
 
-	if ( uiState === 'ready' ) {
+	if ( view.status === 'ready' ) {
 		return (
 			<span>
 				<strong>{ name }</strong> will be inserted at{ ' ' }
@@ -20,7 +19,7 @@ export function StatusLine( { uiState, pending }: Props ) {
 		);
 	}
 
-	const inserted = uiState === 'inserted';
+	const inserted = view.status === 'inserted';
 	const accentClass = inserted
 		? 'text-(--ok) ring-(--ok)'
 		: 'text-(--ink-3) ring-(--ink-3)';

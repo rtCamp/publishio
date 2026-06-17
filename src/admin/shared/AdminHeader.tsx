@@ -18,7 +18,7 @@ export function AdminHeader( {
 	description,
 	actions,
 }: AdminHeaderProps ) {
-	const logoUrl = window.rtPublishioAdmin?.logoUrl;
+	const logoUrl = window.publishioAdmin?.logoUrl;
 
 	return (
 		<header className="flex items-center gap-4 px-6 py-4 border-b border-gray-200 bg-white">

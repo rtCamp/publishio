@@ -6,7 +6,7 @@ interface Window {
 		siteUrl: string;
 		siteName: string;
 	};
-	rtPublishioAdmin?: {
+	publishioAdmin?: {
 		pluginVersion: string;
 		logoUrl: string;
 		appLogos: Record< string, string >;

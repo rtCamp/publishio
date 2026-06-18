@@ -52,7 +52,7 @@
 		"wp-env:test": "wp-env --config=.wp-env.test.json"
 	},
 	"dependencies": {
-		"@modelcontextprotocol/ext-apps": "^1.7.2",
+		"@modelcontextprotocol/ext-apps": "^1.7.4",
 		"clsx": "^2.1.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",

@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.0
-Stable tag:        0.4.0
+Stable tag:        0.4.1
 
 Connect any AI to WordPress and build pages and posts from your site's own block patterns, without changing your design.
 
@@ -115,11 +115,14 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 == Screenshots ==
 
 1. The Publishio Guide page in the WordPress dashboard — lists available AI setup guides.
-2. The Claude AI setup guide showing how to add a custom MCP connector in Claude's Customize → Connectors panel.
+2. The Claude AI setup guide showing how to add a custom MCP connector in Claude's Customize > Connectors panel.
 3. The WordPress OAuth authorization screen, where Claude requests access to your site via the Publishio MCP server.
 4. The Connections page listing all AI apps that have authenticated with your site, with user, registration date, and last-active details.
 
 == Changelog ==
+
+= 0.4.1 =
+* Fix readme.txt
 
 = 0.4.0 =
 * Release plugin on WordPress.org.

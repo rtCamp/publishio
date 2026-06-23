@@ -14,7 +14,8 @@ Publishio is not an AI itself. It is the bridge between the AI you already use a
 
 That means editors and content teams can spin up landing pages, blog posts, and campaign pages in minutes, in plain language, without touching the designer's work and without breaking the design system.
 
-[<img src="https://img.shields.io/badge/Download-Now-green?style=for-the-badge&logo=github" alt="Download Now" height="40">](https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip)
+[<img src="https://img.shields.io/badge/WordPress.org-Plugin-21759B?style=for-the-badge&logo=wordpress" alt="WordPress.org" height="40">](https://wordpress.org/plugins/publishio/)
+[<img src="https://img.shields.io/badge/GitHub-Download-181717?style=for-the-badge&logo=github" alt="GitHub Download" height="40">](https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip)
 
 ## ✨ Features
 

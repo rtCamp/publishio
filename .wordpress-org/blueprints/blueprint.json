@@ -1,0 +1,25 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Publishio",
+		"description": "Connect any AI to WordPress and build pages and posts from your site's own block patterns, without changing your design.",
+		"author": "rtCamp",
+		"categories": [
+			"Publish",
+			"AI",
+			"Editorial Workflow",
+			"Abilities",
+			"MCP"
+		]
+	},
+	"login": true,
+	"landingPage": "/wp-admin/admin.php?page=publishio",
+	"preferredVersions": {
+		"php": "8.4",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": true
+	},
+	"plugins": [ "publishio" ]
+}

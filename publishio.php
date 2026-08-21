@@ -10,7 +10,7 @@
  * Plugin Name:       Publishio
  * Plugin URI:        https://github.com/rtCamp/publishio
  * Description:       Build WordPress pages and posts using your existing patterns directly from your favorite AI assistant.
- * Version:           0.4.1
+ * Version:           1.0.0
  * Author:            rtCamp
  * Author URI:        https://rtcamp.com
  * License:           GPL-2.0-or-later
@@ -19,7 +19,7 @@
  * Domain Path:       /languages
  * Requires PHP:      8.2
  * Requires at least: 6.9
- * Tested up to:      7.0
+ * Tested up to:      7.1
  */
 
 declare( strict_types = 1 );
@@ -41,7 +41,7 @@ function constants(): void {
 	/**
 	 * Version of the plugin.
 	 */
-	define( 'PUBLISHIO_VERSION', '0.4.1' );
+	define( 'PUBLISHIO_VERSION', '1.0.0' );
 
 	/**
 	 * Root path to the plugin directory.

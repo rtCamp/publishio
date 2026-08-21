@@ -5,8 +5,8 @@ License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
-Tested up to:      7.0
-Stable tag:        0.4.1
+Tested up to:      7.1
+Stable tag:        1.0.0
 
 Connect any AI to WordPress and build pages and posts from your site's own block patterns, without changing your design.
 
@@ -121,6 +121,10 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 == Changelog ==
 
+= 1.0.0 =
+* Declare the plugin stable with the 1.0.0 release.
+* Test the plugin with WordPress 7.1.
+
 = 0.4.1 =
 * Fix readme.txt
 
@@ -144,6 +148,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.0.0 =
+* First stable release. No upgrade steps required.
 
 = 0.4.0 =
 * Release plugin on WordPress.org.

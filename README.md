@@ -2,7 +2,7 @@
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE.md)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)](composer.json)
-[![WordPress](https://img.shields.io/badge/WordPress-7.0-blue?logo=wordpress)](https://wordpress.org)<br>
+[![WordPress](https://img.shields.io/badge/WordPress-7.1-blue?logo=wordpress)](https://wordpress.org)<br>
 [![CI](https://github.com/rtCamp/publishio/actions/workflows/ci.yml/badge.svg)](https://github.com/rtCamp/publishio/actions/workflows/ci.yml)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/rtCamp/publishio/latest)](https://github.com/rtCamp/publishio/releases)
 

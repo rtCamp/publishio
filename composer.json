@@ -5,9 +5,10 @@
 	"license": "GPL-2.0-or-later",
 	"config": {
 		"allow-plugins": {
+			"automattic/jetpack-autoloader": true,
+			"cweagans/composer-patches": true,
 			"dealerdirect/phpcodesniffer-composer-installer": true,
-			"phpstan/extension-installer": true,
-			"cweagans/composer-patches": true
+			"phpstan/extension-installer": true
 		},
 		"platform": {
 			"php": "8.2"
@@ -35,7 +36,7 @@
 	"require": {
 		"php": "^8.2",
 		"cweagans/composer-patches": "^2.0",
-		"wordpress/mcp-adapter": "0.5.0"
+		"wordpress/mcp-adapter": "0.6.1"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",

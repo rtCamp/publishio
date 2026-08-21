@@ -82,7 +82,7 @@ class App extends McpAppResource {
 		);
 
 		return strtr(
-			(string) file_get_contents( $build_file ),
+			(string) file_get_contents( $build_file ), // phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 			[
 				'%%PLUGIN_URL%%' => $plugin_url,
 				'%%SITE_DATA%%'  => $site_data,

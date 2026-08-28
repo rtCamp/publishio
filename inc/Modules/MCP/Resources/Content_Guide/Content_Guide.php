@@ -29,7 +29,7 @@ class Content_Guide {
 				'title'       => 'WordPress Content Generation Guide',
 				'description' => 'Rules and workflows for generating WordPress content using patterns and incremental assembly. Read this before creating any post or page.',
 				'mimeType'    => 'text/markdown',
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 				'handler'     => static fn () => file_get_contents( PUBLISHIO_PATH . 'skills/publishio/SKILL.md' ),
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),
 			]

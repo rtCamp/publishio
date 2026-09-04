@@ -8,13 +8,13 @@ Requires at least: 6.9
 Tested up to:      7.1
 Stable tag:        1.0.0
 
-AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts from your own block patterns.
+AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
 == Description ==
 
-**Publishio is AI publishing that follows your design system.** Connect ChatGPT, Claude, or any Model Context Protocol (MCP) client directly to WordPress, then build pages and posts just by chatting — assembled from *your site's own block patterns*, so the result matches your brand.
+**Publishio is AI publishing that follows your design system.** Connect ChatGPT, Claude, or any Model Context Protocol (MCP) client directly to WordPress, then build pages and posts just by chatting. Landing pages and structured sections are assembled from *your site's own block patterns*; post prose (paragraphs, headings, lists, quotes) uses native WordPress blocks styled by your theme — so the result matches your brand either way.
 
-Publishio is not another AI writer, and it is not a page builder that reinvents your layout. It is a native **MCP server for WordPress** — the bridge between the AI you already use and your site. Because the AI works from the patterns your designers already approved, your layout, spacing, colours, and typography stay exactly as intended. That's the difference between generic AI output and **on-brand AI content that matches your design**.
+Publishio is not another AI writer, and it is not a page builder that reinvents your layout. It is a native **MCP server for WordPress** — the bridge between the AI you already use and your site. Because the AI works from the patterns your designers already approved and your theme's own block styles, your layout, spacing, colours, and typography stay exactly as intended. That's the difference between generic AI output and **on-brand AI content that matches your design**.
 
 Everything runs on your own site. There's no third-party service in the middle: your WordPress site exposes its own MCP endpoint, and ChatGPT or Claude connect straight to it over an authenticated connection you control. Editors and content teams can ship landing pages, blog posts, and campaign pages in minutes, in plain language, without touching the designer's work or breaking the design system.
 
@@ -24,7 +24,7 @@ https://youtu.be/yUo94HqA9os
 
 = Features =
 
-* **Follows your design system:** The AI builds from your site's own block patterns, so pages inherit your existing layout, spacing, and brand — on-brand AI content, not generic markup.
+* **Follows your design system:** Structured layouts are built from your site's own block patterns, and prose uses native blocks styled by your theme — so content inherits your existing layout, spacing, and brand instead of generic markup.
 * **Connect ChatGPT, Claude, or any MCP client:** A standard MCP server for WordPress that works with ChatGPT, Claude, and any tool that speaks the Model Context Protocol.
 * **Pattern auto-discovery:** Automatically discovers every pattern registered on your site — from your theme, plugins, and core.
 * **Structured content generation:** The AI builds pages with proper, Block Editor-compatible block structures — no messy HTML insertion.

@@ -81,7 +81,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 
 1. Install and activate the plugin in your WordPress dashboard.
 2. Ensure you meet the [Requirements](#-requirements) (WordPress 6.9+, PHP 8.2+).
-3. Open the **Publishio** page in your dashboard. It shows your site's MCP server URL and a step-by-step guide for connecting Claude; ChatGPT and other MCP clients connect to the same URL (see the [FAQ](#-faq)).
+3. Open the **Publishio** page in your dashboard. It shows your site's MCP server URL and step-by-step guides for connecting Claude and ChatGPT; other MCP clients connect to the same URL (see the [FAQ](#-faq)).
 4. Add the connection in your AI, authorize it, and start prompting it to build pages and posts from your patterns.
 
 ## ❓ FAQ
@@ -90,7 +90,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 A: No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You review every section in an in-chat preview before anything is published, so nothing reaches your site without your approval.
 
 **Q: How do I connect ChatGPT to WordPress?**
-A: Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. A dedicated in-dashboard ChatGPT guide is on the way; today the dashboard ships a step-by-step Claude guide, and ChatGPT connects to the same server URL.
+A: Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. The Publishio dashboard includes a step-by-step ChatGPT setup guide alongside the Claude guide.
 
 **Q: How do I connect Claude to WordPress?**
 A: Open the **Publishio** page in your WordPress dashboard. It includes a complete, step-by-step guide for adding your site's MCP server to Claude and authorizing the connection.

@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { useState } from '@wordpress/element';
+// eslint-disable-next-line @wordpress/use-recommended-components -- TextControl retained; @wordpress/ui migration deferred.
 import { Button, TextControl } from '@wordpress/components';
 import { __, _x } from '@wordpress/i18n';
 import { copy, check, seen, unseen } from '@wordpress/icons';

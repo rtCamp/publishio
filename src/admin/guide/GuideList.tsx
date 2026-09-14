@@ -20,6 +20,15 @@ const GUIDES: Guide[] = [
 		),
 		app: 'claude',
 	},
+	{
+		id: 'openai',
+		title: 'ChatGPT',
+		description: __(
+			'Learn how to set up ChatGPT as your publishing assistant.',
+			'publishio'
+		),
+		app: 'openai',
+	},
 ];
 
 interface GuideListProps {

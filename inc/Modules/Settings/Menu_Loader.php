@@ -160,6 +160,12 @@ final class Menu_Loader implements Registrable {
 					'clickConnect'  => plugins_url( 'assets/images/guide/claude/step-click-connect.png', PUBLISHIO_FILE ),
 					'consent'       => plugins_url( 'assets/images/guide/claude/step-consent.png', PUBLISHIO_FILE ),
 				],
+				'openai' => [
+					'developerMode' => plugins_url( 'assets/images/guide/openai/step-developer-mode.png', PUBLISHIO_FILE ),
+					'pluginForm'    => plugins_url( 'assets/images/guide/openai/step-plugin-form.png', PUBLISHIO_FILE ),
+					'signIn'        => plugins_url( 'assets/images/guide/openai/step-signin.png', PUBLISHIO_FILE ),
+					'consent'       => plugins_url( 'assets/images/guide/openai/step-consent.png', PUBLISHIO_FILE ),
+				],
 			],
 		];
 	}

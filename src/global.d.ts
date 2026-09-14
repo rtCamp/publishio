@@ -18,6 +18,12 @@ interface Window {
 				clickConnect: string;
 				consent: string;
 			};
+			openai: {
+				developerMode: string;
+				pluginForm: string;
+				signIn: string;
+				consent: string;
+			};
 		};
 	};
 }

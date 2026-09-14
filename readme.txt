@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.1
-Stable tag:        1.0.0
+Stable tag:        1.1.0
 
 AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
@@ -89,7 +89,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You review every section in an in-chat preview before anything is published, so nothing reaches your site without your approval.
 
 = How do I connect ChatGPT to WordPress? =
-Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. A dedicated in-dashboard ChatGPT guide is on the way; today the dashboard ships a step-by-step Claude guide, and ChatGPT connects to the same server URL.
+Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. The Publishio dashboard includes a step-by-step ChatGPT setup guide alongside the Claude guide.
 
 = How do I connect Claude to WordPress? =
 Open the **Publishio** page in your WordPress dashboard. It includes a complete, step-by-step guide for adding your site's MCP server to Claude and authorizing the connection.
@@ -117,7 +117,7 @@ No. Publishio generates native WordPress block markup for the Block Editor. Page
 
 == Documentation ==
 
-* **Connection Guide** — Open the Publishio page in your WordPress dashboard for the Claude setup guide.
+* **Connection Guide** — Open the Publishio page in your WordPress dashboard for the Claude and ChatGPT setup guides.
 * <a href="https://github.com/rtCamp/publishio/blob/main/docs/DEVELOPMENT.md">Development Guide</a> — Setup, commands, testing, and contribution.
 * <a href="https://github.com/rtCamp/publishio/blob/main/docs/CONTRIBUTING.md">Contributing</a>
 * <a href="https://github.com/rtCamp/publishio/blob/main/docs/CODE_OF_CONDUCT.md">Code of Conduct</a>
@@ -139,6 +139,10 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 8. The Connections page listing all AI apps that have authenticated with your site, with user, registration date, and last-active details.
 
 == Changelog ==
+
+= 1.1.0 =
+* Add an in-dashboard ChatGPT setup guide for connecting OpenAI to your site.
+* Update bundled dependencies and fix reported npm vulnerabilities.
 
 = 1.0.0 =
 * Declare the plugin stable with the 1.0.0 release.
@@ -167,6 +171,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+* Adds an in-dashboard ChatGPT setup guide. No upgrade steps required.
 
 = 1.0.0 =
 * First stable release. No upgrade steps required.

@@ -83,7 +83,7 @@ class Auth_Server_Metadata implements Registrable {
 	private function get_metadata(): array {
 		$issuer           = Config::get_issuer_url();
 		$rest_ns          = Config::OAUTH_REST_NAMESPACE;
-		$auth_url         = rest_url( $rest_ns . '/authorize' );
+		$auth_url         = Config::get_authorize_url();
 		$token_url        = rest_url( $rest_ns . '/token' );
 		$registration_url = rest_url( $rest_ns . '/register' );
 

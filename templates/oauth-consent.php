@@ -22,6 +22,8 @@
  *     @type string      $resource_url       MCP resource URL.
  *     @type string      $server_name        MCP server display name.
  *     @type string      $server_description MCP server description (empty string if none).
+ *     @type string      $redirect_uri       Where the authorization code will be sent.
+ *     @type string      $destination_note   Note shown under the redirect URI.
  * }
  *
  * @package rtCamp\Publishio
@@ -43,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php wp_print_styles( 'publishio-consent' ); ?>
 </head>
 <body>
-	<div class="consent-card">
+	<div class="consent-container">
 		<div class="consent-header">
 			<?php if ( ! empty( $args['logo_uri'] ) ) : ?>
 			<div class="app-icon" aria-hidden="true">
@@ -91,6 +93,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<div class="server-desc"><?php echo esc_html( $args['server_description'] ); ?></div>
 						<?php endif; ?>
 						<div class="server-url"><code><?php echo esc_html( $args['resource_url'] ); ?></code></div>
+					</div>
+				</div>
+			</div>
+			<?php endif; ?>
+			<?php if ( ! empty( $args['redirect_uri'] ) ) : ?>
+			<div class="section">
+				<div class="section-label"><?php esc_html_e( 'Authorization will be sent to', 'publishio' ); ?></div>
+				<div class="redirect-info">
+					<div class="redirect-icon" aria-hidden="true">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M20 13v5.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H11"/>
+							<path d="M15 4h5v5"/>
+							<path d="M20 4 9 15"/>
+						</svg>
+					</div>
+					<div class="redirect-details">
+						<div class="redirect-url"><code><?php echo esc_html( $args['redirect_uri'] ); ?></code></div>
+						<p class="redirect-note"><?php echo esc_html( $args['destination_note'] ); ?></p>
 					</div>
 				</div>
 			</div>

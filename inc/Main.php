@@ -137,6 +137,7 @@ final class Main {
 	private static function register_rewrite_rules(): void {
 		( new Modules\MCP\OAuth\Well_Known\Auth_Server_Metadata() )->add_rewrite_rules();
 		( new Modules\MCP\OAuth\Well_Known\Protected_Resource() )->add_rewrite_rules();
+		( new Modules\MCP\OAuth\Endpoint\Authorize() )->add_rewrite_rules();
 	}
 
 	/**

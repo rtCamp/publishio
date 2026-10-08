@@ -127,21 +127,34 @@ class Bearer_Token_Auth {
 	}
 
 	/**
-	 * Get the matched MCP endpoint path for the current request, or null if not an MCP request.
+	 * Matched MCP endpoint path for this request, or null.
 	 *
-	 * Uses exact path matching to prevent partial prefix collisions.
-	 *
-	 * @return string|null The matched endpoint path, or null.
+	 * Resolved from the route WordPress will dispatch (the `rest_route` query var), so a token authenticates only on the MCP route.
 	 */
 	private function get_matched_mcp_path(): ?string {
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		$route = $this->get_dispatched_rest_route();
 
-		$request_path = untrailingslashit( (string) wp_parse_url( $request_uri, PHP_URL_PATH ) );
+		if ( null === $route ) {
+			return null;
+		}
 
 		$endpoint_path = Config::get_mcp_endpoint_path();
-		$expected_path = untrailingslashit( (string) wp_parse_url( rest_url( $endpoint_path ), PHP_URL_PATH ) );
+		$expected      = '/' . untrailingslashit( $endpoint_path );
 
-		return $request_path === $expected_path ? $endpoint_path : null;
+		return untrailingslashit( $route ) === $expected ? $endpoint_path : null;
+	}
+
+	/**
+	 * REST route WordPress is about to dispatch for this request.
+	 */
+	private function get_dispatched_rest_route(): ?string {
+		if ( empty( $GLOBALS['wp'] ) || ! ( $GLOBALS['wp'] instanceof \WP ) ) {
+			return null;
+		}
+
+		$route = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
+
+		return is_string( $route ) && '' !== $route ? $route : null;
 	}
 
 	/**

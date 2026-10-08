@@ -16,6 +16,7 @@ class Config {
 	public const MCP_ROUTE_NAMESPACE  = 'mcp';
 	public const MCP_ROUTE            = 'publishio';
 	public const OAUTH_REST_NAMESPACE = 'publishio-oauth/v1';
+	public const AUTHORIZE_PATH       = 'publishio-oauth/authorize';
 	public const ACCESS_TOKEN_TTL     = 3600;
 	public const REFRESH_TOKEN_TTL    = 2592000;
 	public const AUTH_CODE_TTL        = 120;
@@ -92,6 +93,13 @@ class Config {
 	 */
 	public static function get_issuer_url(): string {
 		return untrailingslashit( site_url() );
+	}
+
+	/**
+	 * Get the absolute URL of the user-facing authorization endpoint.
+	 */
+	public static function get_authorize_url(): string {
+		return home_url( '/' . self::AUTHORIZE_PATH );
 	}
 
 	/**

@@ -32,15 +32,17 @@ class Auth_Code_Store {
 	 * @param string $code_challenge The PKCE code challenge.
 	 * @param string $scope         The requested scope.
 	 * @param string $resource_indicator The resource indicator.
+	 * @param string $client_name   The client name the user approved.
 	 *
 	 * @return string The plain-text authorization code.
 	 */
-	public static function create( int $user_id, string $client_id, string $redirect_uri, string $code_challenge, string $scope, string $resource_indicator ): string {
+	public static function create( int $user_id, string $client_id, string $redirect_uri, string $code_challenge, string $scope, string $resource_indicator, string $client_name ): string {
 		$code = wp_generate_password( 64, false );
 
 		$data = [
 			'user_id'        => $user_id,
 			'client_id'      => $client_id,
+			'client_name'    => $client_name,
 			'redirect_uri'   => $redirect_uri,
 			'code_challenge' => $code_challenge,
 			'scope'          => $scope,

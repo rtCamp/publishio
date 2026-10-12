@@ -2,7 +2,7 @@
 /**
  * OAuth 2.1 authorization endpoint (the user-facing consent screen).
  *
- * Served at /publishio-oauth/authorize via a rewrite rule. Cookie-authenticated, with a nonce-protected consent POST and anti-framing headers.
+ * Served at /publishio-oauth/authorize via a rewrite rule. Cookie-authenticated, with a nonce-protected consent POST and anti-framing headers. Clients are identified by Client ID Metadata Documents, fetched only after the user logs in.
  *
  * @package rtCamp\Publishio\Modules\MCP\OAuth\Endpoint
  */
@@ -13,10 +13,10 @@ namespace rtCamp\Publishio\Modules\MCP\OAuth\Endpoint;
 
 use rtCamp\Publishio\Core\Templates;
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Registry;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
-use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
 use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
@@ -31,7 +31,7 @@ class Authorize implements Registrable {
 	/**
 	 * Params kept exactly as sent, since they are checked by exact match.
 	 */
-	private const EXACT_PARAMS = [ 'state', 'redirect_uri', 'resource' ];
+	private const EXACT_PARAMS = [ 'client_id', 'state', 'redirect_uri', 'resource' ];
 
 	/**
 	 * {@inheritDoc}
@@ -94,7 +94,7 @@ class Authorize implements Registrable {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only consent screen; no state change. GET params are validated below.
 		$params = $this->extract_params( $_GET );
 
-		$error = $this->validate_params( $params );
+		$error = $this->validate_request( $params );
 		if ( $error ) {
 			$this->render_error( $error );
 			return;
@@ -113,7 +113,13 @@ class Authorize implements Registrable {
 			return;
 		}
 
-		$this->render_consent_screen( $params );
+		$client = $this->resolve_client( $params );
+		if ( is_wp_error( $client ) ) {
+			$this->render_error( $client );
+			return;
+		}
+
+		$this->render_consent_screen( $params, $client );
 	}
 
 	/**
@@ -144,9 +150,15 @@ class Authorize implements Registrable {
 
 		$params = $this->extract_params( $_POST );
 
-		$error = $this->validate_params( $params );
+		$error = $this->validate_request( $params );
 		if ( $error ) {
 			$this->render_error( $error );
+			return;
+		}
+
+		$client = $this->resolve_client( $params );
+		if ( is_wp_error( $client ) ) {
+			$this->render_error( $client );
 			return;
 		}
 
@@ -154,16 +166,12 @@ class Authorize implements Registrable {
 
 		if ( 'approve' !== $action ) {
 			$this->redirect_to_client(
-				add_query_arg(
-					rawurlencode_deep(
-						[
-							'error'             => 'access_denied',
-							'state'             => $params['state'],
-							'error_description' => 'The user denied the authorization request.',
-						]
-					),
-					$params['redirect_uri']
-				)
+				$params['redirect_uri'],
+				[
+					'error'             => 'access_denied',
+					'state'             => $params['state'],
+					'error_description' => 'The user denied the authorization request.',
+				]
 			);
 			return;
 		}
@@ -174,19 +182,16 @@ class Authorize implements Registrable {
 			$params['redirect_uri'],
 			$params['code_challenge'],
 			$params['scope'],
-			$params['resource']
+			$params['resource'],
+			$client['client_name']
 		);
 
 		$this->redirect_to_client(
-			add_query_arg(
-				rawurlencode_deep(
-					[
-						'code'  => $code,
-						'state' => $params['state'],
-					]
-				),
-				$params['redirect_uri']
-			)
+			$params['redirect_uri'],
+			[
+				'code'  => $code,
+				'state' => $params['state'],
+			]
 		);
 	}
 
@@ -234,27 +239,23 @@ class Authorize implements Registrable {
 	}
 
 	/**
-	 * Validate the authorization request parameters.
+	 * Validate the request parameters. Makes no network calls, so it is safe before login.
 	 *
 	 * @param array<string, string> $params The extracted parameters.
 	 *
 	 * @return \WP_Error|null Error if invalid, null if valid.
 	 */
-	private function validate_params( array $params ): ?\WP_Error {
+	private function validate_request( array $params ): ?\WP_Error {
 		if ( 'code' !== $params['response_type'] ) {
 			return new \WP_Error( 'unsupported_response_type', 'Only response_type=code is supported.', [ 'status' => 400 ] );
 		}
 
-		if ( ! Client_Registry::client_exists( $params['client_id'] ) ) {
-			return new \WP_Error( 'invalid_client', 'Unknown client_id.', [ 'status' => 400 ] );
+		if ( ! Client_Metadata_Validator::is_valid_client_id( $params['client_id'] ) ) {
+			return Client_Metadata::invalid_client_id_error();
 		}
 
-		if ( ! Client_Registry::validate_redirect_uri( $params['client_id'], $params['redirect_uri'] ) ) {
-			return new \WP_Error( 'invalid_redirect_uri', 'The redirect_uri is not registered for this client.', [ 'status' => 400 ] );
-		}
-
-		if ( ! Config::is_redirect_uri_allowed( $params['redirect_uri'] ) ) {
-			return new \WP_Error( 'unauthorized_client', 'This client is not permitted to use this authorization server.', [ 'status' => 403 ] );
+		if ( empty( $params['redirect_uri'] ) ) {
+			return new \WP_Error( 'invalid_request', 'redirect_uri is required.', [ 'status' => 400 ] );
 		}
 
 		if ( empty( $params['code_challenge'] ) ) {
@@ -281,6 +282,26 @@ class Authorize implements Registrable {
 	}
 
 	/**
+	 * Load the client's metadata and check the redirect_uri against it. Only call after the user has logged in.
+	 *
+	 * @param array<string, string> $params The validated parameters.
+	 *
+	 * @return array{client_id: string, client_name: string, redirect_uris: list<string>, client_uri: ?string, tos_uri: ?string, policy_uri: ?string}|\WP_Error
+	 */
+	private function resolve_client( array $params ): array|\WP_Error {
+		$client = ( new Client_Metadata() )->get( $params['client_id'] );
+		if ( is_wp_error( $client ) ) {
+			return $client;
+		}
+
+		if ( ! Client_Metadata_Validator::matches_redirect_uri( $params['redirect_uri'], $client['redirect_uris'] ) ) {
+			return new \WP_Error( 'invalid_redirect_uri', 'The redirect_uri is not listed in the client metadata document.', [ 'status' => 400 ] );
+		}
+
+		return $client;
+	}
+
+	/**
 	 * Build the authorize URL with all current parameters.
 	 *
 	 * @param array<string, string> $params The OAuth parameters.
@@ -290,14 +311,17 @@ class Authorize implements Registrable {
 	}
 
 	/**
-	 * Redirect the browser to a client redirect URI (external host, already validated).
+	 * Redirect the browser to the client's validated redirect URI, adding the issuer (RFC 9207).
 	 *
-	 * @param string $url The validated redirect URL with its query appended.
+	 * @param string                $redirect_uri The validated redirect URI.
+	 * @param array<string, string> $query        Response parameters to append.
 	 */
-	private function redirect_to_client( string $url ): void {
+	private function redirect_to_client( string $redirect_uri, array $query ): void {
+		$query['iss'] = Config::get_issuer_url();
+
 		$this->send_security_headers();
 		// Not using wp_safe_redirect because the redirect URL is external and already validated.
-		wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+		wp_redirect( add_query_arg( rawurlencode_deep( $query ), $redirect_uri ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
 		exit;
 	}
 
@@ -342,11 +366,11 @@ class Authorize implements Registrable {
 	/**
 	 * Render the consent screen as an HTML page and terminate.
 	 *
-	 * @param array<string, string> $params The OAuth parameters.
+	 * @param array<string, string>                                                                                                                  $params The OAuth parameters.
+	 * @param array{client_id: string, client_name: string, redirect_uris: list<string>, client_uri: ?string, tos_uri: ?string, policy_uri: ?string} $client The verified client metadata.
 	 */
-	private function render_consent_screen( array $params ): void {
-		$user   = wp_get_current_user();
-		$client = Client_Store::get_by_client_id( $params['client_id'] );
+	private function render_consent_screen( array $params, array $client ): void {
+		$user = wp_get_current_user();
 
 		$hidden_fields = '';
 		foreach ( $params as $key => $value ) {
@@ -359,20 +383,20 @@ class Authorize implements Registrable {
 
 		$_server = Server::get_server();
 
-		$self_registered  = ! $client || 'dcr' === ( $client['source'] ?? 'dcr' );
-		$destination_note = $self_registered
-			? __( 'This application registered itself, so approve only if you recognize this destination.', 'publishio' )
+		$destination_note = Client_Metadata_Validator::is_loopback_uri( $params['redirect_uri'] )
+			? __( 'This application runs on your computer and receives access there. Approve only if you started this connection.', 'publishio' )
 			: __( 'Approve only if you recognize this destination.', 'publishio' );
 
 		wp_register_style( 'publishio-consent', PUBLISHIO_URL . 'assets/css/consent.css', [], PUBLISHIO_VERSION );
 		wp_enqueue_style( 'publishio-consent' );
 
 		$args = [
-			'client_name'        => $client['client_name'] ?? $params['client_id'],
-			'client_uri'         => $client['client_uri'] ?? null,
-			'logo_uri'           => $client['logo_uri'] ?? null,
-			'tos_uri'            => $client['tos_uri'] ?? null,
-			'policy_uri'         => $client['policy_uri'] ?? null,
+			'client_name'        => $client['client_name'],
+			'client_host'        => Client_Metadata::host( $client['client_id'] ),
+			'client_uri'         => $client['client_uri'],
+			'logo_url'           => Client_Metadata::logo_url( $client['client_id'] ),
+			'tos_uri'            => $client['tos_uri'],
+			'policy_uri'         => $client['policy_uri'],
 			'site_name'          => get_bloginfo( 'name' ),
 			'site_url'           => home_url( '/' ),
 			'display_name'       => $user->display_name,

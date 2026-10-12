@@ -15,6 +15,7 @@ namespace rtCamp\Publishio\Modules\Settings;
 
 use rtCamp\Publishio\Core\Assets;
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config as MCP_Config;
 use rtCamp\Publishio\Modules\Settings\Pages\Connections_Page;
 use rtCamp\Publishio\Modules\Settings\Pages\Guide_Page;
@@ -152,6 +153,7 @@ final class Menu_Loader implements Registrable {
 				'openai' => plugins_url( 'assets/images/provider/openai-logo.svg', PUBLISHIO_FILE ),
 				'other'  => plugins_url( 'assets/images/provider/other-apps-logo.svg', PUBLISHIO_FILE ),
 			],
+			'appHosts'      => Client_Metadata::APP_HOSTS,
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
 			'guideImages'   => [
 				'claude' => [

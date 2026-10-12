@@ -47,6 +47,27 @@ body {
 	justify-content: center;
 }
 
+.app-icon img {
+	width: 48px;
+	height: 48px;
+	object-fit: contain;
+}
+
+.app-icon-generic {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	background: #f0f0f1;
+	color: #50575e;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.consent-header .client-host {
+	color: #787c82;
+}
+
 .consent-header h1 {
 	font-size: 20px;
 	font-weight: 700;

@@ -60,6 +60,7 @@ function delete_options(): void {
 	$options = [
 		// Add more options as needed.
 		PLUGIN_PREFIX . 'version', // Set by Main::activate().
+		PLUGIN_PREFIX . 'db_version',
 	];
 
 	foreach ( $options as $option ) {
@@ -68,22 +69,30 @@ function delete_options(): void {
 }
 
 /**
- * Deletes transients.
- *
- * @phpstan-ignore void.pure
+ * Deletes transients. Their names carry a hash or user ID, so they are matched by prefix.
  */
 function delete_transients(): void {
-	$transients = [
-		// Add more transients as needed.
+	global $wpdb;
+
+	$prefixes = [
+		PLUGIN_PREFIX . 'cimd_',       // Client metadata cache and per-user fetch limits.
+		PLUGIN_PREFIX . 'oauth_code_', // Authorization codes.
 	];
 
-	foreach ( $transients as $transient ) { // @phpstan-ignore foreach.emptyArray
-		delete_transient( $transient );
+	foreach ( $prefixes as $prefix ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				$wpdb->esc_like( '_transient_' . $prefix ) . '%',
+				$wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%'
+			)
+		);
 	}
 }
 
 /**
- * Drops the OAuth client and token tables.
+ * Drops the OAuth token table, and the client table left by versions that used dynamic client registration.
  */
 function delete_tables(): void {
 	global $wpdb;

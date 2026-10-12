@@ -61,7 +61,7 @@ beforeEach( () => {
 		resolveAfterTick( { items: [], total: 0 } )
 	);
 	( mockApi.remove as jest.Mock ).mockImplementation( () =>
-		resolveAfterTick( { tokens_deleted: 5 } )
+		resolveAfterTick( { deleted: true } )
 	);
 } );
 
@@ -129,7 +129,7 @@ describe( 'useConnections', () => {
 			await flushAsync();
 
 			expect( mockApi.list ).toHaveBeenCalledTimes( 1 );
-			expect( mockApi.list ).toHaveBeenCalledWith( 1 );
+			expect( mockApi.list ).toHaveBeenCalledWith( 1, 'desc' );
 
 			act( () => {
 				result.current.setPage( 2 );
@@ -138,19 +138,34 @@ describe( 'useConnections', () => {
 
 			await flushAsync();
 			expect( mockApi.list ).toHaveBeenCalledTimes( 2 );
-			expect( mockApi.list ).toHaveBeenLastCalledWith( 2 );
+			expect( mockApi.list ).toHaveBeenLastCalledWith( 2, 'desc' );
+		} );
+
+		it( 're-fetches from page 1 when the order changes', async () => {
+			const { result } = renderHook( () => useConnections() );
+			act( () => result.current.setPage( 2 ) );
+			await flushAsync();
+
+			act( () => result.current.changeOrder( 'asc' ) );
+			await flushAsync();
+
+			expect( result.current.order ).toBe( 'asc' );
+			expect( result.current.page ).toBe( 1 );
+			expect( mockApi.list ).toHaveBeenLastCalledWith( 1, 'asc' );
 		} );
 	} );
 
 	describe( 'remove', () => {
-		it( 'calls API remove, returns tokens, adjusts total', async () => {
+		it( 'calls API remove, resolves true, adjusts total', async () => {
 			// Initial fetch returns 3 items; re-fetch after remove returns 2 items.
 			( mockApi.list as jest.Mock )
 				.mockReturnValueOnce(
 					resolveAfterTick( {
 						items: [
 							{
-								client_id: 'dcr_app1',
+								id: 11,
+								client_id:
+									'https://app1.example.com/client.json',
 								client_name: 'App',
 								user: { id: 1 },
 							},
@@ -167,14 +182,12 @@ describe( 'useConnections', () => {
 
 			expect( result.current.total ).toBe( 3 );
 
-			let tokensDeleted = 0;
-			result.current
-				.remove( 'dcr_app1', 1 )
-				.then( ( n ) => ( tokensDeleted = n ) );
+			let removed = false;
+			result.current.remove( 11, 1 ).then( ( r ) => ( removed = r ) );
 			await flushAsync();
 
-			expect( mockApi.remove ).toHaveBeenCalledWith( 'dcr_app1', 1 );
-			expect( tokensDeleted ).toBe( 5 );
+			expect( mockApi.remove ).toHaveBeenCalledWith( 11, 1 );
+			expect( removed ).toBe( true );
 			expect( result.current.total ).toBe( 2 );
 		} );
 
@@ -189,7 +202,9 @@ describe( 'useConnections', () => {
 					resolveAfterTick( {
 						items: [
 							{
-								client_id: 'dcr_last',
+								id: 44,
+								client_id:
+									'https://last.example.com/client.json',
 								client_name: 'Last',
 								user: { id: 4 },
 							},
@@ -207,7 +222,7 @@ describe( 'useConnections', () => {
 
 			expect( result.current.page ).toBe( 2 );
 
-			result.current.remove( 'dcr_last', 4 );
+			result.current.remove( 44, 4 );
 			await flushAsync();
 
 			expect( result.current.page ).toBe( 1 );
@@ -224,17 +239,20 @@ describe( 'useConnections', () => {
 					resolveAfterTick( {
 						items: [
 							{
-								client_id: 'dcr_a',
+								id: 1,
+								client_id: 'https://a.example.com/client.json',
 								client_name: 'A',
 								user: { id: 4 },
 							},
 							{
-								client_id: 'dcr_b',
+								id: 2,
+								client_id: 'https://b.example.com/client.json',
 								client_name: 'B',
 								user: { id: 5 },
 							},
 							{
-								client_id: 'dcr_c',
+								id: 3,
+								client_id: 'https://c.example.com/client.json',
 								client_name: 'C',
 								user: { id: 6 },
 							},
@@ -246,12 +264,14 @@ describe( 'useConnections', () => {
 					resolveAfterTick( {
 						items: [
 							{
-								client_id: 'dcr_b',
+								id: 2,
+								client_id: 'https://b.example.com/client.json',
 								client_name: 'B',
 								user: { id: 5 },
 							},
 							{
-								client_id: 'dcr_c',
+								id: 3,
+								client_id: 'https://c.example.com/client.json',
 								client_name: 'C',
 								user: { id: 6 },
 							},
@@ -266,11 +286,50 @@ describe( 'useConnections', () => {
 
 			expect( result.current.page ).toBe( 2 );
 
-			result.current.remove( 'dcr_a', 4 );
+			result.current.remove( 1, 4 );
 			await flushAsync();
 
 			expect( result.current.page ).toBe( 2 );
 			expect( result.current.total ).toBe( 5 );
+		} );
+
+		it( 'reloads the list and shows an error when the connection is gone (404)', async () => {
+			mockListWith( [ { id: 7, client_name: 'App' } ], 1 );
+			( mockApi.remove as jest.Mock ).mockImplementation( () =>
+				rejectAfterTick( { code: 'not_found', data: { status: 404 } } )
+			);
+
+			const { result } = renderHook( () => useConnections() );
+			await flushAsync();
+
+			let removed: boolean | undefined;
+			result.current.remove( 7, 1 ).then( ( r ) => ( removed = r ) );
+			await flushAsync();
+
+			expect( removed ).toBe( false );
+			expect( mockApi.list ).toHaveBeenCalledTimes( 2 );
+			expect( result.current.total ).toBe( 1 );
+			expect( mockCreateErrorNotice ).toHaveBeenCalledWith(
+				expect.stringContaining( 'changed since the page loaded' ),
+				expect.objectContaining( { type: 'snackbar' } )
+			);
+		} );
+
+		it( 'rethrows other errors', async () => {
+			const failure = { code: 'delete_failed', data: { status: 500 } };
+			( mockApi.remove as jest.Mock ).mockImplementation( () =>
+				rejectAfterTick( failure )
+			);
+
+			const { result } = renderHook( () => useConnections() );
+			await flushAsync();
+
+			let caught: unknown;
+			result.current.remove( 7, 1 ).catch( ( e ) => ( caught = e ) );
+			await flushAsync();
+
+			expect( caught ).toBe( failure );
+			expect( mockCreateErrorNotice ).not.toHaveBeenCalled();
 		} );
 	} );
 

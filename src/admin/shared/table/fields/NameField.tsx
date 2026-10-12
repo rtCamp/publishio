@@ -16,36 +16,25 @@ const APP_LABELS: Record< string, string > = {
 
 interface Props {
 	item: {
+		client_id: string;
 		client_name: string;
-		redirect_uris: string[];
 		client_uri?: string | null;
-		logo_uri?: string | null;
 	};
 }
 
 export function NameField( { item }: Props ) {
 	const logos = window.publishioAdmin?.appLogos ?? {};
 
-	const logoEl = item.logo_uri ? (
-		<img
-			src={ item.logo_uri }
-			alt={ item.client_name }
-			className="size-6 shrink-0 object-contain"
-		/>
-	) : (
-		<>
-			{ detectApps( item.redirect_uris ).map( ( app ) =>
-				logos[ app ] ? (
-					<Tooltip key={ app } text={ APP_LABELS[ app ] ?? app }>
-						<img
-							src={ logos[ app ] }
-							alt={ APP_LABELS[ app ] ?? app }
-							className="size-6 shrink-0"
-						/>
-					</Tooltip>
-				) : null
-			) }
-		</>
+	const logoEl = detectApps( [ item.client_id ] ).map( ( app ) =>
+		logos[ app ] ? (
+			<Tooltip key={ app } text={ APP_LABELS[ app ] ?? app }>
+				<img
+					src={ logos[ app ] }
+					alt={ APP_LABELS[ app ] ?? app }
+					className="size-6 shrink-0"
+				/>
+			</Tooltip>
+		) : null
 	);
 
 	const nameEl = item.client_uri ? (

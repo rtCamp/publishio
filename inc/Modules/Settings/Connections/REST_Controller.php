@@ -2,13 +2,11 @@
 /**
  * REST API endpoints for OAuth connection management.
  *
- * Connections are auto-registered by MCP clients (Claude.ai, ChatGPT, etc.)
- * via the /register endpoint. Admins can list or revoke individual user
- * sessions here. Clients are never deleted — only their tokens are revoked.
+ * Each active token is one connection: created when a user approves an MCP client (Claude.ai, ChatGPT, etc.), and kept across refreshes. Admins can list connections or remove one.
  *
  * Routes (all require manage_options):
- *   GET    /wp-json/publishio/v1/connections
- *   DELETE /wp-json/publishio/v1/connections/{client_id}/users/{user_id}
+ *   GET    /wp-json/publishio/v1/connections?page={page}&order={desc|asc}
+ *   DELETE /wp-json/publishio/v1/connections/{id}?user_id={user_id}
  *
  * @package rtCamp\Publishio\Modules\Settings\Connections
  */
@@ -19,13 +17,18 @@ namespace rtCamp\Publishio\Modules\Settings\Connections;
 
 use WP_REST_Response;
 use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
-use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Client_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 
 /**
  * Class - REST_Controller
  */
 class REST_Controller extends Abstract_REST_Controller {
+	/**
+	 * Connections per page.
+	 */
+	private const PAGE_SIZE = 10;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -46,11 +49,17 @@ class REST_Controller extends Abstract_REST_Controller {
 				'callback'            => [ $this, 'get_items' ],
 				'permission_callback' => [ $this, 'permissions_check' ],
 				'args'                => [
-					'page' => [
+					'page'  => [
 						'type'              => 'integer',
 						'default'           => 1,
 						'minimum'           => 1,
 						'sanitize_callback' => 'absint',
+					],
+					'order' => [
+						'description' => __( 'Sort by last activity: newest first (desc) or oldest first (asc).', 'publishio' ),
+						'type'        => 'string',
+						'enum'        => [ 'asc', 'desc' ],
+						'default'     => 'desc',
 					],
 				],
 			]
@@ -58,18 +67,17 @@ class REST_Controller extends Abstract_REST_Controller {
 
 		register_rest_route(
 			$namespace,
-			'/' . $this->rest_base . '/(?P<client_id>[a-zA-Z0-9_]+)/users/(?P<user_id>\d+)',
+			'/' . $this->rest_base . '/(?P<id>\d+)',
 			[
 				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => [ $this, 'delete_item' ],
 				'permission_callback' => [ $this, 'permissions_check' ],
 				'args'                => [
-					'client_id' => [
-						'type'              => 'string',
-						'required'          => true,
-						'sanitize_callback' => 'sanitize_key',
+					'id'      => [
+						'type'     => 'integer',
+						'required' => true,
 					],
-					'user_id'   => [
+					'user_id' => [
 						'type'     => 'integer',
 						'required' => true,
 					],
@@ -79,47 +87,19 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * GET /connections — list one row per active (client, user) pair, paginated.
-	 *
-	 * Pagination is over distinct (client_id, user_id) pairs that have a valid
-	 * refresh token. Clients with no active sessions are not shown.
+	 * GET /connections — list active connections by last activity, paginated.
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 */
 	public function get_items( $request ): WP_REST_Response {
-		$now   = time();
-		$page  = max( 1, (int) $request->get_param( 'page' ) );
-		$total = Token_Store::count_connection_pairs( $now );
-
-		if ( 0 === $total ) {
-			return new WP_REST_Response(
-				[
-					'items' => [],
-					'total' => 0,
-				],
-				200
-			);
-		}
-
-		$offset = ( $page - 1 ) * Client_Store::PAGE_SIZE;
-		$pairs  = Token_Store::get_connection_pairs( $offset, Client_Store::PAGE_SIZE, $now );
-
-		if ( empty( $pairs ) ) {
-			return new WP_REST_Response(
-				[
-					'items' => [],
-					'total' => $total,
-				],
-				200
-			);
-		}
-
-		// Batch-load client metadata in a single IN query.
-		$client_ids = array_unique( array_column( $pairs, 'client_id' ) );
-		$client_map = Client_Store::get_by_client_ids( $client_ids );
+		$now          = time();
+		$page         = max( 1, (int) $request->get_param( 'page' ) );
+		$oldest_first = 'asc' === $request->get_param( 'order' );
+		$total        = Token_Store::count_connections( $now );
+		$connections  = $total > 0 ? Token_Store::get_connections( ( $page - 1 ) * self::PAGE_SIZE, self::PAGE_SIZE, $now, $oldest_first ) : [];
 
 		// Batch-load WP_User objects.
-		$user_ids = array_unique( array_column( $pairs, 'user_id' ) );
+		$user_ids = array_unique( array_column( $connections, 'user_id' ) );
 		$user_map = [];
 		if ( ! empty( $user_ids ) ) {
 			foreach ( get_users( [ 'include' => $user_ids ] ) as $wp_user ) {
@@ -133,23 +113,23 @@ class REST_Controller extends Abstract_REST_Controller {
 			}
 		}
 
-		// Build one item per (client, user) pair.
 		$items = [];
-		foreach ( $pairs as $pair ) {
-			$client = $client_map[ $pair['client_id'] ] ?? null;
-			$user   = $user_map[ $pair['user_id'] ] ?? null;
-			if ( ! $client || ! $user ) {
-				// This is unreachable condition based on current implementation of Client_Store.
-				// TODO: Improve robustness by updating these queries.
-				continue; // Token orphaned — client or user deleted.
+		foreach ( $connections as $connection ) {
+			$user = $user_map[ $connection['user_id'] ] ?? null;
+			if ( ! $user ) {
+				continue; // Token orphaned: user deleted.
 			}
-			$items[] = array_merge(
-				$this->prepare_client_for_response( $client ),
-				[
-					'user'           => $user,
-					'last_active_at' => $pair['last_active_at'],
-				]
-			);
+
+			$host    = Client_Metadata::host( $connection['client_id'] );
+			$items[] = [
+				'id'             => $connection['id'],
+				'client_id'      => $connection['client_id'],
+				'client_name'    => '' !== $connection['client_name'] ? $connection['client_name'] : $host,
+				'client_uri'     => 'https://' . $host,
+				'user'           => $user,
+				'connected_at'   => $connection['connected_at'],
+				'last_active_at' => $connection['last_active_at'],
+			];
 		}
 
 		return new WP_REST_Response(
@@ -162,45 +142,26 @@ class REST_Controller extends Abstract_REST_Controller {
 	}
 
 	/**
-	 * DELETE /connections/{client_id}/users/{user_id} — revoke one user's tokens for a client.
+	 * DELETE /connections/{id}?user_id={user_id} — remove one of a user's connections.
 	 *
-	 * The client record is never deleted. Only the tokens belonging to this
-	 * specific (user, client) pair are removed.
+	 * Returns 404 when that user has no such id: already removed, or the app has refreshed its token since the list loaded.
 	 *
 	 * @param \WP_REST_Request $request The request.
 	 *
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function delete_item( $request ) {
-		$client_id = (string) $request->get_param( 'client_id' );
-		$user_id   = (int) $request->get_param( 'user_id' );
+		$deleted = Token_Store::revoke( (int) $request->get_param( 'id' ), (int) $request->get_param( 'user_id' ) );
 
-		if ( null === Client_Store::get_by_client_id( $client_id ) ) {
+		if ( false === $deleted ) {
+			return new \WP_Error( 'delete_failed', __( 'Failed to remove the connection.', 'publishio' ), [ 'status' => 500 ] );
+		}
+
+		if ( 0 === $deleted ) {
 			return new \WP_Error( 'not_found', __( 'Connection not found.', 'publishio' ), [ 'status' => 404 ] );
 		}
 
-		$tokens_deleted = Token_Store::revoke_for_client( $user_id, $client_id );
-
-		if ( false === $tokens_deleted ) {
-			return new \WP_Error( 'delete_failed', __( 'Failed to revoke tokens.', 'publishio' ), [ 'status' => 500 ] );
-		}
-
-		return new WP_REST_Response( [ 'tokens_deleted' => $tokens_deleted ], 200 );
-	}
-
-	/**
-	 * Strip internal-only fields from a client row before sending it to the browser.
-	 *
-	 * `client_secret_hash` must never leave the server. `id` and `is_public` are
-	 * internal implementation details that the connections UI does not need.
-	 *
-	 * @param array<string, mixed> $client Parsed client row from Client_Store.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function prepare_client_for_response( array $client ): array {
-		unset( $client['client_secret_hash'], $client['id'], $client['is_public'] );
-		return $client;
+		return new WP_REST_Response( [ 'deleted' => true ], 200 );
 	}
 
 	/**

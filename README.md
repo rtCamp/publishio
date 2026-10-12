@@ -24,7 +24,7 @@ Everything runs on your own site. There's no third-party service in the middle: 
 ## ✨ Features
 
 - **Follows your design system:** Structured layouts are built from your site's own block patterns, and prose uses native blocks styled by your theme — so content inherits your existing layout, spacing, and brand instead of generic markup.
-- **Connect ChatGPT, Claude, or any MCP client:** A standard MCP server for WordPress that works with ChatGPT, Claude, and any tool that speaks the Model Context Protocol.
+- **Connect ChatGPT, Claude, and other MCP clients:** A standard MCP server for WordPress that works with ChatGPT, Claude, Claude Code, and other MCP clients that support Client ID Metadata Documents (CIMD).
 - **Pattern auto-discovery:** Automatically discovers every pattern registered on your site — from your theme, plugins, and core.
 - **Structured content generation:** The AI builds pages with proper, Block Editor-compatible block structures — no messy HTML insertion.
 - **In-chat previews:** Preview each section inside the AI chat before anything is published.
@@ -52,6 +52,7 @@ The skill is served automatically to any connected AI assistant via MCP. Editors
 ### WordPress
 
 - **WordPress 6.9 or higher**
+- **Pretty permalinks** (any Permalinks setting except Plain). AI apps can't connect with Plain permalinks.
 
 ### Themes
 
@@ -80,7 +81,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 ## 🚀 Quick Start
 
 1. Install and activate the plugin in your WordPress dashboard.
-2. Ensure you meet the [Requirements](#-requirements) (WordPress 6.9+, PHP 8.2+).
+2. Ensure you meet the [Requirements](#-requirements) (WordPress 6.9+, PHP 8.2+, pretty permalinks).
 3. Open the **Publishio** page in your dashboard. It shows your site's MCP server URL and step-by-step guides for connecting Claude and ChatGPT; other MCP clients connect to the same URL (see the [FAQ](#-faq)).
 4. Add the connection in your AI, authorize it, and start prompting it to build pages and posts from your patterns.
 
@@ -102,7 +103,7 @@ A: Yes — Publishio adds no third-party service. It runs entirely on your own W
 A: Yes. Publishio works with any registered post type — pages, posts, and custom post types (e.g. portfolio, product, event). Just tell the AI which post type to create.
 
 **Q: Does it work with AI platforms other than ChatGPT and Claude?**
-A: Yes. Publishio is a standard MCP server, and MCP is an open protocol. Any AI platform or client that supports MCP — including local models, coding assistants, and custom integrations — can connect to your site and build content.
+A: Yes, if the app supports Client ID Metadata Documents (CIMD), the OAuth sign-in method the MCP specification recommends. Claude (web, desktop, and Claude Code) and ChatGPT support it. Cursor, Gemini CLI, and Windsurf only support the older dynamic client registration, so they can't connect until they add CIMD support.
 
 **Q: Do I need a specific theme?**
 A: No, it works with any block-based / FSE theme. Themes with well-described patterns (like Twenty Twenty-Five) yield the best results, because the AI matches patterns from their names and descriptions.

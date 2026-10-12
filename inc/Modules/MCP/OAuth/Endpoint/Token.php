@@ -6,6 +6,8 @@
  * - authorization_code: exchanges code + PKCE verifier for tokens
  * - refresh_token: rotates refresh token and issues new access token
  *
+ * No client secrets; clients prove themselves with PKCE. The client was verified at consent, so its metadata document isn't fetched here.
+ *
  * Registered at: POST /wp-json/publishio-oauth/v1/token
  *
  * @package rtCamp\Publishio\Modules\MCP\OAuth\Endpoint
@@ -16,7 +18,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\OAuth\Endpoint;
 
 use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_REST_Controller;
-use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Registry;
+use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
@@ -74,13 +76,8 @@ class Token extends Abstract_REST_Controller {
 		$redirect_uri  = (string) $request->get_param( 'redirect_uri' );
 		$code_verifier = (string) $request->get_param( 'code_verifier' );
 
-		// Public clients (registered via DCR) authenticate via PKCE — no secret needed.
-		// is_public_client() already confirms the client exists; confidential clients require client_secret.
-		if ( ! Client_Registry::is_public_client( $client_id ) ) {
-			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
-			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
-				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
-			}
+		if ( ! Client_Metadata_Validator::is_valid_client_id( $client_id ) ) {
+			return $this->invalid_client_response();
 		}
 
 		// Consume the auth code (one-time use).
@@ -115,6 +112,7 @@ class Token extends Abstract_REST_Controller {
 		$tokens = Token_Store::issue(
 			$code_data['user_id'],
 			$client_id,
+			$code_data['client_name'] ?? '',
 			$code_data['scope'],
 			$code_data['resource']
 		);
@@ -137,11 +135,9 @@ class Token extends Abstract_REST_Controller {
 		$refresh_token = (string) $request->get_param( 'refresh_token' );
 		$client_id     = (string) $request->get_param( 'client_id' );
 
-		if ( ! Client_Registry::is_public_client( $client_id ) ) {
-			$client_secret = (string) ( $request->get_param( 'client_secret' ) ?? '' );
-			if ( ! Client_Registry::validate_credentials( $client_id, $client_secret ) ) {
-				return $this->error_response( 'invalid_client', 'Invalid client credentials.', 401 );
-			}
+		// invalid_grant makes apps sign in again, which replaces connections made before CIMD (dcr_ ids).
+		if ( ! Client_Metadata_Validator::is_valid_client_id( $client_id ) ) {
+			return $this->error_response( 'invalid_grant', 'Refresh token is invalid or expired. If this keeps happening, disconnect the connector in your AI app and connect it again.', 400 );
 		}
 
 		$tokens = Token_Store::refresh( $refresh_token, $client_id );
@@ -189,7 +185,16 @@ class Token extends Abstract_REST_Controller {
 	}
 
 	/**
+	 * Error for a client_id that isn't a client metadata document URL.
+	 */
+	private function invalid_client_response(): \WP_REST_Response {
+		return $this->error_response( 'invalid_client', 'client_id must be the HTTPS URL of a client metadata document.', 401 );
+	}
+
+	/**
 	 * Build an OAuth error response.
+	 *
+	 * Descriptions stay in English: OAuth allows only ASCII in error_description (RFC 6749 §5.2), and apps read them, not users.
 	 *
 	 * @param string $error_code  The OAuth error code.
 	 * @param string $description Human-readable description.

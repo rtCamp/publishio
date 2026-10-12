@@ -81,21 +81,16 @@ class Auth_Server_Metadata implements Registrable {
 	 * @return array<string, mixed>
 	 */
 	private function get_metadata(): array {
-		$issuer           = Config::get_issuer_url();
-		$rest_ns          = Config::OAUTH_REST_NAMESPACE;
-		$auth_url         = Config::get_authorize_url();
-		$token_url        = rest_url( $rest_ns . '/token' );
-		$registration_url = rest_url( $rest_ns . '/register' );
-
 		return [
-			'issuer'                                => $issuer,
-			'authorization_endpoint'                => $auth_url,
-			'token_endpoint'                        => $token_url,
-			'registration_endpoint'                 => $registration_url,
+			'issuer'                                => Config::get_issuer_url(),
+			'authorization_endpoint'                => Config::get_authorize_url(),
+			'token_endpoint'                        => rest_url( Config::OAUTH_REST_NAMESPACE . '/token' ),
 			'response_types_supported'              => [ 'code' ],
 			'grant_types_supported'                 => [ 'authorization_code', 'refresh_token' ],
 			'code_challenge_methods_supported'      => [ 'S256' ],
-			'token_endpoint_auth_methods_supported' => [ 'none', 'client_secret_post' ],
+			'token_endpoint_auth_methods_supported' => [ 'none' ],
+			'client_id_metadata_document_supported' => true,
+			'authorization_response_iss_parameter_supported' => true,
 			'scopes_supported'                      => Config::SUPPORTED_SCOPES,
 			'resource_indicators_supported'         => true,
 		];

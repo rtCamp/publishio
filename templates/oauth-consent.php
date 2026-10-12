@@ -8,8 +8,9 @@
  *
  * @var array<string, mixed> $args {
  *     @type string      $client_name        Display name of the OAuth client.
+ *     @type string      $client_host        Host of the client_id URL (the client's verified domain).
  *     @type string|null $client_uri         URL to the client's homepage.
- *     @type string|null $logo_uri           URL to the client's logo image.
+ *     @type string|null $logo_url           Bundled logo for a well-known client; null shows the generic icon.
  *     @type string|null $tos_uri            URL to the client's Terms of Service.
  *     @type string|null $policy_uri         URL to the client's Privacy Policy.
  *     @type string      $site_name          WordPress site name.
@@ -47,11 +48,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 <body>
 	<div class="consent-container">
 		<div class="consent-header">
-			<?php if ( ! empty( $args['logo_uri'] ) ) : ?>
 			<div class="app-icon" aria-hidden="true">
-				<img src="<?php echo esc_url( $args['logo_uri'] ); ?>" alt="<?php echo esc_attr( $args['client_name'] ); ?>" style="height:48px;max-width:120px;width:auto;object-fit:contain;" />
+				<?php if ( ! empty( $args['logo_url'] ) ) : ?>
+					<img src="<?php echo esc_url( $args['logo_url'] ); ?>" alt="" />
+				<?php else : ?>
+					<span class="app-icon-generic">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+							<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="7" y1="6.5" x2="7.01" y2="6.5"/><line x1="10" y1="6.5" x2="10.01" y2="6.5"/>
+						</svg>
+					</span>
+				<?php endif; ?>
 			</div>
-			<?php endif; ?>
 			<h1><?php esc_html_e( 'Authorize Application', 'publishio' ); ?></h1>
 			<p class="subtitle">
 				<?php if ( ! empty( $args['client_uri'] ) ) : ?>
@@ -59,6 +66,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php else : ?>
 					<strong><?php echo esc_html( $args['client_name'] ); ?></strong>
 				<?php endif; ?>
+				<span class="client-host">(<?php echo esc_html( $args['client_host'] ); ?>)</span>
 				<?php esc_html_e( 'is requesting access to', 'publishio' ); ?>
 				<a href="<?php echo esc_url( $args['site_url'] ); ?>" class="site-link" target="_blank" rel="noopener">
 					<?php echo esc_html( $args['site_name'] ); ?>
@@ -137,7 +145,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</button>
 			</div>
 			<p class="footer-note">
-				<?php esc_html_e( 'You can revoke access from your WordPress profile page.', 'publishio' ); ?>
+				<?php esc_html_e( 'You can remove this connection anytime from Publishio MCP Connections on your WordPress profile page.', 'publishio' ); ?>
 			</p>
 			<?php if ( ! empty( $args['tos_uri'] ) || ! empty( $args['policy_uri'] ) ) : ?>
 			<p class="footer-legal">

@@ -3,22 +3,19 @@
  */
 import { useState } from '@wordpress/element';
 import { Button } from '@wordpress/components';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
-import type { OAuthConnection } from './types';
 import { Notice } from '../shared/Notice';
 
 interface DeleteConnectionDialogProps {
-	connection: OAuthConnection;
 	onConfirm: () => Promise< void >;
 	onCancel: undefined | ( () => void );
 }
 
 export function DeleteConnectionDialog( {
-	connection,
 	onConfirm,
 	onCancel = () => {},
 }: DeleteConnectionDialogProps ) {
@@ -33,7 +30,7 @@ export function DeleteConnectionDialog( {
 		} catch {
 			setError(
 				__(
-					'Failed to delete connection. Please try again.',
+					'Failed to remove the connection. Please try again.',
 					'publishio'
 				)
 			);
@@ -50,19 +47,11 @@ export function DeleteConnectionDialog( {
 				</Notice>
 			) }
 			<p className="text-sm text-gray-700 mt-0">
-				{ sprintf(
-					/* translators: 1: user name, 2: app name */
-					__(
-						'Are you sure you want to revoke %1$s\'s access to "%2$s"?',
-						'publishio'
-					),
-					connection.user.name,
-					connection.client_name
-				) }
+				{ __( 'Remove this connection?', 'publishio' ) }
 			</p>
 			<p className="text-sm text-gray-700">
 				{ __(
-					'This will immediately sign out this user. They will need to reconnect the next time they use this app.',
+					'The app loses access through it right away. Other connections for the same app stay active.',
 					'publishio'
 				) }
 			</p>
@@ -78,7 +67,7 @@ export function DeleteConnectionDialog( {
 					disabled={ isDeleting }
 					onClick={ handleConfirm }
 				>
-					{ __( 'Revoke Access', 'publishio' ) }
+					{ __( 'Remove', 'publishio' ) }
 				</Button>
 				<Button
 					variant="tertiary"

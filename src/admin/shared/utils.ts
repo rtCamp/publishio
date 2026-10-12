@@ -1,30 +1,25 @@
 export type App = 'claude' | 'openai' | 'other';
 
-const KNOWN_APPS: Array< {
-	app: Exclude< App, 'other' >;
-	domains: string[];
-} > = [
-	{ app: 'claude', domains: [ 'claude.ai', 'anthropic.com' ] },
-	{ app: 'openai', domains: [ 'openai.com', 'chatgpt.com' ] },
-];
+// The app-to-domain map comes from PHP (Client_Metadata::APP_HOSTS), so the consent screen and the admin pick the same logo.
+function matchDomain( hostname: string ): App | null {
+	const appHosts = window.publishioAdmin?.appHosts ?? {};
 
-function matchDomain( hostname: string ): Exclude< App, 'other' > | null {
-	for ( const { app, domains } of KNOWN_APPS ) {
+	for ( const [ app, domains ] of Object.entries( appHosts ) ) {
 		if (
 			domains.some(
 				( d ) => hostname === d || hostname.endsWith( '.' + d )
 			)
 		) {
-			return app;
+			return app as App;
 		}
 	}
 	return null;
 }
 
-export function detectApps( redirectUris: string[] ): App[] {
+export function detectApps( urls: string[] ): App[] {
 	const found = new Set< App >();
 
-	for ( const uri of redirectUris ) {
+	for ( const uri of urls ) {
 		try {
 			const hostname = new URL( uri ).hostname.toLowerCase();
 			const app = matchDomain( hostname );

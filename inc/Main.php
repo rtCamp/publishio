@@ -33,6 +33,11 @@ final class Main {
 	];
 
 	/**
+	 * Database schema version. Bump it when adding a step to upgrade_schema(), so the step runs on deploy without waiting for a plugin release.
+	 */
+	private const DB_VERSION = 2;
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public static function get_instance(): self {
@@ -96,25 +101,44 @@ final class Main {
 	}
 
 	/**
-	 * Runs schema migrations when the stored plugin version is older than the current one.
+	 * Runs migrations when the stored plugin or database schema version is older than the current one.
 	 */
 	public static function maybe_upgrade(): void {
-		$stored = (string) get_option( 'publishio_version', '0.0.0' );
+		$stored_version    = (string) get_option( 'publishio_version', '0.0.0' );
+		$stored_db_version = (int) get_option( 'publishio_db_version', 1 );
 
-		if ( version_compare( $stored, PUBLISHIO_VERSION, '<' ) ) {
+		if ( version_compare( $stored_version, PUBLISHIO_VERSION, '<' ) || $stored_db_version < self::DB_VERSION ) {
 			self::run_migrations();
 		}
 	}
 
 	/**
-	 * Create / update all DB tables and record the current version.
+	 * Create / update all DB tables, apply schema upgrades and record the current versions.
 	 */
 	private static function run_migrations(): void {
 		Modules\MCP\OAuth\Storage\Token_Store::create_table();
-		Modules\MCP\OAuth\Storage\Client_Store::create_table();
+		self::upgrade_schema( (int) get_option( 'publishio_db_version', 1 ) );
+
 		update_option( 'publishio_version', PUBLISHIO_VERSION );
+		update_option( 'publishio_db_version', self::DB_VERSION );
 
 		self::maybe_flush_rewrite_rules();
+	}
+
+	/**
+	 * Apply schema changes made since the given database version.
+	 *
+	 * @param int $from Stored database schema version.
+	 */
+	private static function upgrade_schema( int $from ): void {
+		if ( $from < 2 ) {
+			// Dynamic client registration was replaced by Client ID Metadata Documents.
+			global $wpdb;
+
+			Modules\MCP\OAuth\Storage\Token_Store::delete_dcr_tokens();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'publishio_oauth_clients' ) );
+		}
 	}
 
 	/**

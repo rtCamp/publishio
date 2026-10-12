@@ -6,22 +6,14 @@ export interface ConnectionUser {
 	admin_edit_url: string;
 }
 
+export type ConnectionOrder = 'asc' | 'desc';
+
 export interface OAuthConnection {
+	id: number;
 	client_id: string;
 	client_name: string;
-	source: string;
-	redirect_uris: string[];
-	grant_types: string;
-	response_types: string;
-	scope: string;
-	client_uri: string | null;
-	logo_uri: string | null;
-	tos_uri: string | null;
-	policy_uri: string | null;
-	contacts: string[];
-	software_id: string | null;
-	software_version: string | null;
-	registered_at: number;
+	client_uri: string;
 	user: ConnectionUser;
+	connected_at: number;
 	last_active_at: number;
 }

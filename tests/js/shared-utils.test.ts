@@ -6,14 +6,23 @@
  */
 import { detectApps, relativeDate } from '@/admin/shared/utils';
 
+beforeAll( () => {
+	window.publishioAdmin = {
+		appHosts: {
+			claude: [ 'claude.ai', 'anthropic.com' ],
+			openai: [ 'openai.com', 'chatgpt.com' ],
+		},
+	} as unknown as NonNullable< Window[ 'publishioAdmin' ] >;
+} );
+
 describe( 'detectApps', () => {
-	it( 'detects claude from claude.ai redirect URI', () => {
+	it( 'detects claude from claude.ai URL', () => {
 		expect( detectApps( [ 'https://claude.ai/oauth/callback' ] ) ).toEqual(
 			[ 'claude' ]
 		);
 	} );
 
-	it( 'detects claude from anthropic.com redirect URI', () => {
+	it( 'detects claude from anthropic.com URL', () => {
 		expect(
 			detectApps( [ 'https://api.anthropic.com/oauth/callback' ] )
 		).toEqual( [ 'claude' ] );
@@ -25,13 +34,13 @@ describe( 'detectApps', () => {
 		] );
 	} );
 
-	it( 'detects openai from openai.com redirect URI', () => {
+	it( 'detects openai from openai.com URL', () => {
 		expect( detectApps( [ 'https://api.openai.com/callback' ] ) ).toEqual( [
 			'openai',
 		] );
 	} );
 
-	it( 'detects openai from chatgpt.com redirect URI', () => {
+	it( 'detects openai from chatgpt.com URL', () => {
 		expect( detectApps( [ 'https://chat.openai.com/callback' ] ) ).toEqual(
 			[ 'openai' ]
 		);

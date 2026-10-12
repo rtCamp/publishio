@@ -84,4 +84,49 @@ class MainTest extends TestCase {
 		$this->assertNotFalse( has_action( 'activate_' . plugin_basename( PUBLISHIO_FILE ) ) );
 		$this->assertNotFalse( has_action( 'deactivate_' . plugin_basename( PUBLISHIO_FILE ) ) );
 	}
+
+	/**
+	 * Upgrading from schema 1 removes the dynamic client registration data and leaves the schema current.
+	 *
+	 * The test framework turns CREATE and DROP TABLE into temporary-table statements, so they stay inside the test's transaction.
+	 */
+	public function test_upgrade_from_schema_1_removes_dcr_data(): void {
+		global $wpdb;
+
+		$tokens  = $wpdb->prefix . 'publishio_oauth_tokens';
+		$clients = $wpdb->prefix . 'publishio_oauth_clients';
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( $wpdb->prepare( 'CREATE TABLE %i ( client_id VARCHAR(255) NOT NULL )', $clients ) );
+		foreach ( [ 'dcr_abc123', 'https://app.example.com/client.json' ] as $client_id ) {
+			$wpdb->insert(
+				$tokens,
+				[
+					'user_id'            => 1,
+					'client_id'          => $client_id,
+					'access_token_hash'  => wp_generate_password( 64, false ),
+					'refresh_token_hash' => wp_generate_password( 64, false ),
+					'access_expires_at'  => time() + 60,
+					'refresh_expires_at' => time() + 60,
+					'created_at'         => time(),
+				]
+			);
+		}
+		update_option( 'publishio_db_version', 1 );
+
+		Main::maybe_upgrade();
+
+		$this->assertSame( [ 'https://app.example.com/client.json' ], $wpdb->get_col( $wpdb->prepare( 'SELECT client_id FROM %i', $tokens ) ) );
+
+		$wpdb->suppress_errors( true );
+		$this->assertFalse( $wpdb->query( $wpdb->prepare( 'SELECT 1 FROM %i', $clients ) ), 'The clients table is dropped.' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertSame( '2', (string) get_option( 'publishio_db_version' ) );
+		$this->assertContains( 'client_name', $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $tokens ) ) );
+		$this->assertContains( 'authorized_at', $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $tokens ) ) );
+		$this->assertContains( 'created_at', $wpdb->get_col( $wpdb->prepare( 'SHOW INDEX FROM %i', $tokens ), 2 ) );
+		$this->assertContains( 'refresh_expires_at', $wpdb->get_col( $wpdb->prepare( 'SHOW INDEX FROM %i', $tokens ), 2 ) );
+		// phpcs:enable
+	}
 }

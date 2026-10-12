@@ -10,6 +10,7 @@ interface Window {
 		pluginVersion: string;
 		logoUrl: string;
 		appLogos: Record< string, string >;
+		appHosts: Record< string, string[] >;
 		mcpServerUrl: string;
 		guideImages: {
 			claude: {

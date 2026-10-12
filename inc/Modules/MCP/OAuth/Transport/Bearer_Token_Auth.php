@@ -6,6 +6,7 @@
  * 1. Intercepting REST authentication for MCP routes.
  * 2. Validating Bearer tokens and setting the current WP user
  * 3. Adding WWW-Authenticate headers on 401 responses
+ * 4. Refusing tools that change the site when the token lacks the mcp:write scope
  *
  * @package rtCamp\Publishio\Modules\MCP\OAuth\Transport
  */
@@ -14,13 +15,22 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\OAuth\Transport;
 
+use WP\MCP\Core\McpServer;
+use WP\MCP\Domain\Tools\McpTool;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
+use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
  * Class - Bearer_Token_Auth
  */
 class Bearer_Token_Auth {
+	/**
+	 * Scope of the access token that authenticated this request, or null when no token did.
+	 */
+	private ?string $token_scope = null;
+
 	/**
 	 * Register authentication hooks.
 	 */
@@ -30,6 +40,9 @@ class Bearer_Token_Auth {
 
 		// Add WWW-Authenticate header on 401 responses from MCP routes.
 		add_filter( 'rest_post_dispatch', [ $this, 'add_www_authenticate_header' ], 10, 3 );
+
+		// Late, so filters at lower priorities can't replace the refusal with arguments.
+		add_filter( 'mcp_adapter_pre_tool_call', [ $this, 'enforce_token_scope' ], PHP_INT_MAX, 4 );
 	}
 
 	/**
@@ -90,8 +103,42 @@ class Bearer_Token_Auth {
 
 		// Set the authenticated user.
 		wp_set_current_user( $token_data['user_id'] );
+		$this->token_scope = $token_data['scope'];
 
 		return true;
+	}
+
+	/**
+	 * Refuse a tool call that the access token's scope does not cover.
+	 *
+	 * Without mcp:write, only abilities annotated `readonly => true` and not `destructive => true` may run. Only the Publishio server is checked, the only one access tokens authenticate on. Requests authenticated another way (cookie, application password) are not limited by scope.
+	 *
+	 * The adapter sends only the error message to the client, as a tool error the AI can read and explain.
+	 *
+	 * @param array<string, mixed>|\WP_Error $args       The tool arguments.
+	 * @param string                         $_tool_name The tool name (unused).
+	 * @param \WP\MCP\Domain\Tools\McpTool   $mcp_tool   The tool being called.
+	 * @param \WP\MCP\Core\McpServer         $server     The server handling the call.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	public function enforce_token_scope( $args, string $_tool_name, McpTool $mcp_tool, McpServer $server ) { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+		if ( is_wp_error( $args ) || null === $this->token_scope || Server::SERVER_ID !== $server->get_server_id() || Scope::allows_write( $this->token_scope ) ) {
+			return $args;
+		}
+
+		$ability_name = $mcp_tool->get_adapter_meta()['ability'] ?? null;
+		$ability      = is_string( $ability_name ) ? wp_get_ability( $ability_name ) : null;
+		$annotations  = $ability ? ( $ability->get_meta()['annotations'] ?? [] ) : [];
+
+		if ( true === ( $annotations['readonly'] ?? null ) && true !== ( $annotations['destructive'] ?? null ) ) {
+			return $args;
+		}
+
+		return new \WP_Error(
+			'insufficient_scope',
+			__( 'This connection has read-only access, so it cannot make changes to the site.', 'publishio' )
+		);
 	}
 
 	/**
@@ -117,8 +164,9 @@ class Bearer_Token_Auth {
 		$resource_metadata_url = site_url( '/.well-known/oauth-protected-resource/wp-json/' . $matched_path );
 
 		$www_auth = sprintf(
-			'Bearer resource_metadata="%s", scope="mcp:read mcp:write"',
-			$resource_metadata_url
+			'Bearer resource_metadata="%s", scope="%s"',
+			$resource_metadata_url,
+			implode( ' ', Scope::SUPPORTED )
 		);
 
 		$response->header( 'WWW-Authenticate', $www_auth );

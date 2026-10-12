@@ -13,6 +13,7 @@ namespace rtCamp\Publishio\Modules\MCP\OAuth\Well_Known;
 
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 
 /**
  * Class - Auth_Server_Metadata
@@ -91,7 +92,7 @@ class Auth_Server_Metadata implements Registrable {
 			'token_endpoint_auth_methods_supported' => [ 'none' ],
 			'client_id_metadata_document_supported' => true,
 			'authorization_response_iss_parameter_supported' => true,
-			'scopes_supported'                      => Config::SUPPORTED_SCOPES,
+			'scopes_supported'                      => Scope::SUPPORTED,
 			'resource_indicators_supported'         => true,
 		];
 	}

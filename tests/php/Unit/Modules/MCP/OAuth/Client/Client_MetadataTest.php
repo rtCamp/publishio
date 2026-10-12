@@ -178,6 +178,8 @@ class Client_MetadataTest extends TestCase {
 	/**
 	 * Answer every HTTP request with a valid document and this status, and count the requests.
 	 *
+	 * Fires http_api_curl first, as WordPress does before cURL sends a request, so the fetcher's IP pin runs.
+	 *
 	 * @param int $status HTTP status.
 	 */
 	private function mock_response( int $status ): void {
@@ -190,8 +192,11 @@ class Client_MetadataTest extends TestCase {
 
 		add_filter(
 			'pre_http_request',
-			function () use ( $status, $document ): array {
+			function ( $_pre, array $args, string $url ) use ( $status, $document ): array { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- The filter passes the request arguments second.
 				++$this->requests;
+
+				$handle = curl_init(); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_init
+				do_action_ref_array( 'http_api_curl', [ &$handle, $args, $url ] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core action.
 
 				return [
 					'headers'  => [ 'content-type' => 'application/json' ],
@@ -203,7 +208,9 @@ class Client_MetadataTest extends TestCase {
 					'cookies'  => [],
 					'filename' => null,
 				];
-			}
+			},
+			10,
+			3
 		);
 	}
 }

@@ -2,7 +2,7 @@
 /**
  * Tests for fetching Client ID Metadata Documents: address checks, response checks and cache lifetime.
  *
- * HTTP is mocked with pre_http_request, which runs before cURL, so the IP pin itself is covered by repro-04.sh instead.
+ * HTTP is mocked with pre_http_request. The mock fires http_api_curl with a real cURL handle first, as WordPress does before cURL sends a request, so the IP pin runs.
  *
  * @package rtCamp\Publishio\Tests\Unit\Modules\MCP\OAuth\Client
  */
@@ -83,6 +83,43 @@ class Client_Metadata_FetcherTest extends TestCase {
 		$this->assertSame( 0, $this->requests[0]['redirection'] );
 		$this->assertTrue( $this->requests[0]['sslverify'] );
 		$this->assertSame( 5121, $this->requests[0]['limit_response_size'] );
+	}
+
+	/**
+	 * The pin runs for the document request only, and is removed once the fetch is done.
+	 */
+	public function test_pins_the_request_and_removes_the_pin(): void {
+		$this->mock_response( 200, '{"a":1}' );
+
+		$this->assertIsArray( $this->fetcher()->fetch( self::CLIENT_ID ) );
+		$this->assertFalse( has_action( 'http_api_curl' ) );
+	}
+
+	/**
+	 * A public IPv6 address is pinned too.
+	 */
+	public function test_pins_ipv6_addresses(): void {
+		$this->mock_response( 200, '{"a":1}' );
+
+		$this->assertIsArray( ( new Client_Metadata_Fetcher( static fn (): array => [ '2606:4700::6810:84e5' ] ) )->fetch( self::CLIENT_ID ) );
+	}
+
+	/**
+	 * A response that didn't go through the pinned cURL connection, such as one sent by another transport, is discarded.
+	 */
+	public function test_fails_closed_when_the_pin_did_not_run(): void {
+		$this->mock_response( 200, '{"a":1}', 'application/json', '', false );
+
+		$this->assertFetchFailed( 'secure_transport_unavailable', $this->fetcher()->fetch( self::CLIENT_ID ) );
+	}
+
+	/**
+	 * A cURL hook for another URL doesn't count as pinning the document request.
+	 */
+	public function test_pin_ignores_other_requests(): void {
+		$this->mock_response( 200, '{"a":1}', 'application/json', '', 'https://other.example.com/x' );
+
+		$this->assertFetchFailed( 'secure_transport_unavailable', $this->fetcher()->fetch( self::CLIENT_ID ) );
 	}
 
 	/**
@@ -178,16 +215,22 @@ class Client_Metadata_FetcherTest extends TestCase {
 	/**
 	 * Answer every HTTP request with this response, and record the request arguments.
 	 *
-	 * @param int    $status        HTTP status.
-	 * @param string $body          Response body.
-	 * @param string $content_type  Content-Type header.
-	 * @param string $cache_control Cache-Control header.
+	 * @param int         $status        HTTP status.
+	 * @param string      $body          Response body.
+	 * @param string      $content_type  Content-Type header.
+	 * @param string      $cache_control Cache-Control header.
+	 * @param bool|string $curl_hook     Fire http_api_curl as cURL would: true for the requested URL, a string for another URL, false to skip it.
 	 */
-	private function mock_response( int $status, string $body, string $content_type = 'application/json', string $cache_control = '' ): void {
+	private function mock_response( int $status, string $body, string $content_type = 'application/json', string $cache_control = '', bool|string $curl_hook = true ): void {
 		add_filter(
 			'pre_http_request',
-			function ( $_pre, array $args ) use ( $status, $body, $content_type, $cache_control ): array { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- The filter passes the request arguments second.
+			function ( $_pre, array $args, string $url ) use ( $status, $body, $content_type, $cache_control, $curl_hook ): array { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- The filter passes the request arguments second.
 				$this->requests[] = $args;
+
+				if ( false !== $curl_hook ) {
+					$handle = curl_init(); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_init
+					do_action_ref_array( 'http_api_curl', [ &$handle, $args, true === $curl_hook ? $url : $curl_hook ] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core action.
+				}
 
 				return [
 					'headers'  => array_filter(
@@ -206,7 +249,7 @@ class Client_Metadata_FetcherTest extends TestCase {
 				];
 			},
 			10,
-			2
+			3
 		);
 	}
 

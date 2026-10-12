@@ -146,7 +146,7 @@ export function ConnectionsTable( {
 				empty={
 					<EmptyState
 						message={ __(
-							'No AI apps have connected yet. Claude.ai and other AI tools will appear here after a user signs in for the first time.',
+							'No AI apps have connected yet. Connections will appear here after a user signs in for the first time.',
 							'publishio'
 						) }
 					/>

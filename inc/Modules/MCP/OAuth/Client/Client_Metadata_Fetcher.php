@@ -9,6 +9,9 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\OAuth\Client;
 
+use WpOrg\Requests\Capability;
+use WpOrg\Requests\Transport\Curl;
+
 /**
  * Class - Client_Metadata_Fetcher
  */
@@ -49,14 +52,16 @@ final class Client_Metadata_Fetcher {
 			return self::failure( 'host_not_public' );
 		}
 
-		if ( ! function_exists( 'curl_init' ) || ! apply_filters( 'https_ssl_verify', true, $client_id ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter: refuse to fetch when a site disables TLS verification.
+		// WordPress sends requests through cURL when this test passes, and only cURL can be pinned to the checked IP.
+		if ( ! Curl::test( [ Capability::SSL => true ] ) || ! apply_filters( 'https_ssl_verify', true, $client_id ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter: refuse to fetch when a site disables TLS verification.
 			return self::failure( 'secure_transport_unavailable' );
 		}
 
 		// Connect to the IP we checked, so a second DNS answer can't redirect the request (DNS rebinding).
-		$pin = static function ( $handle, array $_args, string $url ) use ( $client_id, $host, $ip ): void { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter, Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		$pinned = false;
+		$pin    = static function ( $handle, array $_args, string $url ) use ( $client_id, $host, $ip, &$pinned ): void { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter, Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 			if ( $url === $client_id ) {
-				curl_setopt( $handle, CURLOPT_RESOLVE, [ sprintf( '%s:443:%s', $host, str_contains( $ip, ':' ) ? "[{$ip}]" : $ip ) ] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt
+				$pinned = curl_setopt( $handle, CURLOPT_RESOLVE, [ sprintf( '%s:443:%s', $host, str_contains( $ip, ':' ) ? "[{$ip}]" : $ip ) ] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt
 			}
 		};
 
@@ -77,6 +82,10 @@ final class Client_Metadata_Fetcher {
 
 		if ( is_wp_error( $response ) ) {
 			return self::failure( 'request_failed' );
+		}
+
+		if ( ! $pinned ) {
+			return self::failure( 'secure_transport_unavailable' );
 		}
 
 		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {

@@ -29,7 +29,7 @@ final class Scope {
 	private static function labels(): array {
 		return [
 			self::READ  => __( 'Read posts, pages, media, blocks and patterns', 'publishio' ),
-			self::WRITE => __( 'Create and edit posts and pages, remove content from them, and upload media', 'publishio' ),
+			self::WRITE => __( 'Create and edit posts and pages, and remove content from them', 'publishio' ),
 		];
 	}
 

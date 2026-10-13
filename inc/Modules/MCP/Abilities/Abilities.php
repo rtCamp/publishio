@@ -34,7 +34,6 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Update_Post;
-use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Upload_Media;
 use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Insert_Pattern;
 use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Preview_Pattern;
 use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Render_Pattern;
@@ -98,7 +97,6 @@ final class Abilities implements Registrable {
 			new Delete_Block_At(),
 			new Search_Posts(),
 			new Search_Attachments(),
-			new Upload_Media(),
 			new Get_Taxonomy_Terms(),
 			new Get_Post_Terms(),
 			new Set_Post_Terms(),

@@ -126,7 +126,7 @@ class Apply_Pattern_Schema {
 				'meta'                => [
 					'show_in_rest' => true,
 					'annotations'  => [
-						'readonly'    => false,
+						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
 					],

@@ -16,6 +16,7 @@ use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata;
 use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
 use rtCamp\Publishio\Modules\MCP\Server\Server;
 
@@ -100,6 +101,12 @@ class Authorize implements Registrable {
 			return;
 		}
 
+		$scope = $this->resolve_scope( $params );
+		if ( is_wp_error( $scope ) ) {
+			$this->render_error( $scope );
+			return;
+		}
+
 		if ( ! is_user_logged_in() ) {
 			$this->send_security_headers();
 			wp_safe_redirect( wp_login_url( $this->build_authorize_url( $params ) ) );
@@ -119,7 +126,7 @@ class Authorize implements Registrable {
 			return;
 		}
 
-		$this->render_consent_screen( $params, $client );
+		$this->render_consent_screen( $params, $client, $scope );
 	}
 
 	/**
@@ -176,12 +183,18 @@ class Authorize implements Registrable {
 			return;
 		}
 
+		$scope = $this->resolve_scope( $params );
+		if ( is_wp_error( $scope ) ) {
+			$this->render_error( $scope );
+			return;
+		}
+
 		$code = Auth_Code_Store::create(
 			get_current_user_id(),
 			$params['client_id'],
 			$params['redirect_uri'],
 			$params['code_challenge'],
-			$params['scope'],
+			$scope,
 			$params['resource'],
 			$client['client_name']
 		);
@@ -326,6 +339,23 @@ class Authorize implements Registrable {
 	}
 
 	/**
+	 * The scope that approval grants, or an error when none of the requested scopes are supported.
+	 *
+	 * Callers show the error on this site instead of redirecting, so a crafted link can't send the user to the client without a click.
+	 *
+	 * @param array<string, string> $params The validated parameters.
+	 */
+	private function resolve_scope( array $params ): string|\WP_Error {
+		$scope = Scope::normalize( $params['scope'] );
+
+		if ( '' === $scope ) {
+			return new \WP_Error( 'invalid_scope', 'None of the requested scopes are supported. Supported scopes: ' . implode( ' ', Scope::SUPPORTED ) . '.', [ 'status' => 400 ] );
+		}
+
+		return $scope;
+	}
+
+	/**
 	 * Send anti-framing and hardening headers so the consent screen cannot be framed (clickjacking of "Allow").
 	 */
 	private function send_security_headers(): void {
@@ -368,8 +398,9 @@ class Authorize implements Registrable {
 	 *
 	 * @param array<string, string>                                                                                                                  $params The OAuth parameters.
 	 * @param array{client_id: string, client_name: string, redirect_uris: list<string>, client_uri: ?string, tos_uri: ?string, policy_uri: ?string} $client The verified client metadata.
+	 * @param string                                                                                                                                 $scope  The scope that approval grants.
 	 */
-	private function render_consent_screen( array $params, array $client ): void {
+	private function render_consent_screen( array $params, array $client, string $scope ): void {
 		$user = wp_get_current_user();
 
 		$hidden_fields = '';
@@ -403,7 +434,7 @@ class Authorize implements Registrable {
 			'user_email'         => $user->user_email,
 			'action_url'         => Config::get_authorize_url(),
 			'hidden_fields'      => $hidden_fields,
-			'scopes'             => $params['scope'] ? implode( ', ', explode( ' ', $params['scope'] ) ) : 'full access',
+			'permissions'        => Scope::describe( $scope ),
 			'resource_url'       => $params['resource'],
 			'server_name'        => $_server ? $_server->get_server_name() : __( 'MCP Server', 'publishio' ),
 			'server_description' => $_server ? $_server->get_server_description() : '',
@@ -413,8 +444,10 @@ class Authorize implements Registrable {
 
 		$this->send_security_headers();
 		status_header( 200 );
-		header( 'Content-Type: text/html; charset=utf-8' );
-		header( 'Cache-Control: no-store' );
+		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/html; charset=utf-8' );
+			header( 'Cache-Control: no-store' );
+		}
 
 		Templates::get_template_part( 'oauth-consent', null, $args, true );
 		exit;

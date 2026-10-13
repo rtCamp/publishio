@@ -19,7 +19,7 @@ use rtCamp\Publishio\Modules\MCP\Resources\Content_Guide\Content_Guide;
  * Class - Server
  */
 class Server implements Registrable {
-	private const SERVER_ID      = 'publishio';
+	public const SERVER_ID       = 'publishio';
 	private const ABILITY_PREFIX = 'publishio/';
 
 	/**

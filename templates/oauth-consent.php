@@ -19,7 +19,7 @@
  *     @type string      $user_email         Current user email.
  *     @type string      $action_url         Form action URL.
  *     @type string      $hidden_fields      Pre-rendered hidden input fields (unescaped).
- *     @type string      $scopes             Comma-separated scope string.
+ *     @type string[]    $permissions        What approval grants, one line per scope.
  *     @type string      $resource_url       MCP resource URL.
  *     @type string      $server_name        MCP server display name.
  *     @type string      $server_description MCP server description (empty string if none).
@@ -125,10 +125,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php endif; ?>
 			<div class="section">
 				<div class="section-label"><?php esc_html_e( 'Permissions', 'publishio' ); ?></div>
+				<ul class="scope-list">
+					<?php foreach ( $args['permissions'] as $publishio_permission ) : ?>
+					<li>
+						<svg class="scope-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+						<?php echo esc_html( $publishio_permission ); ?>
+					</li>
+					<?php endforeach; ?>
+				</ul>
 				<p class="scope-note">
 					<?php
 					// translators: %s: client application name wrapped in <strong>.
-					printf( esc_html__( '%s will have access based on your WordPress role and capabilities.', 'publishio' ), '<strong>' . esc_html( $args['client_name'] ) . '</strong>' );
+					printf( esc_html__( '%s can only do what your WordPress role allows.', 'publishio' ), '<strong>' . esc_html( $args['client_name'] ) . '</strong>' );
 					?>
 				</p>
 			</div>

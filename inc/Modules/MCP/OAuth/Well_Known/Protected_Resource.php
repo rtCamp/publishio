@@ -14,6 +14,7 @@ namespace rtCamp\Publishio\Modules\MCP\OAuth\Well_Known;
 
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 
 /**
  * Class - Protected_Resource
@@ -97,7 +98,7 @@ class Protected_Resource implements Registrable {
 		return [
 			'resource'                 => Config::get_mcp_resource_claim(),
 			'authorization_servers'    => [ Config::get_issuer_url() ],
-			'scopes_supported'         => Config::SUPPORTED_SCOPES,
+			'scopes_supported'         => Scope::SUPPORTED,
 			'bearer_methods_supported' => [ 'header' ],
 		];
 	}

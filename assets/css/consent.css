@@ -277,13 +277,15 @@ body {
 	padding: 0;
 }
 
+.scope-note {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #4b4f6b;
+}
+
 /* Footer / Form */
 .consent-footer {
-	position: sticky;
-	bottom: 0;
-	z-index: 1;
 	padding-block: 20px 28px;
-	background: #fff;
 	border-top: 1px solid #dcdcde;
 	margin: 0;
 }

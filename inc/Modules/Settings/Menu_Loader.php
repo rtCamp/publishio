@@ -19,6 +19,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config as MCP_Config;
 use rtCamp\Publishio\Modules\Settings\Pages\Connections_Page;
 use rtCamp\Publishio\Modules\Settings\Pages\Guide_Page;
+use rtCamp\Publishio\Modules\Settings\Pages\Status_Page;
 
 /**
  * Class - Menu_Loader
@@ -33,6 +34,7 @@ final class Menu_Loader implements Registrable {
 	private const PAGE_CLASSES = [
 		Guide_Page::class,
 		Connections_Page::class,
+		Status_Page::class,
 	];
 
 	/**
@@ -155,6 +157,10 @@ final class Menu_Loader implements Registrable {
 			],
 			'appHosts'      => Client_Metadata::APP_HOSTS,
 			'mcpServerUrl'  => MCP_Config::get_mcp_resource_url(),
+			'issuerUrl'     => MCP_Config::get_issuer_url(),
+			'tokenUrl'      => rest_url( MCP_Config::OAUTH_REST_NAMESPACE . '/token' ),
+			'statusUrl'     => admin_url( 'admin.php?page=' . Status_Page::SLUG ),
+			'autoRunChecks' => self::opened_from_this_site(),
 			'guideImages'   => [
 				'claude' => [
 					'connectorMenu' => plugins_url( 'assets/images/guide/claude/step-connector-menu.png', PUBLISHIO_FILE ),
@@ -170,5 +176,16 @@ final class Menu_Loader implements Registrable {
 				],
 			],
 		];
+	}
+
+	/**
+	 * Whether this page was opened from the site itself, typed or bookmarked.
+	 *
+	 * The site checks run by themselves only then, so another site can't trigger them by opening the page in a new tab. Browsers that don't send Sec-Fetch-Site are trusted.
+	 */
+	private static function opened_from_this_site(): bool {
+		$site = isset( $_SERVER['HTTP_SEC_FETCH_SITE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_SEC_FETCH_SITE'] ) ) : '';
+
+		return in_array( $site, [ '', 'same-origin', 'none' ], true );
 	}
 }

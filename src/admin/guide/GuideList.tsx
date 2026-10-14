@@ -7,8 +7,10 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { AdminHeader } from '../shared/AdminHeader';
+import type { SiteCheck } from '../shared/site-check/useSiteCheck';
 import type { Guide } from './types';
 import { GuideCard } from './GuideCard';
+import { ConnectCard } from './ConnectCard';
 
 const GUIDES: Guide[] = [
 	{
@@ -33,9 +35,10 @@ const GUIDES: Guide[] = [
 
 interface GuideListProps {
 	onOpen: ( guide: Guide ) => void;
+	siteCheck: SiteCheck;
 }
 
-export function GuideList( { onOpen }: GuideListProps ) {
+export function GuideList( { onOpen, siteCheck }: GuideListProps ) {
 	return (
 		<>
 			<AdminHeader
@@ -45,7 +48,11 @@ export function GuideList( { onOpen }: GuideListProps ) {
 					'publishio'
 				) }
 			/>
-			<div className="flex flex-col gap-3 p-6 max-w-2xl mx-auto w-full">
+			<div className="box-border flex flex-col gap-3 p-4 md:p-6 max-w-2xl mx-auto w-full">
+				<ConnectCard siteCheck={ siteCheck } />
+				<h2 className="m-0 mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+					{ __( 'Setup guides', 'publishio' ) }
+				</h2>
 				{ GUIDES.map( ( guide ) => (
 					<GuideCard
 						key={ guide.id }

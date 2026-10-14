@@ -25,6 +25,11 @@ use rtCamp\Publishio\Modules\MCP\Server\Server;
  */
 class Authorize implements Registrable {
 	/**
+	 * Capability a user needs to connect an AI app. The Guide and Status pages use it too.
+	 */
+	public const CAPABILITY = 'edit_posts';
+
+	/**
 	 * Query var that flags a request for the authorize endpoint.
 	 */
 	private const QUERY_VAR = 'publishio_oauth_authorize';
@@ -113,7 +118,7 @@ class Authorize implements Registrable {
 			exit;
 		}
 
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( self::CAPABILITY ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
 			$this->render_error(
 				new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publishio' ), [ 'status' => 403 ] )
 			);
@@ -140,7 +145,7 @@ class Authorize implements Registrable {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( self::CAPABILITY ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
 			$this->render_error(
 				new \WP_Error( 'forbidden', __( 'You do not have permission to authorize MCP clients.', 'publishio' ), [ 'status' => 403 ] )
 			);

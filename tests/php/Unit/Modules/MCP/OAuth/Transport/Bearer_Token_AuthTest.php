@@ -187,6 +187,22 @@ class Bearer_Token_AuthTest extends TestCase {
 	}
 
 	/**
+	 * The challenge points at the home URL, which the rewrite rules match, when WordPress is in its own directory.
+	 */
+	public function test_challenge_uses_the_home_url(): void {
+		// A filter, since wp-env's WP_SITEURL constant overrides the option.
+		add_filter( 'option_siteurl', static fn (): string => home_url( '/wp' ), PHP_INT_MAX );
+		$request = new \WP_REST_Request( 'POST', '/' . Config::get_mcp_endpoint_path() );
+
+		$response = ( new Bearer_Token_Auth() )->add_www_authenticate_header( new \WP_REST_Response( null, 401 ), rest_get_server(), $request );
+
+		$this->assertStringStartsWith(
+			'Bearer resource_metadata="' . home_url( '/.well-known/oauth-protected-resource/wp-json/' . Config::get_mcp_endpoint_path() ) . '"',
+			$response->get_headers()['WWW-Authenticate']
+		);
+	}
+
+	/**
 	 * Every Publishio ability says whether it is read-only, since that decides which tokens may call it.
 	 */
 	public function test_every_publishio_ability_declares_readonly(): void {

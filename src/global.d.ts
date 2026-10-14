@@ -12,6 +12,10 @@ interface Window {
 		appLogos: Record< string, string >;
 		appHosts: Record< string, string[] >;
 		mcpServerUrl: string;
+		issuerUrl: string;
+		tokenUrl: string;
+		statusUrl: string;
+		autoRunChecks: boolean;
 		guideImages: {
 			claude: {
 				connectorMenu: string;

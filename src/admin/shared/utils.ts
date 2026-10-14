@@ -47,3 +47,21 @@ export function relativeDate( timestamp: number ): string {
 	}
 	return rtf.format( Math.round( diffSeconds / 60 ), 'minute' );
 }
+
+/**
+ * Copy text, falling back to a hidden textarea where the Clipboard API is refused.
+ *
+ * @param text Text to copy.
+ */
+export async function copyToClipboard( text: string ): Promise< void > {
+	try {
+		await navigator.clipboard.writeText( text );
+	} catch {
+		const el = document.createElement( 'textarea' );
+		el.value = text;
+		document.body.appendChild( el );
+		el.select();
+		document.execCommand( 'copy' );
+		document.body.removeChild( el );
+	}
+}

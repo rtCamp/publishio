@@ -23,6 +23,10 @@ const scriptEntries = {
 		import.meta.dirname,
 		'src/admin/connections/index.tsx'
 	),
+	'admin-status': path.resolve(
+		import.meta.dirname,
+		'src/admin/status/index.tsx'
+	),
 	'admin-menu-icon': path.resolve(
 		import.meta.dirname,
 		'src/admin/styles/menu-icon.scss'

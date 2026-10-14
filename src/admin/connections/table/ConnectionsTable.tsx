@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { useState, useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { DataViews } from '@wordpress/dataviews';
 import type { View, Action, Field } from '@wordpress/dataviews';
@@ -149,6 +150,17 @@ export function ConnectionsTable( {
 							'No AI apps have connected yet. Connections will appear here after a user signs in for the first time.',
 							'publishio'
 						) }
+						action={
+							<Button
+								variant="link"
+								href={ window.publishioAdmin?.statusUrl ?? '' }
+							>
+								{ __(
+									"Can't connect an app? Check your site's status",
+									'publishio'
+								) }
+							</Button>
+						}
 					/>
 				}
 			/>

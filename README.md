@@ -53,6 +53,7 @@ The skill is served automatically to any connected AI assistant via MCP. Editors
 
 - **WordPress 6.9 or higher**
 - **Pretty permalinks** (any Permalinks setting except Plain). AI apps can't connect with Plain permalinks.
+- **AI apps must be able to reach your site.** Addresses under `/.well-known/` and `/wp-json/` must reach WordPress for visitors who aren't logged in. Some web servers and firewalls block `/.well-known/`; **Publishio → Status** checks this for you.
 
 ### Themes
 
@@ -95,6 +96,9 @@ A: Publishio exposes a standard MCP server on your own site at `https://your-sit
 
 **Q: How do I connect Claude to WordPress?**
 A: Open the **Publishio** page in your WordPress dashboard. It includes a complete, step-by-step guide for adding your site's MCP server to Claude and authorizing the connection.
+
+**Q: An AI app says it couldn't connect. What should I check?**
+A: Open **Publishio → Status** in your dashboard. It checks your site the way an AI app does and names the step that fails, such as a web server blocking `/.well-known/` or a security plugin blocking the REST API, with how to fix it. Copy the report it gives you and send it to your developer, your host or rtCamp, or paste it into Claude or ChatGPT and ask it to walk you through the fix.
 
 **Q: Does my content and data stay on my site?**
 A: Yes — Publishio adds no third-party service. It runs entirely on your own WordPress site as a self-hosted MCP server, and your site connects directly to the AI you choose; nothing is routed through rtCamp or any Publishio-operated cloud. The pages and posts you create live in your own database, exactly like any other WordPress content. The only data that leaves your site is what you send to your chosen AI assistant (ChatGPT or Claude) during a chat — the same as using that assistant anywhere else — governed by that provider's terms.

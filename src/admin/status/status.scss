@@ -1,0 +1,27 @@
+.publishio-card-panel {
+
+	.components-panel__body {
+		border: 0;
+	}
+
+	.components-panel__body-toggle.components-button {
+		border-radius: 0;
+	}
+}
+
+// Only the report scrolls, so the buttons stay in view.
+.publishio-report-modal {
+
+	.components-modal__content {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.components-modal__children-container {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		min-height: 0;
+	}
+}

@@ -110,7 +110,16 @@ class Client_Metadata_FetcherTest extends TestCase {
 	public function test_fails_closed_when_the_pin_did_not_run(): void {
 		$this->mock_response( 200, '{"a":1}', 'application/json', '', false );
 
-		$this->assertFetchFailed( 'secure_transport_unavailable', $this->fetcher()->fetch( self::CLIENT_ID ) );
+		$this->assertFetchFailed( 'pin_failed', $this->fetcher()->fetch( self::CLIENT_ID ) );
+	}
+
+	/**
+	 * An error from a filter that answered before cURL ran is a missed pin, not a failed connection.
+	 */
+	public function test_error_without_the_pin_is_a_missed_pin(): void {
+		add_filter( 'pre_http_request', static fn (): \WP_Error => new \WP_Error( 'http_request_failed', 'Mocked.' ) );
+
+		$this->assertFetchFailed( 'pin_failed', $this->fetcher()->fetch( self::CLIENT_ID ) );
 	}
 
 	/**
@@ -119,7 +128,7 @@ class Client_Metadata_FetcherTest extends TestCase {
 	public function test_pin_ignores_other_requests(): void {
 		$this->mock_response( 200, '{"a":1}', 'application/json', '', 'https://other.example.com/x' );
 
-		$this->assertFetchFailed( 'secure_transport_unavailable', $this->fetcher()->fetch( self::CLIENT_ID ) );
+		$this->assertFetchFailed( 'pin_failed', $this->fetcher()->fetch( self::CLIENT_ID ) );
 	}
 
 	/**
@@ -167,7 +176,7 @@ class Client_Metadata_FetcherTest extends TestCase {
 		$this->mock_response( 200, '{}' );
 		add_filter( 'https_ssl_verify', '__return_false' );
 
-		$this->assertFetchFailed( 'secure_transport_unavailable', $this->fetcher()->fetch( self::CLIENT_ID ) );
+		$this->assertFetchFailed( 'ssl_verify_off', $this->fetcher()->fetch( self::CLIENT_ID ) );
 		$this->assertSame( [], $this->requests );
 	}
 

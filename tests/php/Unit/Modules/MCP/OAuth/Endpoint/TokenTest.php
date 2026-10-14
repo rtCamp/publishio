@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for the token endpoint's refresh_token grant.
+ * Tests for the token endpoint's authorization_code and refresh_token grants.
  *
  * @package rtCamp\Publishio\Tests\Unit\Modules\MCP\OAuth\Endpoint
  */
@@ -11,6 +11,7 @@ namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\OAuth\Endpoint;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Token;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 use rtCamp\Publishio\Tests\TestCase;
 
@@ -19,7 +20,69 @@ use rtCamp\Publishio\Tests\TestCase;
  */
 #[CoversClass( Token::class )]
 class TokenTest extends TestCase {
-	private const CLIENT_ID = 'https://app.example.com/client.json';
+	private const CLIENT_ID     = 'https://app.example.com/client.json';
+	private const REDIRECT_URI  = 'https://app.example.com/callback';
+	private const CODE_VERIFIER = 'test-code-verifier-0123456789-abcdefghijklmnopqrstuvwxyz';
+
+	/**
+	 * A code created before the user's password changed, even in the same second, can't be exchanged; one created after can.
+	 */
+	public function test_code_issued_before_password_change_is_rejected(): void {
+		$user_id = self::factory()->user->create();
+		wp_set_password( 'new-password', $user_id );
+		$revoked_at = (int) get_user_meta( $user_id, 'publishio_tokens_revoked_at', true );
+
+		$before = $this->exchange( $this->create_code( $user_id, $revoked_at - MINUTE_IN_SECONDS ) );
+		$same   = $this->exchange( $this->create_code( $user_id, $revoked_at ) );
+		$after  = $this->exchange( $this->create_code( $user_id, $revoked_at + 1 ) );
+
+		foreach ( [ $before, $same ] as $rejected ) {
+			$this->assertSame( 400, $rejected->get_status() );
+			$this->assertSame( 'invalid_grant', ( (array) $rejected->get_data() )['error'] );
+		}
+		$this->assertSame( 200, $after->get_status() );
+	}
+
+	/**
+	 * A revocation landing after the exchange's check but before its insert still covers the new connection, which is approved when its code was created.
+	 */
+	public function test_revocation_during_code_exchange_covers_new_connection(): void {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create();
+		$code    = $this->create_code( $user_id, time() - MINUTE_IN_SECONDS );
+		$insert  = 'INSERT INTO `' . $wpdb->prefix . 'publishio_oauth_tokens`';
+		add_filter(
+			'query',
+			static function ( string $query ) use ( $insert, $user_id ): string {
+				if ( str_starts_with( $query, $insert ) ) {
+					update_user_meta( $user_id, 'publishio_tokens_revoked_at', time() - 1 );
+				}
+				return $query;
+			}
+		);
+
+		$response = $this->exchange( $code );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( Token_Store::validate_access_token( ( (array) $response->get_data() )['access_token'] ) );
+		$this->assertSame( [], Token_Store::get_for_user( $user_id ) );
+	}
+
+	/**
+	 * A code older than a short lifetime gets invalid_grant, rather than tokens that have already expired.
+	 */
+	public function test_code_older_than_lifetime_is_rejected(): void {
+		$user_id = self::factory()->user->create();
+		$code    = $this->create_code( $user_id, time() - MINUTE_IN_SECONDS );
+		add_filter( 'publishio_max_connection_lifetime', static fn () => 30 );
+
+		$response = $this->exchange( $code );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'invalid_grant', ( (array) $response->get_data() )['error'] );
+		$this->assertSame( [], Token_Store::get_for_user( $user_id ) );
+	}
 
 	/**
 	 * A refresh token is exchanged once; replaying it fails with invalid_grant.
@@ -65,6 +128,48 @@ class TokenTest extends TestCase {
 				'grant_type'    => 'refresh_token',
 				'refresh_token' => $refresh_token,
 				'client_id'     => $client_id,
+			]
+		);
+
+		$response = ( new Token() )->handle( $request );
+		$this->assertInstanceOf( \WP_REST_Response::class, $response );
+
+		return $response;
+	}
+
+	/**
+	 * Create an authorization code for the test client.
+	 *
+	 * @param int $user_id    The user who approved it.
+	 * @param int $created_at When it was created.
+	 */
+	private function create_code( int $user_id, int $created_at ): string {
+		$challenge = rtrim( strtr( base64_encode( hash( 'sha256', self::CODE_VERIFIER, true ) ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$code      = Auth_Code_Store::create( $user_id, self::CLIENT_ID, self::REDIRECT_URI, $challenge, 'mcp:read', 'https://example.org/wp-json/mcp/publishio', 'Example App' );
+
+		$key  = 'publishio_oauth_code_' . hash( 'sha256', $code );
+		$data = get_transient( $key );
+		$this->assertIsArray( $data );
+		$data['created_at'] = $created_at;
+		set_transient( $key, $data, MINUTE_IN_SECONDS );
+
+		return $code;
+	}
+
+	/**
+	 * Send an authorization_code grant to the token endpoint's handler.
+	 *
+	 * @param string $code Authorization code.
+	 */
+	private function exchange( string $code ): \WP_REST_Response {
+		$request = new \WP_REST_Request( 'POST', '/publishio-oauth/v1/token' );
+		$request->set_body_params(
+			[
+				'grant_type'    => 'authorization_code',
+				'code'          => $code,
+				'client_id'     => self::CLIENT_ID,
+				'redirect_uri'  => self::REDIRECT_URI,
+				'code_verifier' => self::CODE_VERIFIER,
 			]
 		);
 

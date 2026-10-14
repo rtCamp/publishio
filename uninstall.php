@@ -19,6 +19,9 @@ const PLUGIN_PREFIX = 'publishio_';
  * Uninstalls the plugin. If multisite, uninstalls from all sites.
  */
 function run_uninstaller(): void {
+	// User meta is shared by every site.
+	delete_metadata( 'user', 0, PLUGIN_PREFIX . 'tokens_revoked_at', '', true );
+
 	if ( ! is_multisite() ) {
 		uninstall();
 		return;

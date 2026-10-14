@@ -108,13 +108,19 @@ class Token extends Abstract_REST_Controller {
 			return $this->error_response( 'invalid_target', 'resource does not match the authorization request.', 400 );
 		}
 
+		// The user's password changed, or they logged out everywhere, after approving, or a lifetime shorter than the code's age has already ended the connection.
+		if ( Token_Store::is_revoked( (int) $code_data['user_id'], (int) $code_data['created_at'] ) || Token_Store::has_ended( (int) $code_data['created_at'] ) ) {
+			return $this->error_response( 'invalid_grant', 'Authorization code is invalid or expired.', 400 );
+		}
+
 		// Issue tokens.
 		$tokens = Token_Store::issue(
 			$code_data['user_id'],
 			$client_id,
 			$code_data['client_name'] ?? '',
 			$code_data['scope'],
-			$code_data['resource']
+			$code_data['resource'],
+			(int) $code_data['created_at']
 		);
 
 		if ( null === $tokens ) {

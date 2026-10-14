@@ -13,13 +13,14 @@ namespace rtCamp\Publishio\Modules\MCP\OAuth;
  * Class - Config
  */
 class Config {
-	public const MCP_ROUTE_NAMESPACE  = 'mcp';
-	public const MCP_ROUTE            = 'publishio';
-	public const OAUTH_REST_NAMESPACE = 'publishio-oauth/v1';
-	public const AUTHORIZE_PATH       = 'publishio-oauth/authorize';
-	public const ACCESS_TOKEN_TTL     = 3600;
-	public const REFRESH_TOKEN_TTL    = 2592000;
-	public const AUTH_CODE_TTL        = 120;
+	public const MCP_ROUTE_NAMESPACE     = 'mcp';
+	public const MCP_ROUTE               = 'publishio';
+	public const OAUTH_REST_NAMESPACE    = 'publishio-oauth/v1';
+	public const AUTHORIZE_PATH          = 'publishio-oauth/authorize';
+	public const ACCESS_TOKEN_TTL        = 3600;
+	public const REFRESH_TOKEN_TTL       = 2592000;
+	public const MAX_CONNECTION_LIFETIME = 7776000;
+	public const AUTH_CODE_TTL           = 120;
 
 	/**
 	 * Get the default MCP endpoint path.
@@ -80,5 +81,12 @@ class Config {
 	 */
 	public static function get_refresh_token_ttl(): int {
 		return (int) apply_filters( 'publishio_refresh_token_ttl', self::REFRESH_TOKEN_TTL );
+	}
+
+	/**
+	 * Get how long a connection lasts after the user approves it, allowing filter overrides. Refreshing doesn't extend it. 0 means connections don't end; the filter can return 0 or less for that.
+	 */
+	public static function get_max_connection_lifetime(): int {
+		return max( 0, (int) apply_filters( 'publishio_max_connection_lifetime', self::MAX_CONNECTION_LIFETIME ) );
 	}
 }

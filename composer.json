@@ -53,6 +53,7 @@
 		"lint": "phpcs",
 		"phpstan": "phpstan analyse --memory-limit=1G",
 		"test": "vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:yoast": "vendor/bin/phpunit -c phpunit-yoast.xml.dist",
 		"test-multisite": "WP_MULTISITE=1 phpunit --exclude-group=ms-excluded"
 	}
 }

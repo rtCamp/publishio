@@ -143,6 +143,7 @@ Code contributions, bug reports, and feature requests are welcome! The following
 ├── playwright.config.ts          # Playwright configuration.
 ├── phpstan.neon.dist             # PHPStan configuration.
 ├── phpunit.xml.dist              # PHPUnit configuration.
+├── phpunit-yoast.xml.dist        # PHPUnit configuration for the tests that need Yoast SEO.
 ├── tsconfig.base.json            # TypeScript base configuration.
 ├── tsconfig.json                 # TypeScript configuration.
 └── webpack.config.js             # Webpack configuration.
@@ -378,6 +379,14 @@ npm run test:php
 ```
 
 You should see the html coverage report in the `tests/_output/html` directory and the clover XML report in `tests/_output/php-coverage.xml`.
+
+The Yoast SEO ability tests (`tests/php/Yoast`) run in their own suite, with Yoast SEO active:
+
+```bash
+npm run test:php:yoast
+```
+
+The Yoast SEO version is pinned in `.wp-env.test.json`. After changing it, run `npm run wp-env:test -- start --update` to download it.
 
 ### Jest (JavaScript Unit Tests)
 

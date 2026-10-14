@@ -33,10 +33,14 @@ if ( false !== getenv( 'WP_TESTS_DIR' ) ) {
 // Give access to tests_add_filter() function.
 require_once $_test_root . '/includes/functions.php';
 
-// Activate the plugin.
+// Activate the plugin, and Yoast SEO for the Yoast suite.
 tests_add_filter(
 	'muplugins_loaded',
 	static function (): void {
+		if ( defined( 'PUBLISHIO_TESTS_WITH_YOAST' ) ) {
+			require WP_PLUGIN_DIR . '/wordpress-seo/wp-seo.php';
+		}
+
 		// Require ( to bypass require_once ).
 		require TESTS_REPO_ROOT_DIR . '/publishio.php';
 	}
@@ -44,3 +48,8 @@ tests_add_filter(
 
 // Start up the WP testing environment.
 require $_test_root . '/includes/bootstrap.php';
+
+if ( defined( 'PUBLISHIO_TESTS_WITH_YOAST' ) ) {
+	// Activation creates Yoast's options and gives roles its capabilities, such as wpseo_edit_advanced_metadata for editors.
+	wpseo_activate();
+}

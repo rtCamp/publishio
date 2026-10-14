@@ -88,12 +88,15 @@ jobs:
       - name: Run PHPUnit tests${{ inputs.coverage && ' with coverage report' || '' }}
         run: npm run test:php ${{ !inputs.coverage && '-- --no-coverage' || '' }}
 
+      - name: Run PHPUnit tests with Yoast SEO${{ inputs.coverage && ' with coverage report' || '' }}
+        run: npm run test:php:yoast ${{ !inputs.coverage && '-- --no-coverage' || '' }}
+
       - name: Upload code coverage report
         if: ${{ inputs.coverage }}
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: tests/_output/php-coverage.xml
+          files: tests/_output/php-coverage.xml,tests/_output/php-coverage-yoast.xml
           flags: unit
           fail_ci_if_error: false
 

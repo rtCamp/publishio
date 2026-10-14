@@ -60,6 +60,7 @@ jobs:
               - '.github/workflows/reusable-phpunit.yml' # Update this if using public reusable workflow
               - 'tests/**/*.php'
               - 'phpunit.xml.dist'
+              - 'phpunit-yoast.xml.dist'
               - 'package*.json'
               - '.wp-env.test.json'
             js:

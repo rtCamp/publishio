@@ -40,7 +40,6 @@ Every interactive question goes through `ask_user_input` as buttons. Never use p
 | Tool                           | Purpose                             |
 | ------------------------------ | ----------------------------------- |
 | `publishio/search-attachments` | Search the media library by keyword |
-| `publishio/upload-media`       | Upload a file to the media library  |
 
 ### Taxonomies
 
@@ -52,10 +51,10 @@ Every interactive question goes through `ask_user_input` as buttons. Never use p
 
 ### SEO
 
-| Tool                       | Purpose                                                                      |
-| -------------------------- | ---------------------------------------------------------------------------- |
-| `publishio/get-yoast-meta` | Read existing Yoast fields. Use as a probe — if it succeeds, Yoast is active |
-| `publishio/set-yoast-meta` | Set Yoast SEO fields. Only call if `get-yoast-meta` succeeded                |
+| Tool                       | Purpose                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `publishio/get-yoast-meta` | Read the Yoast fields you can edit on a post. Use as a probe — if it succeeds, Yoast is active      |
+| `publishio/set-yoast-meta` | Set Yoast SEO fields. Only call if `get-yoast-meta` succeeded, and only with the fields it returned |
 
 ---
 
@@ -129,7 +128,7 @@ Prose body (paragraphs, headings, lists, quotes, inline images) uses direct bloc
 
 1. **Ask interactively** via `ask_user_input`: topic/title (typed), audience (buttons), tone (buttons: Professional / Conversational / Educational), length (buttons: Short / Medium / Long), featured image needed (Yes / No).
 2. **Discover:** Call `publishio/get-taxonomy-terms` for categories and tags. Call `publishio/get-patterns` to fetch all available patterns.
-3. **Resolve media** before drafting content — search the library, ask for uploads if missing.
+3. **Resolve media** before drafting content — search the library via `publishio/search-attachments`. If an image is missing, ask the user to upload it in WordPress (Media → Add New), then search again.
 4. **Share a plan** in chat: title, hook, section-by-section structure. Mark each section as prose or pattern: \<name\>. If reference material was provided, disclose any dropped content with reasons. Get approval.
 5. **Draft section content** in chat (prose, headings, excerpt, proposed categories/tags, SEO fields). For pattern sections, render the pattern with defaults first and size content to its slots. Get approval.
 6. **Create an empty draft** via `publishio/create-post`.
@@ -139,7 +138,7 @@ Prose body (paragraphs, headings, lists, quotes, inline images) uses direct bloc
 8. **Assign categories and tags** using `publishio/set-post-terms` (taxonomy `"category"` then `"post_tag"`).
 9. **SEO (mandatory):**
    - Set slug and excerpt via `publishio/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
-   - Probe Yoast: call `publishio/get-yoast-meta`. If it succeeds, call `publishio/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`. If the probe fails, skip silently.
+   - Probe Yoast: call `publishio/get-yoast-meta`. If it succeeds, call `publishio/set-yoast-meta` with the fields it returned, out of `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title` and `twitter_description`. Leave out fields it didn't return: they aren't available to this user, and including one fails the whole call. If the probe fails, skip silently.
 10. **Share the post link** (from `publishio/get-post` → `url`). Do not ask to publish or change the visibility status. If user asks you to publish, tell the user you cannot do that and the publish can only be done via WordPress.
 
 ---
@@ -152,22 +151,22 @@ Pattern-only. No exception for "just a paragraph of text" — find a text-conten
 2. **Discover:** Call `publishio/get-patterns` to fetch all available patterns.
 3. **Render every candidate pattern** with defaults (`publishio/preview-pattern`) to inspect slot sizes (headline length, body length, image aspect, item count). This determines what content fits before you write a word.
 4. **Propose a section plan:** pattern name per section, attributes to change, content sized to fit. If reference material was provided, disclose any dropped content with reasons. Get explicit approval.
-5. **Resolve media** — list every image/video by section, search the library via `publishio/search-attachments`, ask for uploads. Don't proceed until done.
+5. **Resolve media** — list every image/video by section and search the library via `publishio/search-attachments`. For anything missing, ask the user to upload it in WordPress (Media → Add New), then search again. Don't proceed until done.
 6. **Draft section content** in chat, already trimmed to fit pattern slots. Get approval.
 7. **Create an empty page draft** via `publishio/create-post` with `post_type: "page"`.
 8. **For each section in order:** fetch schema → render to confirm fit → mutate → render final → **preview in widget, wait for approval** → append. Append by reading current content via `publishio/get-post`, concatenating the new markup, and writing back via the WordPress REST API (`POST /wp/v2/pages/{id}` with the full `content` field).
 9. **SEO (mandatory):**
    - Set slug and excerpt via `publishio/update-post` (slug: short, keyword-rich; excerpt: 1–2 sentence meta description, max 155 chars).
-   - Probe Yoast: call `publishio/get-yoast-meta`. If it succeeds, call `publishio/set-yoast-meta` with `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description`, and `schema_page_type`. If the probe fails, skip silently.
+   - Probe Yoast: call `publishio/get-yoast-meta`. If it succeeds, call `publishio/set-yoast-meta` with the fields it returned, out of `seo_title`, `meta_description` (max 155 chars), `focus_keyphrase`, `og_title`, `og_description`, `twitter_title`, `twitter_description` and `schema_page_type`. Leave out fields it didn't return: they aren't available to this user, and including one fails the whole call. If the probe fails, skip silently.
 10. **Share the page link** (from `publishio/get-post` → `url`).
 
 ---
 
 ## Media
 
-Search the library first via `publishio/search-attachments`. Show options as buttons if multiple match. If nothing fits, ask interactively: provide found options plus an "I'll provide a URL" option. Never ask the user to type a filename or describe an image when a button will do.
+Search the library first via `publishio/search-attachments`. Show options as buttons if multiple match. If nothing fits, ask interactively: provide found options plus an "I'll upload it in WordPress" option, and search again once the user has uploaded it. Never ask the user to type a filename or describe an image when a button will do.
 
-Never source media independently — only from the library, user-provided URLs, or `publishio/upload-media`.
+Never source media independently — only from the media library. No Publishio tool can add a file to the library, so never use an image URL from outside it.
 
 Media IDs/URLs go into pattern schemas, never raw `<img>` tags.
 
@@ -176,7 +175,7 @@ Media IDs/URLs go into pattern schemas, never raw `<img>` tags.
 ## SEO & Taxonomies
 
 - **Categories & Tags** — Always call `publishio/get-taxonomy-terms` first to discover real existing terms before proposing or assigning any. Use `publishio/set-post-terms` to assign (taxonomy `"category"` or `"post_tag"`). Create new terms only with explicit user confirmation; if confirmed, create via the WordPress REST API and then assign with `publishio/set-post-terms`.
-- **SEO is mandatory on every post and page.** Always set slug and excerpt via `publishio/update-post` (works regardless of plugins). Always probe Yoast with `publishio/get-yoast-meta` — if it succeeds, set all fields with `publishio/set-yoast-meta`. If the probe fails, skip silently. Never skip slug/excerpt just because Yoast isn't active.
+- **SEO is mandatory on every post and page.** Always set slug and excerpt via `publishio/update-post` (works regardless of plugins). Always probe Yoast with `publishio/get-yoast-meta` — if it succeeds, set the fields it returned with `publishio/set-yoast-meta`. If the probe fails, skip silently. Never skip slug/excerpt just because Yoast isn't active.
 - **Post Types** — Check registered post types first; use the relevant custom post type if one exists.
 - **Status** — Default is draft. You cannot change that even if the user asks..
 

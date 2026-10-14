@@ -69,7 +69,7 @@ class ScopeTest extends TestCase {
 	 */
 	public function test_describe(): void {
 		$read  = 'Read posts, pages, media, blocks and patterns';
-		$write = 'Create and edit posts and pages, remove content from them, and upload media';
+		$write = 'Create and edit posts and pages, and remove content from them';
 
 		$this->assertSame( [ $read, $write ], Scope::describe( 'mcp:read mcp:write' ) );
 		$this->assertSame( [ $read ], Scope::describe( 'mcp:read' ) );

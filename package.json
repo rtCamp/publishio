@@ -48,6 +48,7 @@
 		"test:js:watch": "wp-scripts test-unit-js --watch",
 		"test:js:coverage": "wp-scripts test-unit-js --passWithNoTests --coverage",
 		"test:php": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:php:yoast": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ vendor/bin/phpunit -c phpunit-yoast.xml.dist",
 		"wp-env": "wp-env",
 		"wp-env:cli": "wp-env run cli --env-cwd=wp-content/plugins/publishio/",
 		"wp-env:test": "wp-env --config=.wp-env.test.json"

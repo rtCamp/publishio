@@ -20,10 +20,20 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Config;
  */
 class Token_Store implements Registrable {
 	/**
+	 * User meta holding when the user's tokens were last revoked. Anything issued before it is rejected.
+	 */
+	private const REVOKED_AT_META = 'publishio_tokens_revoked_at';
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
 		add_action( 'deleted_user', [ self::class, 'revoke_all' ] );
+		add_action( 'user_register', [ self::class, 'revoke_all' ] );
+		add_action( 'wp_set_password', [ self::class, 'revoke_on_set_password' ], 10, 3 );
+		add_action( 'profile_update', [ self::class, 'revoke_on_profile_update' ], 10, 3 );
+		// Core's handler runs at priority 1 and exits.
+		add_action( 'wp_ajax_destroy-sessions', [ self::class, 'revoke_on_destroy_sessions' ], 0 );
 	}
 
 	/**
@@ -91,9 +101,12 @@ class Token_Store implements Registrable {
 	public static function issue( int $user_id, string $client_id, string $client_name, string $scope, string $resource_indicator, int $authorized_at = 0 ): ?array {
 		global $wpdb;
 
-		$access_token  = wp_generate_password( 64, false );
-		$refresh_token = wp_generate_password( 64, false );
-		$now           = time();
+		$access_token      = wp_generate_password( 64, false );
+		$refresh_token     = wp_generate_password( 64, false );
+		$now               = time();
+		$authorized_at     = $authorized_at ?: $now;
+		$ends_at           = self::connection_ends_at( $authorized_at );
+		$access_expires_at = min( $now + Config::get_access_token_ttl(), $ends_at );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$inserted = $wpdb->insert(
@@ -106,9 +119,9 @@ class Token_Store implements Registrable {
 				'refresh_token_hash' => wp_hash( $refresh_token, 'auth', 'sha256' ),
 				'scope'              => $scope,
 				'resource'           => $resource_indicator,
-				'access_expires_at'  => $now + Config::get_access_token_ttl(),
-				'refresh_expires_at' => $now + Config::get_refresh_token_ttl(),
-				'authorized_at'      => $authorized_at ?: $now,
+				'access_expires_at'  => $access_expires_at,
+				'refresh_expires_at' => min( $now + Config::get_refresh_token_ttl(), $ends_at ),
+				'authorized_at'      => $authorized_at,
 				'created_at'         => $now,
 			],
 			[ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%d' ]
@@ -127,7 +140,7 @@ class Token_Store implements Registrable {
 			'access_token'  => $access_token,
 			'refresh_token' => $refresh_token,
 			'token_type'    => 'Bearer',
-			'expires_in'    => Config::get_access_token_ttl(),
+			'expires_in'    => $access_expires_at - $now,
 			'scope'         => $scope,
 		];
 	}
@@ -148,7 +161,7 @@ class Token_Store implements Registrable {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT user_id, client_id, scope, resource, access_expires_at FROM %i WHERE access_token_hash = %s',
+				'SELECT user_id, client_id, scope, resource, access_expires_at, authorized_at FROM %i WHERE access_token_hash = %s',
 				self::table_name(),
 				$hash
 			),
@@ -161,6 +174,10 @@ class Token_Store implements Registrable {
 
 		if ( (int) $row['access_expires_at'] < $now ) {
 			return null; // Expired.
+		}
+
+		if ( self::is_revoked( (int) $row['user_id'], (int) $row['authorized_at'] ) ) {
+			return null;
 		}
 
 		return [
@@ -211,6 +228,15 @@ class Token_Store implements Registrable {
 
 		if ( (int) $row['refresh_expires_at'] < $now ) {
 			return null; // Expired.
+		}
+
+		// issue() already limits refresh_expires_at to the lifetime; this also ends connections when the lifetime is lowered later.
+		if ( self::connection_ends_at( (int) $row['authorized_at'] ) < $now ) {
+			return null;
+		}
+
+		if ( self::is_revoked( (int) $row['user_id'], (int) $row['authorized_at'] ) ) {
+			return null;
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -355,6 +381,109 @@ class Token_Store implements Registrable {
 			[ 'user_id' => $user_id ],
 			[ '%d' ]
 		);
+	}
+
+	/**
+	 * Revoke all of a user's tokens, and the authorization codes and refreshes still in flight.
+	 *
+	 * Deleting rows can't reach a pending code or a row a refresh inserts after the delete, so the time is recorded and anything issued before it is rejected.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function revoke_issued_until_now( int $user_id ): void {
+		update_user_meta( $user_id, self::REVOKED_AT_META, time() );
+		self::revoke_all( $user_id );
+	}
+
+	/**
+	 * Whether a user's token or authorization code was revoked after it was issued.
+	 *
+	 * The revocation's own second counts, or a script with the old password could mint codes just before it.
+	 *
+	 * @param int $user_id   The WordPress user ID.
+	 * @param int $issued_at When the code was created or the connection approved.
+	 */
+	public static function is_revoked( int $user_id, int $issued_at ): bool {
+		$revoked_at = (int) get_user_meta( $user_id, self::REVOKED_AT_META, true );
+
+		return $revoked_at > 0 && $issued_at <= $revoked_at;
+	}
+
+	/**
+	 * Revoke all tokens for a user whose password was set, unless the save is still to come or a login only re-hashed the password.
+	 *
+	 * @param mixed $password      The new plain-text password.
+	 * @param mixed $user_id       The WordPress user ID.
+	 * @param mixed $old_user_data The user before the change. wp_set_password() passes false for a user that doesn't exist.
+	 */
+	public static function revoke_on_set_password(
+		#[\SensitiveParameter]
+		mixed $password,
+		mixed $user_id,
+		mixed $old_user_data = null
+	): void {
+		$user_id = (int) $user_id;
+		$user    = get_userdata( $user_id );
+
+		if ( ! $user ) {
+			return;
+		}
+
+		$old_pass = $old_user_data instanceof \WP_User ? $old_user_data->user_pass : null;
+
+		// wp_update_user() fires this before saving, and wp_insert_user() for a new user: profile_update and user_register handle those.
+		if ( $user->user_pass === $old_pass ) {
+			return;
+		}
+
+		// Logging in re-hashes an unchanged password whose hash is outdated. Only then is the password worth a second hash check.
+		if ( null !== $old_pass && is_string( $password ) && doing_filter( 'authenticate' ) && wp_check_password( $password, $old_pass, $user_id ) ) {
+			return;
+		}
+
+		self::revoke_issued_until_now( $user_id );
+	}
+
+	/**
+	 * Revoke all tokens for a user whose password wp_update_user() saved.
+	 *
+	 * @param mixed $user_id       The WordPress user ID.
+	 * @param mixed $old_user_data The user before the update.
+	 * @param mixed $userdata      The data saved, with the password already hashed.
+	 */
+	public static function revoke_on_profile_update( mixed $user_id, mixed $old_user_data, mixed $userdata = [] ): void {
+		if ( ! $old_user_data instanceof \WP_User || ! is_array( $userdata ) || empty( $userdata['user_pass'] ) || $userdata['user_pass'] === $old_user_data->user_pass ) {
+			return;
+		}
+
+		self::revoke_issued_until_now( (int) $user_id );
+	}
+
+	/**
+	 * Revoke all tokens for a user logged out everywhere from their profile screen.
+	 *
+	 * Runs before core's handler, so it repeats core's checks.
+	 */
+	public static function revoke_on_destroy_sessions(): void {
+		$user_id = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
+		$nonce   = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+		if ( ! $user_id || ! get_userdata( $user_id ) || ! current_user_can( 'edit_user', $user_id ) || ! wp_verify_nonce( $nonce, 'update-user_' . $user_id ) ) {
+			return;
+		}
+
+		self::revoke_issued_until_now( $user_id );
+	}
+
+	/**
+	 * When a connection approved at this time ends, or PHP_INT_MAX when connections don't end.
+	 *
+	 * @param int $authorized_at When the user approved the client.
+	 */
+	private static function connection_ends_at( int $authorized_at ): int {
+		$lifetime = Config::get_max_connection_lifetime();
+
+		return $lifetime > 0 ? $authorized_at + $lifetime : PHP_INT_MAX;
 	}
 
 	/**

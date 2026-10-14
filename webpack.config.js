@@ -30,6 +30,11 @@ const scriptEntries = {
 };
 
 /**
+ * Bundled instead of loaded from WordPress so DataViews works on WP 6.9, which lacks the `wp-theme` script and rejects `@wordpress/ui` in its private APIs allowlist.
+ */
+const BUNDLED_WP_PACKAGES = [ '@wordpress/theme', '@wordpress/private-apis' ];
+
+/**
  * RtlCssPlugin added by Webpack to convert left, margin-left, etc. physical
  * properties to rtl like right, margin-right, etc.
  *
@@ -40,9 +45,18 @@ const scriptEntries = {
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values
  */
-const plugins = defaultConfig.plugins.filter(
-	( plugin ) => plugin.constructor.name !== 'RtlCssPlugin'
-);
+const plugins = defaultConfig.plugins
+	.filter( ( plugin ) => plugin.constructor.name !== 'RtlCssPlugin' )
+	.map( ( plugin ) =>
+		plugin.constructor.name === 'DependencyExtractionWebpackPlugin'
+			? new plugin.constructor( {
+					requestToExternal: ( request ) =>
+						BUNDLED_WP_PACKAGES.includes( request )
+							? false
+							: undefined,
+			  } )
+			: plugin
+	);
 
 const scriptConfig = {
 	...defaultConfig,

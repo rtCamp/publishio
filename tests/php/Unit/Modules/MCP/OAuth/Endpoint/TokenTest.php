@@ -44,6 +44,31 @@ class TokenTest extends TestCase {
 	}
 
 	/**
+	 * A revocation landing after the exchange's check but before its insert still covers the new connection, which is approved when its code was created.
+	 */
+	public function test_revocation_during_code_exchange_covers_new_connection(): void {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create();
+		$code    = $this->create_code( $user_id, time() - MINUTE_IN_SECONDS );
+		$insert  = 'INSERT INTO `' . $wpdb->prefix . 'publishio_oauth_tokens`';
+		add_filter(
+			'query',
+			static function ( string $query ) use ( $insert, $user_id ): string {
+				if ( str_starts_with( $query, $insert ) ) {
+					update_user_meta( $user_id, 'publishio_tokens_revoked_at', time() - 1 );
+				}
+				return $query;
+			}
+		);
+
+		$response = $this->exchange( $code );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( Token_Store::validate_access_token( ( (array) $response->get_data() )['access_token'] ) );
+	}
+
+	/**
 	 * A refresh token is exchanged once; replaying it fails with invalid_grant.
 	 */
 	public function test_refresh_works_once(): void {

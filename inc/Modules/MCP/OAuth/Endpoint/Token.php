@@ -119,7 +119,8 @@ class Token extends Abstract_REST_Controller {
 			$client_id,
 			$code_data['client_name'] ?? '',
 			$code_data['scope'],
-			$code_data['resource']
+			$code_data['resource'],
+			(int) $code_data['created_at']
 		);
 
 		if ( null === $tokens ) {

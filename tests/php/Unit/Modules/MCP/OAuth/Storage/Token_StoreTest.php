@@ -122,6 +122,19 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
+	 * Lowering the lifetime ends access tokens of connections past it at once, not at their next refresh.
+	 */
+	public function test_lowered_lifetime_ends_access_token(): void {
+		$tokens = $this->issue();
+		$this->set_row_field( 'authorized_at', time() - 2 * DAY_IN_SECONDS );
+		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+
+		add_filter( 'publishio_max_connection_lifetime', static fn () => DAY_IN_SECONDS );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+	}
+
+	/**
 	 * Near the end of a connection, the access token ends with it, and expires_in says so.
 	 */
 	public function test_access_token_ends_with_connection(): void {

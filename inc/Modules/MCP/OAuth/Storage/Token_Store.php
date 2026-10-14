@@ -176,6 +176,10 @@ class Token_Store implements Registrable {
 			return null; // Expired.
 		}
 
+		if ( self::connection_ends_at( (int) $row['authorized_at'] ) < $now ) {
+			return null;
+		}
+
 		if ( self::is_revoked( (int) $row['user_id'], (int) $row['authorized_at'] ) ) {
 			return null;
 		}

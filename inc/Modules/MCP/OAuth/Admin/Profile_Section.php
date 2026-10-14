@@ -135,7 +135,8 @@ class Profile_Section {
 				<tbody>
 					<?php foreach ( $connections as $token ) : ?>
 						<?php
-						$is_expired       = (int) $token['refresh_expires_at'] <= $now;
+						$expires_at       = Token_Store::expires_at( (int) $token['refresh_expires_at'], (int) $token['authorized_at'] );
+						$is_expired       = $expires_at <= $now;
 						$revoke_token_url = wp_nonce_url(
 							add_query_arg(
 								[
@@ -154,7 +155,7 @@ class Profile_Section {
 						<td><code><?php echo esc_html( $token['scope'] ?: '—' ); ?></code></td>
 						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['authorized_at'] ) ); ?></td>
 						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['created_at'] ) ); ?></td>
-						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $token['refresh_expires_at'] ) ); ?></td>
+						<td><?php echo esc_html( (string) wp_date( 'M j, Y g:i A', $expires_at ) ); ?></td>
 						<td>
 							<a href="<?php echo esc_url( $revoke_token_url ); ?>" class="button button-small button-secondary"
 								onclick="return confirm('<?php echo esc_js( $is_expired ? __( 'Remove this expired connection? The app can no longer use it.', 'publishio' ) : __( 'Remove this connection? The app loses access through it right away. Other connections for the same app stay active.', 'publishio' ) ); ?>');">

@@ -66,6 +66,22 @@ class TokenTest extends TestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertNull( Token_Store::validate_access_token( ( (array) $response->get_data() )['access_token'] ) );
+		$this->assertSame( [], Token_Store::get_for_user( $user_id ) );
+	}
+
+	/**
+	 * A code older than a short lifetime gets invalid_grant, rather than tokens that have already expired.
+	 */
+	public function test_code_older_than_lifetime_is_rejected(): void {
+		$user_id = self::factory()->user->create();
+		$code    = $this->create_code( $user_id, time() - MINUTE_IN_SECONDS );
+		add_filter( 'publishio_max_connection_lifetime', static fn () => 30 );
+
+		$response = $this->exchange( $code );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'invalid_grant', ( (array) $response->get_data() )['error'] );
+		$this->assertSame( [], Token_Store::get_for_user( $user_id ) );
 	}
 
 	/**

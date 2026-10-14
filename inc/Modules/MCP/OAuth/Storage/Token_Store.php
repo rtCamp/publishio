@@ -176,7 +176,7 @@ class Token_Store implements Registrable {
 			return null; // Expired.
 		}
 
-		if ( self::connection_ends_at( (int) $row['authorized_at'] ) < $now ) {
+		if ( self::has_ended( (int) $row['authorized_at'] ) ) {
 			return null;
 		}
 
@@ -235,7 +235,7 @@ class Token_Store implements Registrable {
 		}
 
 		// issue() already limits refresh_expires_at to the lifetime; this also ends connections when the lifetime is lowered later.
-		if ( self::connection_ends_at( (int) $row['authorized_at'] ) < $now ) {
+		if ( self::has_ended( (int) $row['authorized_at'] ) ) {
 			return null;
 		}
 
@@ -289,7 +289,7 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * Count tokens with an unexpired refresh token. Tokens of deleted users are left out.
+	 * Count tokens with an unexpired refresh token, within the current lifetime. Tokens of deleted users are left out.
 	 *
 	 * @param int $now Current Unix timestamp.
 	 */
@@ -299,10 +299,11 @@ class Token_Store implements Registrable {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d',
+				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d AND t.authorized_at >= %d',
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
-				$now
+				$now,
+				self::earliest_live_approval( $now )
 			)
 		);
 
@@ -310,7 +311,7 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * A page of tokens with an unexpired refresh token, sorted by last activity. Each token is one connection. Tokens of deleted users are left out.
+	 * A page of tokens with an unexpired refresh token, within the current lifetime, sorted by last activity. Each token is one connection. Tokens of deleted users are left out.
 	 *
 	 * @param int  $offset       Page offset (0-based).
 	 * @param int  $limit        Number of rows to return.
@@ -328,10 +329,11 @@ class Token_Store implements Registrable {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				// $direction is one of two fixed strings; prepare() has no placeholder for a sort direction.
-				"SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d AND t.authorized_at >= %d ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
 				$now,
+				self::earliest_live_approval( $now ),
 				$limit,
 				$offset
 			),
@@ -491,6 +493,36 @@ class Token_Store implements Registrable {
 	}
 
 	/**
+	 * Whether a connection approved at this time has reached its lifetime.
+	 *
+	 * @param int $authorized_at When the user approved the client.
+	 */
+	public static function has_ended( int $authorized_at ): bool {
+		return self::connection_ends_at( $authorized_at ) <= time();
+	}
+
+	/**
+	 * When a connection stops working: when its refresh token expires, or sooner if the lifetime was lowered after it was issued.
+	 *
+	 * @param int $refresh_expires_at When its refresh token expires.
+	 * @param int $authorized_at      When the user approved the client.
+	 */
+	public static function expires_at( int $refresh_expires_at, int $authorized_at ): int {
+		return min( $refresh_expires_at, self::connection_ends_at( $authorized_at ) );
+	}
+
+	/**
+	 * The earliest approval time of a connection that hasn't reached its lifetime.
+	 *
+	 * @param int $now Current Unix timestamp.
+	 */
+	private static function earliest_live_approval( int $now ): int {
+		$lifetime = Config::get_max_connection_lifetime();
+
+		return $lifetime > 0 ? max( 0, $now - $lifetime + 1 ) : 0;
+	}
+
+	/**
 	 * All of a user's tokens, including expired ones, most recently active first (for the profile page).
 	 *
 	 * @param int $user_id The WordPress user ID.
@@ -514,7 +546,9 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * Delete expired token rows for a user.
+	 * Delete a user's token rows that can no longer be used: expired, past the lifetime, or approved before a revocation.
+	 *
+	 * Runs right after the insert in issue(), so a row that a refresh or code exchange inserts while racing a revocation is gone before the request ends.
 	 *
 	 * @param int $user_id The WordPress user ID.
 	 */
@@ -523,13 +557,19 @@ class Token_Store implements Registrable {
 
 		$now = time();
 
+		// is_revoked() may have cached the meta before another request revoked the tokens.
+		wp_cache_delete( $user_id, 'user_meta' );
+		$revoked_at = (int) get_user_meta( $user_id, self::REVOKED_AT_META, true );
+		$live_from  = max( self::earliest_live_approval( $now ), $revoked_at > 0 ? $revoked_at + 1 : 0 );
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				'DELETE FROM %i WHERE user_id = %d AND refresh_expires_at < %d',
+				'DELETE FROM %i WHERE user_id = %d AND ( refresh_expires_at < %d OR authorized_at < %d )',
 				self::table_name(),
 				$user_id,
-				$now
+				$now,
+				$live_from
 			)
 		);
 	}

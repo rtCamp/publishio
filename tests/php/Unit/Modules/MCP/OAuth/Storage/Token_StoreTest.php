@@ -122,6 +122,34 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
+	 * A refresh in the second the connection ends gets nothing, rather than tokens that expire as they are issued.
+	 */
+	public function test_refresh_at_end_of_lifetime_is_rejected(): void {
+		$tokens = $this->issue();
+		$this->set_row_field( 'authorized_at', time() - Config::MAX_CONNECTION_LIFETIME );
+
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
+	 * Lowering the lifetime drops connections past it from the Connections page, and the profile page shows them as ended.
+	 */
+	public function test_lowered_lifetime_drops_connection_from_lists(): void {
+		$this->issue();
+		$authorized_at = time() - 2 * DAY_IN_SECONDS;
+		$this->set_row_field( 'authorized_at', $authorized_at );
+		$now   = time();
+		$count = Token_Store::count_connections( $now );
+		$this->assertContains( 'Example App', array_column( Token_Store::get_connections( 0, 100, $now ), 'client_name' ) );
+
+		add_filter( 'publishio_max_connection_lifetime', static fn () => DAY_IN_SECONDS );
+
+		$this->assertSame( $count - 1, Token_Store::count_connections( $now ) );
+		$this->assertNotContains( 'Example App', array_column( Token_Store::get_connections( 0, 100, $now ), 'client_name' ) );
+		$this->assertSame( $authorized_at + DAY_IN_SECONDS, Token_Store::expires_at( (int) $this->rows()[0]['refresh_expires_at'], $authorized_at ) );
+	}
+
+	/**
 	 * Lowering the lifetime ends access tokens of connections past it at once, not at their next refresh.
 	 */
 	public function test_lowered_lifetime_ends_access_token(): void {
@@ -284,7 +312,7 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
-	 * A row a refresh inserts after the revocation keeps its old approval time, so it is rejected, as is a connection approved in the revocation's second. One approved after it works.
+	 * A row a refresh inserts after the revocation keeps its old approval time, so it is rejected and pruned straight away, as is a connection approved in the revocation's second. One approved after it works.
 	 */
 	public function test_tokens_issued_before_revocation_are_rejected(): void {
 		wp_set_password( 'new-password', $this->user_id );
@@ -301,6 +329,7 @@ class Token_StoreTest extends TestCase {
 		$this->assertIsArray( $after );
 		$this->assertNull( Token_Store::validate_access_token( $same_second['access_token'] ) );
 		$this->assertNotNull( Token_Store::validate_access_token( $after['access_token'] ) );
+		$this->assertSame( [ 'After' ], array_column( $this->rows(), 'client_name' ) );
 	}
 
 	/**

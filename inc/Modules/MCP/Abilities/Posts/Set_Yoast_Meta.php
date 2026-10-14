@@ -71,7 +71,7 @@ class Set_Yoast_Meta {
 					}
 
 					$fields = array_keys( array_intersect_key( $input, Yoast_Fields::FIELDS ) );
-					$hidden = array_diff( $fields, $visible );
+					$hidden = array_diff( $fields, array_keys( $visible ) );
 
 					if ( [] !== $hidden ) {
 						return new \WP_Error(
@@ -87,7 +87,7 @@ class Set_Yoast_Meta {
 					$values = [];
 
 					foreach ( $fields as $field ) {
-						$value = Yoast_Fields::sanitize( $field, $input[ $field ] );
+						$value = Yoast_Fields::sanitize( $field, $input[ $field ], $visible[ $field ] );
 						if ( is_wp_error( $value ) ) {
 							return $value;
 						}

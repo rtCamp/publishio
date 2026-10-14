@@ -105,7 +105,7 @@ final class Yoast_Fields {
 			'key'    => 'schema_page_type',
 			'schema' => [
 				'type'        => 'string',
-				'description' => 'Yoast Schema page type (e.g. "WebPage", "FAQPage", "ItemPage").',
+				'description' => 'Yoast Schema page type (e.g. "WebPage", "FAQPage", "ItemPage"). Empty means the post type\'s default.',
 			],
 		],
 		'schema_article_type' => [
@@ -113,7 +113,7 @@ final class Yoast_Fields {
 			'key'    => 'schema_article_type',
 			'schema' => [
 				'type'        => 'string',
-				'description' => 'Yoast Schema article type (e.g. "Article", "BlogPosting", "NewsArticle").',
+				'description' => 'Yoast Schema article type (e.g. "Article", "BlogPosting", "NewsArticle"). Empty means the post type\'s default.',
 			],
 		],
 	];
@@ -157,21 +157,50 @@ final class Yoast_Fields {
 	/**
 	 * A field's input value as Yoast stores it.
 	 *
-	 * @param string          $field Ability field name.
-	 * @param bool|string|int $value Input value, as schema validation accepted it.
+	 * @param string               $field      Ability field name.
+	 * @param bool|string|int      $value      Input value, as schema validation accepted it.
+	 * @param array<string, mixed> $definition Yoast's definition of the field, from visible().
 	 */
-	public static function sanitize( string $field, mixed $value ): string|\WP_Error {
+	public static function sanitize( string $field, mixed $value, array $definition ): string|\WP_Error {
 		return match ( $field ) {
-			'noindex'   => match ( $value ) {
+			'noindex'                                 => match ( $value ) {
 				'noindex' => '1',
 				'index'   => '2',
 				default   => '0',
 			},
-			'nofollow'  => rest_sanitize_boolean( $value ) ? '1' : '0',
-			'canonical' => self::sanitize_canonical( (string) $value ),
+			'nofollow'                                => rest_sanitize_boolean( $value ) ? '1' : '0',
+			'canonical'                               => self::sanitize_canonical( (string) $value ),
+			'schema_page_type', 'schema_article_type' => self::sanitize_choice( $field, (string) $value, $definition ),
 			// Yoast's cleaner keeps replacement variables like %%date%%, which core's strips as percent-encoded octets.
-			default     => \WPSEO_Utils::sanitize_text_field( (string) $value ), // @phpstan-ignore class.notFound (visible() has checked Yoast's classes.)
+			default                                   => \WPSEO_Utils::sanitize_text_field( (string) $value ), // @phpstan-ignore class.notFound (visible() has checked Yoast's classes.)
 		};
+	}
+
+	/**
+	 * One of the options in Yoast's definition of the field, or an empty string for the post type's default.
+	 *
+	 * Yoast saves anything else as the default, which would delete the post's current value.
+	 *
+	 * @param string               $field      Ability field name.
+	 * @param string               $value      Input value.
+	 * @param array<string, mixed> $definition Yoast's definition of the field.
+	 */
+	private static function sanitize_choice( string $field, string $value, array $definition ): string|\WP_Error {
+		$choices = array_map( 'strval', array_keys( (array) ( $definition['options'] ?? [] ) ) );
+
+		if ( '' === $value || in_array( $value, $choices, true ) ) {
+			return $value;
+		}
+
+		return new \WP_Error(
+			'invalid_yoast_choice',
+			sprintf(
+				/* translators: 1: field name, 2: comma-separated allowed values. */
+				__( '%1$s must be one of %2$s, or empty for the post type\'s default. Nothing was saved.', 'publishio' ),
+				$field,
+				implode( ', ', $choices )
+			)
+		);
 	}
 
 	/**
@@ -200,7 +229,7 @@ final class Yoast_Fields {
 	 *
 	 * @param \WP_Post $post The post.
 	 *
-	 * @return list<string>|\WP_Error Ability field names.
+	 * @return array<string, array<string, mixed>>|\WP_Error Ability field name => Yoast's definition of the field.
 	 */
 	public static function visible( \WP_Post $post ): array|\WP_Error {
 		if ( ! class_exists( 'WPSEO_Meta' ) || ! class_exists( 'WPSEO_Utils' ) || ! class_exists( 'WPSEO_Metabox_Analysis_SEO' ) ) {
@@ -235,7 +264,7 @@ final class Yoast_Fields {
 
 		foreach ( self::FIELDS as $field => [ 'tab' => $tab, 'key' => $key ] ) {
 			if ( isset( $tabs[ $tab ][ $key ] ) && ( 'focus_keyphrase' !== $field || $keyphrase_shown ) ) {
-				$visible[] = $field;
+				$visible[ $field ] = (array) $tabs[ $tab ][ $key ];
 			}
 		}
 

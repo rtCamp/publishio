@@ -65,7 +65,7 @@ class Get_Yoast_Meta {
 
 					$result = [ 'post_id' => $post_id ];
 
-					foreach ( $fields as $field ) {
+					foreach ( array_keys( $fields ) as $field ) {
 						$result[ $field ] = Yoast_Fields::decode( $field, (string) get_post_meta( $post_id, Yoast_Fields::meta_key( $field ), true ) );
 					}
 

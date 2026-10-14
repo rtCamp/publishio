@@ -247,6 +247,92 @@ class Set_Yoast_MetaTest extends Yoast_Ability_TestCase {
 	}
 
 	/**
+	 * The schema fields, and a type Yoast lists for each.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function schema_fields(): array {
+		return [
+			'page type'    => [ 'schema_page_type', 'FAQPage' ],
+			'article type' => [ 'schema_article_type', 'BlogPosting' ],
+		];
+	}
+
+	/**
+	 * A schema type Yoast lists is stored, and an empty one removes the override.
+	 *
+	 * @param string $field Ability field name.
+	 * @param string $type  A type Yoast lists for the field.
+	 */
+	#[DataProvider( 'schema_fields' )]
+	public function test_stores_and_clears_a_schema_type( string $field, string $type ): void {
+		$post_id = $this->own_post_as( 'editor' );
+
+		$this->execute(
+			[
+				'post_id' => $post_id,
+				$field    => $type,
+			]
+		);
+		$this->assertSame( $type, get_post_meta( $post_id, Yoast_Fields::meta_key( $field ), true ) );
+
+		$this->execute(
+			[
+				'post_id' => $post_id,
+				$field    => '',
+			]
+		);
+		$this->assertSame( '', get_post_meta( $post_id, Yoast_Fields::meta_key( $field ), true ) );
+	}
+
+	/**
+	 * A schema type Yoast doesn't list, which Yoast would save as the default, is refused and the call writes nothing.
+	 *
+	 * @param string $field Ability field name.
+	 * @param string $type  A type Yoast lists for the field.
+	 */
+	#[DataProvider( 'schema_fields' )]
+	public function test_refuses_a_schema_type_yoast_does_not_list( string $field, string $type ): void {
+		$post_id = $this->own_post_as( 'editor' );
+		update_post_meta( $post_id, Yoast_Fields::meta_key( $field ), $type );
+
+		$result = $this->execute(
+			[
+				'post_id'   => $post_id,
+				'seo_title' => 'Title',
+				$field      => strtolower( $type ),
+			]
+		);
+
+		$this->assertAbilityError( $result, 'invalid_yoast_choice' );
+		$this->assertStringContainsString( $type, $result->get_error_message() );
+		$this->assertSame( $type, get_post_meta( $post_id, Yoast_Fields::meta_key( $field ), true ) );
+		$this->assertSame( '', get_post_meta( $post_id, '_yoast_wpseo_title', true ) );
+	}
+
+	/**
+	 * Writing back the schema types that get-yoast-meta returned leaves them as they were.
+	 */
+	public function test_writing_back_schema_types_changes_nothing(): void {
+		$post_id = $this->own_post_as( 'editor' );
+		update_post_meta( $post_id, '_yoast_wpseo_schema_page_type', 'FAQPage' );
+
+		$read = wp_get_ability( 'publishio/get-yoast-meta' )->execute( [ 'post_id' => $post_id ] );
+		$this->assertIsArray( $read );
+		$result = $this->execute(
+			[
+				'post_id'             => $post_id,
+				'schema_page_type'    => $read['schema_page_type'],
+				'schema_article_type' => $read['schema_article_type'],
+			]
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'FAQPage', get_post_meta( $post_id, '_yoast_wpseo_schema_page_type', true ) );
+		$this->assertSame( '', get_post_meta( $post_id, '_yoast_wpseo_schema_article_type', true ) );
+	}
+
+	/**
 	 * Nothing is written when Yoast's SEO settings are off for the post type.
 	 */
 	public function test_errors_when_yoast_is_off_for_the_post_type(): void {

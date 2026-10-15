@@ -161,7 +161,7 @@ class Bearer_Token_Auth {
 			return $response;
 		}
 
-		$resource_metadata_url = site_url( '/.well-known/oauth-protected-resource/wp-json/' . $matched_path );
+		$resource_metadata_url = home_url( '/.well-known/oauth-protected-resource/wp-json/' . $matched_path );
 
 		$www_auth = sprintf(
 			'Bearer resource_metadata="%s", scope="%s"',

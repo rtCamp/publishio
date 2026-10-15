@@ -7,6 +7,11 @@ import { Button, TextControl } from '@wordpress/components';
 import { __, _x } from '@wordpress/i18n';
 import { copy, check, seen, unseen } from '@wordpress/icons';
 
+/**
+ * Internal dependencies
+ */
+import { useCopied } from './useCopied';
+
 interface CopyFieldProps {
 	label: string;
 	value: string;
@@ -22,24 +27,9 @@ export function CopyField( {
 	readOnly = true,
 }: CopyFieldProps ) {
 	const [ revealed, setRevealed ] = useState( false );
-	const [ copied, setCopied ] = useState( false );
+	const { copied, copyText } = useCopied();
 
 	const displayValue = secret && ! revealed ? '•'.repeat( 24 ) : value;
-
-	async function handleCopy() {
-		try {
-			await navigator.clipboard.writeText( value );
-		} catch {
-			const el = document.createElement( 'textarea' );
-			el.value = value;
-			document.body.appendChild( el );
-			el.select();
-			document.execCommand( 'copy' );
-			document.body.removeChild( el );
-		}
-		setCopied( true );
-		setTimeout( () => setCopied( false ), 2000 ); // eslint-disable-line @wordpress/react-no-unsafe-timeout
-	}
 
 	return (
 		<div className="flex items-end gap-2">
@@ -73,7 +63,7 @@ export function CopyField( {
 						? __( 'Copied!', 'publishio' )
 						: _x( 'Copy', 'copy to clipboard', 'publishio' )
 				}
-				onClick={ handleCopy }
+				onClick={ () => copyText( value ) }
 				size="compact"
 				className="shrink-0 mb-0.5"
 				aria-live="polite"

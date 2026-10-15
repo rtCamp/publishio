@@ -19,7 +19,7 @@ export function GuideCard( { guide, onClick }: GuideCardProps ) {
 
 	return (
 		<Card>
-			<CardBody className="flex flex-row items-center gap-4">
+			<CardBody className="flex flex-wrap items-center gap-x-4 gap-y-2">
 				{ logoUrl && (
 					<img
 						src={ logoUrl }
@@ -28,7 +28,7 @@ export function GuideCard( { guide, onClick }: GuideCardProps ) {
 						className="w-10 h-10 shrink-0"
 					/>
 				) }
-				<div className="flex flex-col gap-1 flex-1 min-w-0">
+				<div className="flex min-w-0 flex-[1_1_12rem] flex-col gap-1">
 					<h3 className="m-0 text-sm font-semibold text-gray-900">
 						{ guide.title }
 					</h3>
@@ -39,7 +39,7 @@ export function GuideCard( { guide, onClick }: GuideCardProps ) {
 				<Button
 					variant="tertiary"
 					onClick={ () => onClick( guide ) }
-					className="shrink-0"
+					className="ms-auto shrink-0"
 				>
 					{ __( 'Open Guide →', 'publishio' ) }
 				</Button>

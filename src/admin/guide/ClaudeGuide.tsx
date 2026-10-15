@@ -105,7 +105,7 @@ export function ClaudeGuide() {
 	const steps = getSteps( mcpUrl, images );
 
 	return (
-		<div className="p-6 my-10 max-w-2xl mx-auto w-full">
+		<div className="box-border p-4 md:p-6 my-6 md:my-10 max-w-2xl mx-auto w-full">
 			<GuideSteps steps={ steps } />
 		</div>
 	);

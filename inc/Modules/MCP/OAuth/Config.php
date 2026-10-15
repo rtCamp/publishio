@@ -59,7 +59,7 @@ class Config {
 	 * Get the OAuth issuer URL.
 	 */
 	public static function get_issuer_url(): string {
-		return untrailingslashit( site_url() );
+		return untrailingslashit( home_url() );
 	}
 
 	/**

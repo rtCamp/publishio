@@ -21,7 +21,7 @@ export function AdminHeader( {
 	const logoUrl = window.publishioAdmin?.logoUrl;
 
 	return (
-		<header className="flex items-center gap-4 px-6 py-4 border-b border-gray-200 bg-white">
+		<header className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 md:flex-nowrap md:px-6 border-b border-gray-200 bg-white">
 			{ logoUrl && (
 				<img
 					src={ logoUrl }
@@ -35,7 +35,7 @@ export function AdminHeader( {
 				{ __( 'Publishio', 'publishio' ) }
 			</span>
 
-			<div className="publishio-header-content flex-1 min-w-0 ps-4 border-s border-gray-200">
+			<div className="publishio-header-content min-w-0 basis-full md:basis-auto md:flex-1 md:ps-4 md:border-s border-gray-200">
 				<h1 className="m-0 text-sm font-medium text-gray-900">
 					{ title }
 				</h1>
@@ -47,7 +47,7 @@ export function AdminHeader( {
 			</div>
 
 			{ actions && (
-				<div className="publishio-header-actions flex items-center gap-2 shrink-0">
+				<div className="publishio-header-actions flex flex-wrap items-center gap-2 md:shrink-0">
 					{ actions }
 				</div>
 			) }

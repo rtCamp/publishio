@@ -45,16 +45,24 @@ final class Client_Metadata_Fetcher {
 	 * @return array{document: array<string, mixed>, ttl: int}|\WP_Error
 	 */
 	public function fetch( string $client_id ): array|\WP_Error {
+		if ( ( new \WP_Http() )->block_request( $client_id ) ) {
+			return self::failure( 'blocked_by_wordpress' );
+		}
+
+		// WordPress sends requests through cURL when this test passes, and only cURL can be pinned to the checked IP.
+		if ( ! Curl::test( [ Capability::SSL => true ] ) ) {
+			return self::failure( 'no_curl' );
+		}
+
+		if ( ! apply_filters( 'https_ssl_verify', true, $client_id ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter: refuse to fetch when a site disables TLS verification.
+			return self::failure( 'ssl_verify_off' );
+		}
+
 		$host = (string) wp_parse_url( $client_id, PHP_URL_HOST );
 		$ip   = $this->public_ip( $host );
 
 		if ( null === $ip ) {
 			return self::failure( 'host_not_public' );
-		}
-
-		// WordPress sends requests through cURL when this test passes, and only cURL can be pinned to the checked IP.
-		if ( ! Curl::test( [ Capability::SSL => true ] ) || ! apply_filters( 'https_ssl_verify', true, $client_id ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter: refuse to fetch when a site disables TLS verification.
-			return self::failure( 'secure_transport_unavailable' );
 		}
 
 		// Connect to the IP we checked, so a second DNS answer can't redirect the request (DNS rebinding).
@@ -80,12 +88,13 @@ final class Client_Metadata_Fetcher {
 		);
 		remove_action( 'http_api_curl', $pin, 10 );
 
-		if ( is_wp_error( $response ) ) {
-			return self::failure( 'request_failed' );
+		// Checked before the error: a request that never reached cURL, such as one a `pre_http_request` filter answered, is not a connection failure.
+		if ( ! $pinned ) {
+			return self::failure( 'pin_failed' );
 		}
 
-		if ( ! $pinned ) {
-			return self::failure( 'secure_transport_unavailable' );
+		if ( is_wp_error( $response ) ) {
+			return self::failure( 'request_failed' );
 		}
 
 		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {

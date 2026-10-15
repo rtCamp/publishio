@@ -12,6 +12,7 @@ namespace rtCamp\Publishio\Modules\Settings\Pages;
 use rtCamp\Publishio\Core\Assets;
 use rtCamp\Publishio\Core\Templates;
 use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page;
+use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Authorize;
 
 /**
  * Class - Guide_Page
@@ -26,7 +27,7 @@ class Guide_Page extends Abstract_Admin_Page {
 		$hook_suffix = add_menu_page(
 			__( 'Publishio', 'publishio' ),
 			__( 'Publishio', 'publishio' ),
-			'edit_posts',
+			Authorize::CAPABILITY, // phpcs:ignore WordPress.WP.Capabilities.Undetermined
 			self::SLUG,
 			[ $this, 'render' ]
 		);
@@ -35,7 +36,7 @@ class Guide_Page extends Abstract_Admin_Page {
 			self::SLUG,
 			__( 'Guide', 'publishio' ),
 			__( 'Guide', 'publishio' ),
-			'edit_posts',
+			Authorize::CAPABILITY, // phpcs:ignore WordPress.WP.Capabilities.Undetermined
 			self::SLUG,
 			[ $this, 'render' ],
 			80

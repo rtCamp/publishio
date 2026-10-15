@@ -27,6 +27,7 @@ final class Main {
 		Core\Assets::class,
 		Modules\Settings\Menu_Loader::class,
 		Modules\Settings\Connections\REST_Controller::class,
+		Modules\Settings\Status\REST_Controller::class,
 		Modules\MCP\OAuth\OAuth::class,
 		Modules\MCP\Abilities\Abilities::class,
 		Modules\MCP\Server\Server::class,

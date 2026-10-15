@@ -14,7 +14,7 @@ use WP_HTML_Tag_Processor;
 /**
  * Custom writer for core/cover media fields (url, alt, id).
  *
- * Writes the media element the way core's save() renders each background type:
+ * Writes the media element the way core's save() renders each background type, adding it when the cover has none:
  *  - Image: <img class="wp-block-cover__image-background" src="..." alt="..."/>
  *  - Parallax or repeated image: <div class="wp-block-cover__image-background" style="background-image:url(...)">
  *  - Video: <video class="wp-block-cover__video-background" src="...">
@@ -51,7 +51,17 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 		if ( 'id' === $attr ) {
 			$id = Attachment_Id::write_attr( $block, $new_value );
 		} elseif ( 'url' === $attr ) {
-			$new_value             = esc_url_raw( $new_value );
+			$new_value = esc_url_raw( $new_value );
+
+			// Adding media to a cover without any resets these as the editor does, and drops a full overlay to 50% so the media shows.
+			if ( '' !== $new_value && empty( $block['attrs']['url'] ) ) {
+				unset( $block['attrs']['focalPoint'], $block['attrs']['useFeaturedImage'] );
+
+				if ( 100 === (int) ( $block['attrs']['dimRatio'] ?? 100 ) ) {
+					$block['attrs']['dimRatio'] = 50;
+				}
+			}
+
 			$block['attrs']['url'] = $new_value;
 
 			unset( $block['attrs']['id'] );
@@ -66,7 +76,7 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 			}
 
 			$chunk = match ( $attr ) {
-				'url'   => self::write_url( $chunk, $new_value ),
+				'url'   => self::write_url( $chunk, $new_value, $block['attrs'] ),
 				'alt'   => self::write_alt( $chunk, $new_value ),
 				'id'    => self::write_id( $chunk, $id ),
 				default => $chunk,
@@ -79,23 +89,21 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 	}
 
 	/**
-	 * Write the URL to the media element, or remove the element for an empty URL.
+	 * Write the URL to the media element, add the element when the cover has none, or remove it for an empty URL.
 	 *
-	 * @param string $html The HTML chunk.
-	 * @param string $url  New URL value.
+	 * @param string               $html  The HTML chunk.
+	 * @param string               $url   New URL value.
+	 * @param array<string, mixed> $attrs Cover attributes, with the new URL.
 	 */
-	private static function write_url( string $html, string $url ): string {
+	private static function write_url( string $html, string $url, array $attrs ): string {
 		$proc = self::find_media( $html );
 
 		if ( ! $proc ) {
-			return $html;
+			return '' === $url ? $html : self::insert_media( $html, $attrs );
 		}
 
 		if ( '' === $url ) {
-			// Setting each attribute again encodes a literal > as &gt;, so the removal pattern can't stop inside a value.
-			foreach ( $proc->get_attribute_names_with_prefix( '' ) ?? [] as $name ) {
-				$proc->set_attribute( $name, $proc->get_attribute( $name ) ?? '' );
-			}
+			self::encode_attributes( $proc );
 
 			return self::remove_media( $proc->get_updated_html(), (string) $proc->get_tag() );
 		}
@@ -207,6 +215,128 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 		}
 
 		return $proc->get_updated_html();
+	}
+
+	/**
+	 * Add the media element core's save() renders for the cover's attributes, before the overlay.
+	 *
+	 * @param string               $html  The HTML chunk.
+	 * @param array<string, mixed> $attrs Cover attributes, with the new URL.
+	 */
+	private static function insert_media( string $html, array $attrs ): string {
+		$proc = new WP_HTML_Tag_Processor( $html );
+
+		if ( ! $proc->next_tag( [ 'class_name' => 'wp-block-cover__background' ] ) ) {
+			return $html;
+		}
+
+		self::encode_attributes( $proc );
+		self::sync_overlay_classes( $proc, $attrs );
+
+		$media = self::media_html( $attrs );
+
+		return (string) preg_replace_callback(
+			'/<span\b[^>]*\bwp-block-cover__background\b/i',
+			static fn ( array $matches ) => $media . $matches[0],
+			$proc->get_updated_html(),
+			1
+		);
+	}
+
+	/**
+	 * Build the media element core's save() renders for the cover's background type.
+	 *
+	 * @param array<string, mixed> $attrs Cover attributes.
+	 */
+	private static function media_html( array $attrs ): string {
+		$url  = (string) ( $attrs['url'] ?? '' );
+		$type = $attrs['backgroundType'] ?? 'image';
+
+		if ( 'embed-video' === $type ) {
+			return '<figure class="wp-block-cover__video-background wp-block-cover__embed-background wp-block-embed"><div class="wp-block-embed__wrapper">' . esc_html( $url ) . '</div></figure>';
+		}
+
+		if ( 'video' === $type ) {
+			$proc = new WP_HTML_Tag_Processor( '<video class="wp-block-cover__video-background intrinsic-ignore" autoplay muted loop playsinline data-object-fit="cover"></video>' );
+
+			$proc->next_tag();
+			$proc->set_attribute( 'src', $url );
+
+			if ( ! empty( $attrs['poster'] ) ) {
+				$proc->set_attribute( 'poster', (string) $attrs['poster'] );
+			}
+
+			return $proc->get_updated_html();
+		}
+
+		$parallax = ! empty( $attrs['hasParallax'] ) || ! empty( $attrs['isRepeated'] );
+		$alt      = (string) ( $attrs['alt'] ?? '' );
+		$proc     = new WP_HTML_Tag_Processor( $parallax ? '<div class="wp-block-cover__image-background"></div>' : '<img class="wp-block-cover__image-background" data-object-fit="cover"/>' );
+
+		$proc->next_tag();
+
+		if ( ! empty( $attrs['sizeSlug'] ) ) {
+			$proc->add_class( 'size-' . $attrs['sizeSlug'] );
+		}
+
+		if ( ! empty( $attrs['hasParallax'] ) ) {
+			$proc->add_class( 'has-parallax' );
+		}
+
+		if ( ! empty( $attrs['isRepeated'] ) ) {
+			$proc->add_class( 'is-repeated' );
+		}
+
+		if ( ! $parallax ) {
+			$proc->set_attribute( 'alt', $alt );
+			$proc->set_attribute( 'src', $url );
+
+			return $proc->get_updated_html();
+		}
+
+		$proc->set_attribute( 'style', 'background-position:50% 50%;background-image:url(' . $url . ')' );
+
+		if ( '' !== $alt ) {
+			$proc->set_attribute( 'role', 'img' );
+			$proc->set_attribute( 'aria-label', $alt );
+		}
+
+		return $proc->get_updated_html();
+	}
+
+	/**
+	 * Set the overlay's dim and gradient classes, which core's save() derives from the cover's attributes.
+	 *
+	 * @param \WP_HTML_Tag_Processor $proc  Tag processor positioned on the overlay.
+	 * @param array<string, mixed>   $attrs Cover attributes.
+	 */
+	private static function sync_overlay_classes( WP_HTML_Tag_Processor $proc, array $attrs ): void {
+		$ratio = (int) ( $attrs['dimRatio'] ?? 100 );
+
+		foreach ( iterator_to_array( $proc->class_list(), false ) as $class ) {
+			if ( preg_match( '/^has-background-dim-\d+$/', $class ) ) {
+				$proc->remove_class( $class );
+			}
+		}
+
+		if ( 50 !== $ratio ) {
+			$proc->add_class( 'has-background-dim-' . 10 * (int) round( $ratio / 10 ) );
+		}
+
+		if ( 0 !== $ratio && ( ! empty( $attrs['gradient'] ) || ! empty( $attrs['customGradient'] ) ) ) {
+			$proc->add_class( 'wp-block-cover__gradient-background' );
+		}
+	}
+
+	/**
+	 * Set each attribute on the current tag again, which encodes a literal > as &gt;, so a pattern matching the tag can't stop inside a value.
+	 *
+	 * @param \WP_HTML_Tag_Processor $proc Tag processor positioned on a tag.
+	 */
+	private static function encode_attributes( WP_HTML_Tag_Processor $proc ): void {
+		foreach ( $proc->get_attribute_names_with_prefix( '' ) ?? [] as $name ) {
+			$proc->set_attribute( $name, $proc->get_attribute( $name ) ?? '' );
+		}
 	}
 
 	/**

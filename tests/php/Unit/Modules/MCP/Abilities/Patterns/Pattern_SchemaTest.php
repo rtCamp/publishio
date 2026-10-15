@@ -78,6 +78,26 @@ class Pattern_SchemaTest extends TestCase {
 		. '<div class="wp-block-cover"><span aria-hidden="true" class="wp-block-cover__background has-background-dim has-background-gradient has-vivid-cyan-blue-to-vivid-purple-gradient-background"></span>'
 		. self::COVER_END;
 
+	private const COVER_WITHOUT_MEDIA = '<!-- wp:cover {"dimRatio":50} -->' . "\n"
+		. '<div class="wp-block-cover">' . self::OVERLAY . self::COVER_END;
+
+	private const COVER_WITHOUT_MEDIA_FULL_OVERLAY = '<!-- wp:cover -->' . "\n"
+		. '<div class="wp-block-cover"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-100 has-background-dim"></span>'
+		. self::COVER_END;
+
+	private const PARALLAX_COVER_WITHOUT_MEDIA = '<!-- wp:cover {"hasParallax":true,"dimRatio":50} -->' . "\n"
+		. '<div class="wp-block-cover has-parallax">' . self::OVERLAY . self::COVER_END;
+
+	private const VIDEO_COVER_WITHOUT_MEDIA = '<!-- wp:cover {"dimRatio":50,"backgroundType":"video"} -->' . "\n"
+		. '<div class="wp-block-cover">' . self::OVERLAY . self::COVER_END;
+
+	private const EMBED_COVER_WITHOUT_MEDIA = '<!-- wp:cover {"dimRatio":50,"backgroundType":"embed-video"} -->' . "\n"
+		. '<div class="wp-block-cover">' . self::OVERLAY . self::COVER_END;
+
+	private const SIZED_COVER = '<!-- wp:cover {"url":"https://example.com/bg.jpg","dimRatio":50,"sizeSlug":"large"} -->' . "\n"
+		. '<div class="wp-block-cover"><img class="wp-block-cover__image-background size-large" alt="" src="https://example.com/bg.jpg" data-object-fit="cover"/>'
+		. self::OVERLAY . self::COVER_END;
+
 	private const VIDEO = '<!-- wp:video {"id":9} -->' . "\n"
 		. '<figure class="wp-block-video"><video controls src="https://example.com/v.mp4"></video></figure>' . "\n"
 		. '<!-- /wp:video -->';
@@ -285,6 +305,58 @@ class Pattern_SchemaTest extends TestCase {
 
 			$this->assertStringNotContainsString( $element, $block['innerHTML'] );
 		}
+	}
+
+	/**
+	 * Covers with no media, the URL to give each, and core's markup for the result.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function covers_gaining_media(): array {
+		return [
+			'image'        => [ self::COVER_WITHOUT_MEDIA, 'https://example.com/bg.jpg', self::COVER_WITHOUT_ID ],
+			'full overlay' => [ self::COVER_WITHOUT_MEDIA_FULL_OVERLAY, 'https://example.com/bg.jpg', self::COVER_WITHOUT_ID ],
+			'sized image'  => [ str_replace( '{"dimRatio":50}', '{"dimRatio":50,"sizeSlug":"large"}', self::COVER_WITHOUT_MEDIA ), 'https://example.com/bg.jpg', self::SIZED_COVER ],
+			'gradient'     => [ self::GRADIENT_COVER_WITHOUT_MEDIA, 'https://example.com/bg.jpg', self::GRADIENT_COVER ],
+			'parallax'     => [ self::PARALLAX_COVER_WITHOUT_MEDIA, 'https://example.com/a.jpg?x=1&y=2', self::PARALLAX_COVER_WITH_QUERY ],
+			'video'        => [ self::VIDEO_COVER_WITHOUT_MEDIA, 'https://example.com/v.mp4', self::VIDEO_COVER ],
+			'embed'        => [ self::EMBED_COVER_WITHOUT_MEDIA, 'https://www.youtube.com/watch?v=abc', self::EMBED_COVER ],
+		];
+	}
+
+	/**
+	 * A URL on a cover with no media adds the media element core's save() renders, with the overlay classes that depend on it. A full overlay drops to 50%, as the editor does, so the media shows.
+	 *
+	 * @param string $markup   Cover with no media.
+	 * @param string $url      New URL.
+	 * @param string $expected Core's markup for the cover with that URL.
+	 */
+	#[DataProvider( 'covers_gaining_media' )]
+	public function test_url_on_cover_without_media_adds_media( string $markup, string $url, string $expected ): void {
+		$schema                     = Pattern_Schema::extract( $markup );
+		$schema[0]['fields']['url'] = $url;
+		[ $block ]                  = parse_blocks( Pattern_Schema::apply( $markup, $schema ) );
+		[ $core ]                   = parse_blocks( $expected );
+
+		$this->assertSame( $core['attrs']['url'], $block['attrs']['url'] );
+		$this->assertSame( $core['attrs']['dimRatio'] ?? null, $block['attrs']['dimRatio'] ?? null );
+		$this->assertSameMarkup( $core['innerHTML'], $block['innerHTML'] );
+	}
+
+	/**
+	 * A cover whose URL was cleared can be given a URL again.
+	 */
+	public function test_cleared_cover_url_can_be_filled_again(): void {
+		$schema                     = Pattern_Schema::extract( self::COVER_WITHOUT_ID );
+		$schema[0]['fields']['url'] = '';
+		$cleared                    = Pattern_Schema::apply( self::COVER_WITHOUT_ID, $schema );
+
+		$schema                     = Pattern_Schema::extract( $cleared );
+		$schema[0]['fields']['url'] = 'https://example.com/bg.jpg';
+		[ $block ]                  = parse_blocks( Pattern_Schema::apply( $cleared, $schema ) );
+		[ $core ]                   = parse_blocks( self::COVER_WITHOUT_ID );
+
+		$this->assertSameMarkup( $core['innerHTML'], $block['innerHTML'] );
 	}
 
 	/**

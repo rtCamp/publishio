@@ -101,13 +101,8 @@ class Html_Attribute_Writer implements Field_Writer_Interface {
 		if ( $proc->next_tag( [ 'tag_name' => $tag ] ) ) {
 			$proc->set_attribute( $attribute, $value );
 
-			// Strip stale wp-image-{id} class when src changes.
 			if ( 'src' === $attribute ) {
-				$class = (string) ( $proc->get_attribute( 'class' ) ?? '' );
-				if ( preg_match( '/\bwp-image-\d+\b/', $class ) ) {
-					$class = (string) preg_replace( '/\bwp-image-\d+\b/', '', $class );
-					$proc->set_attribute( 'class', trim( (string) preg_replace( '/\s+/', ' ', $class ) ) );
-				}
+				Attachment_Id::sync_class( $proc, 0 );
 			}
 		}
 		return $proc->get_updated_html();

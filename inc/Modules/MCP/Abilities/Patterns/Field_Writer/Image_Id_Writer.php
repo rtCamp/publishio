@@ -30,8 +30,7 @@ class Image_Id_Writer implements Field_Writer_Interface {
 	 * {@inheritDoc}
 	 */
 	public function write( array &$block, array $_field_def, string $new_value ): void { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
-		$id                   = (int) $new_value;
-		$block['attrs']['id'] = $id;
+		$id = Attachment_Id::write_attr( $block, $new_value );
 
 		$block['innerHTML'] = self::update_class( $block['innerHTML'] ?? '', $id );
 
@@ -57,10 +56,8 @@ class Image_Id_Writer implements Field_Writer_Interface {
 		$proc = new WP_HTML_Tag_Processor( $html );
 
 		if ( $proc->next_tag( [ 'tag_name' => 'img' ] ) ) {
-			$class = (string) ( $proc->get_attribute( 'class' ) ?? '' );
-			$class = (string) preg_replace( '/\bwp-image-\d+\b/', '', $class );
-			$class = trim( $class ) . ' wp-image-' . $id;
-			$proc->set_attribute( 'class', trim( $class ) );
+			Attachment_Id::sync_class( $proc, $id );
+
 			return $proc->get_updated_html();
 		}
 

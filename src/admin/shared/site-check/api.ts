@@ -34,6 +34,7 @@ function toFacts( data: unknown ): SiteFacts {
 					source: str( adapter[ 'source' ] ),
 			  }
 			: null,
+		mcpServer: false !== data[ 'mcp_server' ],
 		tools: typeof data[ 'tools' ] === 'number' ? data[ 'tools' ] : 0,
 	};
 }

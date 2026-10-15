@@ -68,7 +68,7 @@ final class Site_Status {
 	/**
 	 * Site details that explain check results and fill the report.
 	 *
-	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, tools: int}
+	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, mcp_server: bool, tools: int}
 	 */
 	public function facts(): array {
 		$server = Server::get_server();
@@ -84,6 +84,7 @@ final class Site_Status {
 			'token_url'         => rest_url( Config::OAUTH_REST_NAMESPACE . '/token' ),
 			'permalinks'        => '' === (string) get_option( 'permalink_structure' ) ? 'plain' : 'pretty',
 			'mcp_adapter'       => self::mcp_adapter(),
+			'mcp_server'        => null !== $server,
 			'tools'             => null === $server ? 0 : count( $server->get_tools() ),
 		];
 	}
@@ -116,6 +117,13 @@ final class Site_Status {
 	 */
 	private function verify( string $client_id ): array {
 		$result = [ 'url' => $client_id ];
+
+		if ( ! Client_Metadata_Validator::is_valid_client_id( $client_id ) ) {
+			return $result + [
+				'ok'   => false,
+				'code' => 'not_allowed',
+			];
+		}
 
 		// The fetcher keeps only a reason code, so record the raw response for the status or cURL error.
 		$response = null;

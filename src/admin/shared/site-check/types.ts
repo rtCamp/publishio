@@ -44,6 +44,7 @@ export interface SiteFacts {
 	mcpUrl: string;
 	permalinks: 'plain' | 'pretty';
 	mcpAdapter: { version: string; bundled: boolean; source: string } | null;
+	mcpServer: boolean;
 	tools: number;
 }
 

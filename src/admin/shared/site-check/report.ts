@@ -32,7 +32,10 @@ function table( exchanges: Exchange[] ): string[] {
 		__( 'Got', 'publishio' ),
 	];
 	const cell = ( text: string ) =>
-		text.replace( /\|/g, '\\|' ).replace( /\n/g, ' ' );
+		text
+			.replace( /\\/g, '\\\\' )
+			.replace( /\|/g, '\\|' )
+			.replace( /\n/g, ' ' );
 	const rows = exchanges.map( ( exchange ) => [
 		...( withSteps ? [ exchange.step ?? '' ] : [] ),
 		exchange.request,

@@ -146,6 +146,13 @@ function generic(): Record< string, Problem > {
 				OPEN_PATHS
 			),
 		},
+		timed_out: {
+			message: __( 'Your site took too long to answer.', 'publishio' ),
+			fix: __(
+				'Check that the site is online and not overloaded. If it is, a firewall or security plugin may be holding requests from outside; send the report to your host.',
+				'publishio'
+			),
+		},
 		unexpected: {
 			message: __(
 				'Your site answered in a way Publishio didn’t expect.',
@@ -327,6 +334,24 @@ function specific( check: CheckId ): Record< string, Problem > {
 }
 
 const APP_CAUSES: Record< string, ( hosts: string ) => Problem > = {
+	not_allowed: ( hosts ) => ( {
+		message: sprintf(
+			/* translators: %s: host names */
+			__(
+				"This site only lets some apps connect, and it doesn't allow apps from %s.",
+				'publishio'
+			),
+			hosts
+		),
+		fix: sprintf(
+			/* translators: %s: host names */
+			__(
+				'If you want to use these apps, a developer can add %s to the publishio_cimd_allowed_hosts filter.',
+				'publishio'
+			),
+			hosts
+		),
+	} ),
 	blocked_by_wordpress: ( hosts ) => ( {
 		message: __(
 			'WordPress is set to block outgoing connections.',

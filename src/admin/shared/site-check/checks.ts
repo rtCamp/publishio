@@ -50,7 +50,17 @@ const untrailed = ( url: string ) => url.replace( /\/$/, '' );
 export function hostReach(
 	hostname: string
 ): 'public' | 'this_computer' | 'private_network' {
-	const host = hostname.toLowerCase().replace( /^\[|\]$/g, '' );
+	const bare = hostname.toLowerCase().replace( /^\[|\]$/g, '' );
+
+	// URL parsing writes an IPv4-mapped IPv6 address in hex, such as ::ffff:c0a8:114 for 192.168.1.20.
+	const mapped = /^::ffff:([\da-f]{1,4}):([\da-f]{1,4})$/.exec( bare );
+	const host = mapped
+		? [ mapped[ 1 ]!, mapped[ 2 ]! ]
+				.map( ( part ) => Number.parseInt( part, 16 ) )
+				.flatMap( ( part ) => [ Math.floor( part / 256 ), part % 256 ] )
+				.join( '.' )
+		: bare;
+
 	// URL parsing writes every IPv4 form (such as 2130706433 or 0x7f.1) as four decimal parts.
 	const ipv4 = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec( host );
 	const [ a, b ] = ipv4
@@ -175,7 +185,7 @@ const mcp: CheckDefinition = {
 	),
 	needs: [],
 	runningLabel: __( 'Sending the first message an app sends', 'publishio' ),
-	run: async ( { mcpUrl, origin } ) => {
+	run: async ( { mcpUrl, origin, facts } ) => {
 		const target = new URL( mcpUrl ).origin;
 		if ( target !== origin ) {
 			const notes = [
@@ -228,6 +238,23 @@ const mcp: CheckDefinition = {
 			const metadata = challengeMetadataUrl(
 				result.reply.wwwAuthenticate
 			);
+
+			if ( metadata && false === ( await facts() )?.mcpServer ) {
+				return fail(
+					'not_found',
+					__( "Publishio's MCP server isn't running", 'publishio' ),
+					{
+						exchanges,
+						notes: [
+							__(
+								"WordPress has no Publishio MCP server registered, so the MCP server URL can't answer AI apps.",
+								'publishio'
+							),
+						],
+					}
+				);
+			}
+
 			if ( metadata ) {
 				return {
 					status: 'pass',
@@ -244,6 +271,7 @@ const mcp: CheckDefinition = {
 					},
 				};
 			}
+
 			if ( restCode( result.reply.json ) ) {
 				return fail(
 					'no_challenge',
@@ -411,8 +439,8 @@ const details: CheckDefinition = {
 			true !== serverDoc[ 'client_id_metadata_document_supported' ] &&
 				'client_id_metadata_document_supported',
 			typeof authorizeUrl !== 'string' && 'authorization_endpoint',
-			typeof serverDoc[ 'token_endpoint' ] !== 'string' &&
-				'token_endpoint',
+			untrailed( String( serverDoc[ 'token_endpoint' ] ) ) !==
+				untrailed( context.tokenUrl ) && 'token_endpoint',
 		].filter( ( field ): field is string => Boolean( field ) );
 		if ( wrong.length || typeof authorizeUrl !== 'string' ) {
 			exchanges[ 1 ]!.got +=
@@ -470,6 +498,15 @@ function appGot( app: AppCheck ): string {
 					__( '%d, accepted', 'publishio' ),
 					app.status ?? 200
 				) + time
+			);
+		case 'not_allowed':
+			return sprintf(
+				/* translators: %s: host name */
+				__(
+					"Not attempted: this site doesn't allow apps from %s to connect (`publishio_cimd_allowed_hosts`)",
+					'publishio'
+				),
+				host
 			);
 		case 'blocked_by_wordpress':
 			return sprintf(

@@ -20,7 +20,16 @@ export interface Reply {
 
 export type ProbeResult =
 	| { ok: true; reply: Reply }
-	| { ok: false; error: string; ms: number; redirectedAway?: boolean };
+	| {
+			ok: false;
+			error: string;
+			ms: number;
+			redirectedAway?: boolean;
+			timedOut?: boolean;
+	  };
+
+/** How long a request may take, reading the response included. */
+export const PROBE_TIMEOUT = 15000;
 
 export type Probe = (
 	url: string,
@@ -41,6 +50,7 @@ export const probe: Probe = async ( url, init = {} ) => {
 			credentials: 'omit',
 			cache: 'no-store',
 			redirect,
+			signal: AbortSignal.timeout( PROBE_TIMEOUT ),
 		} );
 
 	try {
@@ -61,7 +71,7 @@ export const probe: Probe = async ( url, init = {} ) => {
 				wwwAuthenticate: header( 'www-authenticate' ),
 				csp: header( 'content-security-policy' ),
 				wordpressPage:
-					header( 'link' ).includes( 'api.w.org' ) ||
+					/rel="https:\/\/api\.w\.org\/"/.test( header( 'link' ) ) ||
 					/\/wp-(content|includes)\/|<body id="error-page"/.test(
 						text
 					),
@@ -72,6 +82,11 @@ export const probe: Probe = async ( url, init = {} ) => {
 		};
 	} catch ( error ) {
 		const ms = Math.round( performance.now() - started );
+		const message =
+			error instanceof Error ? error.message : String( error );
+		if ( error instanceof DOMException && 'TimeoutError' === error.name ) {
+			return { ok: false, error: message, ms, timedOut: true };
+		}
 		// A redirect to another site fails CORS like a network error; without following it, the browser reports it as an opaque redirect.
 		const redirectedAway = await send( 'manual' ).then(
 			( response ) => 'opaqueredirect' === response.type,
@@ -79,7 +94,7 @@ export const probe: Probe = async ( url, init = {} ) => {
 		);
 		return {
 			ok: false,
-			error: error instanceof Error ? error.message : String( error ),
+			error: message,
 			ms,
 			...( redirectedAway ? { redirectedAway } : {} ),
 		};
@@ -139,6 +154,15 @@ export function describe( result: ProbeResult ): string {
 			'publishio'
 		);
 	}
+
+	if ( ! result.ok && result.timedOut ) {
+		return sprintf(
+			/* translators: %d: seconds */
+			__( 'No response within %d seconds', 'publishio' ),
+			PROBE_TIMEOUT / 1000
+		);
+	}
+
 	if ( ! result.ok ) {
 		/* translators: %s: the browser's network error */
 		return sprintf( __( 'No response: "%s"', 'publishio' ), result.error );
@@ -206,6 +230,10 @@ export function describe( result: ProbeResult ): string {
  * @param result The probe result.
  */
 export function classify( result: ProbeResult ): string {
+	if ( ! result.ok && result.timedOut ) {
+		return 'timed_out';
+	}
+
 	if ( ! result.ok ) {
 		return result.redirectedAway ? 'redirected_away' : 'unreachable';
 	}

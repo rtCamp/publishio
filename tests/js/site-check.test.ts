@@ -48,6 +48,7 @@ const FACTS: SiteFacts = {
 	mcpUrl: MCP_URL,
 	permalinks: 'pretty',
 	mcpAdapter: { version: '0.6.1', bundled: true, source: 'publishio' },
+	mcpServer: true,
 	tools: 21,
 };
 
@@ -227,6 +228,9 @@ describe( 'hostReach', () => {
 		[ '10.example.com', 'public' ],
 		[ '172.16.example.org', 'public' ],
 		[ '127.example.com', 'public' ],
+		[ '[::ffff:c0a8:114]', 'private_network' ],
+		[ '[::ffff:7f00:1]', 'this_computer' ],
+		[ '[::ffff:5db8:d70e]', 'public' ],
 	] )( '%s is %s', ( host, reach ) => {
 		expect( hostReach( host ) ).toBe( reach );
 	} );
@@ -416,6 +420,85 @@ describe( 'checks against a site', () => {
 		} );
 	} );
 
+	it( 'fails the MCP server check when WordPress has no MCP server registered', async () => {
+		const items = await run( HEALTHY, {
+			facts: { ...FACTS, mcpServer: false },
+		} );
+
+		expect( codes( items ) ).toMatchObject( {
+			mcp: 'fail:not_found',
+			details: 'skip:needs',
+			access: 'skip:needs',
+		} );
+	} );
+
+	it( 'fails Connection details when the token address points elsewhere', async () => {
+		const items = await run( {
+			...HEALTHY,
+			[ SERVER_URL ]: {
+				status: 200,
+				body: {
+					...( HEALTHY[ SERVER_URL ]!.body as object ),
+					token_endpoint:
+						'https://old.example.com/wp-json/publishio-oauth/v1/token',
+				},
+			},
+		} );
+
+		expect( items.details.result?.code ).toBe( 'wrong_details' );
+		expect( items.details.result?.exchanges?.[ 1 ]?.got ).toContain(
+			'`token_endpoint`'
+		);
+	} );
+
+	it( 'tells WordPress pages by the exact api.w.org link', async () => {
+		const notFound = ( link: string ) =>
+			run( {
+				...HEALTHY,
+				[ RESOURCE_URL ]: {
+					status: 404,
+					body: '<title>Not found</title>',
+					headers: { link },
+				},
+			} );
+
+		expect(
+			(
+				await notFound(
+					`<${ SITE }/wp-json/>; rel="https://api.w.org/"`
+				)
+			).details.result?.code
+		).toBe( 'not_found_in_wordpress' );
+		expect(
+			( await notFound( '<https://api.w.org.example.net/>; rel="next"' ) )
+				.details.result?.code
+		).toBe( 'blocked_before_wordpress' );
+	} );
+
+	it( 'reports a request that takes too long, without retrying it', async () => {
+		const fetchMock = jest.fn(
+			async ( url: string, init?: RequestInit ) => {
+				if ( MCP_URL === url ) {
+					throw new DOMException(
+						'The operation timed out.',
+						'TimeoutError'
+					);
+				}
+				return fakeFetch( HEALTHY )( url, init );
+			}
+		);
+		global.fetch = fetchMock as unknown as typeof fetch;
+		const items = await runChecks( CHECKS, context(), () => {} );
+
+		expect( items.mcp.result?.code ).toBe( 'timed_out' );
+		expect(
+			fetchMock.mock.calls.filter( ( [ url ] ) => MCP_URL === url )
+		).toHaveLength( 1 );
+		expect( fetchMock.mock.calls[ 0 ]?.[ 1 ]?.signal ).toBeInstanceOf(
+			AbortSignal
+		);
+	} );
+
 	it( 'finds the Bearer challenge after another challenge', async () => {
 		const items = await run( {
 			...HEALTHY,
@@ -522,6 +605,21 @@ describe( 'checks against a site', () => {
 		);
 
 		expect( items.address.result?.code ).toBe( 'this_computer' );
+	} );
+
+	it( 'explains an app the site doesn’t allow to connect', async () => {
+		const items = await run( HEALTHY, {
+			apps: appsFailing( { chatgpt: 'not_allowed' } ),
+		} );
+		const result = items.apps.result!;
+
+		expect( result.status ).toBe( 'warning' );
+		expect(
+			problemFor( 'apps', result.code, result.apps ).message
+		).toContain( "it doesn't allow apps from chatgpt.com" );
+		expect( verdictOf( CHECKS, items ).title ).toBe(
+			'Ready for Claude and Claude Code only'
+		);
 	} );
 
 	it( 'warns when only one app fails, naming the ones that work', async () => {
@@ -805,6 +903,25 @@ describe( 'stored result', () => {
 } );
 
 describe( 'buildReport', () => {
+	it( 'escapes backslashes and pipes in table cells', async () => {
+		const items = await run( {
+			...HEALTHY,
+			[ RESOURCE_URL ]: {
+				status: 403,
+				body: '<title>a\\|b</title>',
+				headers: { server: 'openresty' },
+			},
+		} );
+		const report = buildReport( {
+			checks: CHECKS,
+			items,
+			facts: FACTS,
+			checkedAt: Date.UTC( 2026, 9, 14, 13, 5 ),
+		} );
+
+		expect( report ).toContain( 'page title "a\\\\\\|b"' );
+	} );
+
 	it( 'lists the problem with its requests and fix, then skipped and passed checks', async () => {
 		const items = await run( {
 			...HEALTHY,

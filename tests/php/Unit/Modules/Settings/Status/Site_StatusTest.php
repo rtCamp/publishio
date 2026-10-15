@@ -48,6 +48,7 @@ class Site_StatusTest extends TestCase {
 		$this->assertSame( rest_url( 'publishio-oauth/v1/token' ), $facts['token_url'] );
 		$this->assertNotNull( $facts['mcp_adapter'] );
 		$this->assertTrue( $facts['mcp_adapter']['bundled'] );
+		$this->assertTrue( $facts['mcp_server'] );
 		$this->assertNotSame( '', $facts['mcp_adapter']['version'] );
 	}
 
@@ -131,6 +132,19 @@ class Site_StatusTest extends TestCase {
 
 		$this->assertSame( [ 'ssl_verify_off', 'ssl_verify_off', 'ssl_verify_off' ], array_column( $result['apps'], 'code' ) );
 		$this->assertSame( [], $this->requests );
+	}
+
+	/**
+	 * An app the site doesn't allow to connect is reported without fetching its document.
+	 */
+	public function test_app_left_out_of_allowed_hosts_is_not_allowed(): void {
+		$this->mock_responses( self::valid_responses() );
+		add_filter( 'publishio_cimd_allowed_hosts', static fn (): array => [ 'claude.ai' ] );
+
+		$result = $this->site_status()->verify_apps();
+
+		$this->assertSame( [ 'ok', 'ok', 'not_allowed' ], array_column( $result['apps'], 'code' ) );
+		$this->assertNotContains( self::CHATGPT, $this->requests );
 	}
 
 	/**

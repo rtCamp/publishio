@@ -77,7 +77,7 @@ jobs:
 
       - name: Expose built artifact on public URL
         id: expose
-        uses: WordPress/action-wp-playground-pr-preview/.github/actions/expose-artifact-on-public-url@5e92f5e3c80d06126f22e83e4bb21221fbbd3e7f # v2
+        uses: WordPress/action-wp-playground-pr-preview/.github/actions/expose-artifact-on-public-url@07d56d39d84ecfcdae2e7ddf9dd83e5e6dde769a # v2
         with:
           artifact-name: ${{ steps.pr-metadata.outputs.artifact-name }}
           artifact-filename: ${{ inputs.artifact-filename }}
@@ -87,7 +87,7 @@ jobs:
           artifacts-to-keep: ${{ inputs.artifacts-to-keep }}
 
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: blueprint.json
           sparse-checkout-cone-mode: false
@@ -106,7 +106,7 @@ jobs:
           ARTIFACT_URL: ${{ steps.expose.outputs.artifact-url }}
 
       - name: Post Playground preview button
-        uses: WordPress/action-wp-playground-pr-preview@5e92f5e3c80d06126f22e83e4bb21221fbbd3e7f # v2
+        uses: WordPress/action-wp-playground-pr-preview@07d56d39d84ecfcdae2e7ddf9dd83e5e6dde769a # v2
         with:
           mode: append-to-description
           blueprint: ${{ steps.blueprint.outputs.blueprint }}

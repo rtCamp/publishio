@@ -52,7 +52,13 @@ class Preview_Pattern {
 							'type'        => 'array',
 							'minItems'    => 1,
 							'description' => 'Filled content schema (from get-pattern-schema, with values populated).',
-							'items'       => [ 'type' => 'object' ],
+							'items'       => [
+								'type'       => 'object',
+								'required'   => [ 'block' ],
+								'properties' => [
+									'block' => [ 'type' => 'string' ],
+								],
+							],
 						],
 					],
 					'additionalProperties' => false,

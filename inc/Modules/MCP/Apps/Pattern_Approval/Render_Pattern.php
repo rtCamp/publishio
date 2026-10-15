@@ -43,8 +43,11 @@ class Render_Pattern {
 							'minItems'    => 1,
 							'description' => 'Filled content schema (from get-pattern-schema, with values populated).',
 							'items'       => [
-								'type'     => 'object',
-								'required' => [ 'block' ],
+								'type'       => 'object',
+								'required'   => [ 'block' ],
+								'properties' => [
+									'block' => [ 'type' => 'string' ],
+								],
 							],
 						],
 					],

@@ -288,6 +288,19 @@ class Pattern_SchemaTest extends TestCase {
 	}
 
 	/**
+	 * A literal > inside an attribute value doesn't stop the media element's removal partway through.
+	 */
+	public function test_empty_cover_url_removes_media_with_literal_greater_than(): void {
+		$markup = str_replace( 'alt=""', 'alt="1 > 0"', self::COVER_WITHOUT_ID );
+
+		$schema                     = Pattern_Schema::extract( $markup );
+		$schema[0]['fields']['url'] = '';
+		[ $block ]                  = parse_blocks( Pattern_Schema::apply( $markup, $schema ) );
+
+		$this->assertSame( '<div class="wp-block-cover">' . self::OVERLAY . '<div class="wp-block-cover__inner-container"></div></div>', trim( $block['innerHTML'] ) );
+	}
+
+	/**
 	 * Only whole wp-image-{id} class names are replaced, not other classes that contain the text.
 	 */
 	public function test_image_class_keeps_hyphenated_classes(): void {

@@ -92,7 +92,12 @@ class Cover_Media_Writer implements Field_Writer_Interface {
 		}
 
 		if ( '' === $url ) {
-			return self::remove_media( $html, (string) $proc->get_tag() );
+			// Setting each attribute again encodes a literal > as &gt;, so the removal pattern can't stop inside a value.
+			foreach ( $proc->get_attribute_names_with_prefix( '' ) ?? [] as $name ) {
+				$proc->set_attribute( $name, $proc->get_attribute( $name ) ?? '' );
+			}
+
+			return self::remove_media( $proc->get_updated_html(), (string) $proc->get_tag() );
 		}
 
 		$tag = $proc->get_tag();

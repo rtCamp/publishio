@@ -51,7 +51,13 @@ class Insert_Pattern {
 						'schema'       => [
 							'type'        => 'array',
 							'minItems'    => 1,
-							'items'       => [ 'type' => 'object' ],
+							'items'       => [
+								'type'       => 'object',
+								'required'   => [ 'block' ],
+								'properties' => [
+									'block' => [ 'type' => 'string' ],
+								],
+							],
 							'description' => 'Filled content schema with values populated.',
 						],
 					],

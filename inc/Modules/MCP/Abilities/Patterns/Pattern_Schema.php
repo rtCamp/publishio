@@ -49,13 +49,23 @@ class Pattern_Schema {
 	 * replaced by the caller. Returns the modified **block markup**
 	 * (serialized blocks, not rendered HTML).
 	 *
+	 * Each entry fills the next block of its type, so a left-out entry can't shift content onto a different kind of block. Only fields whose value changed are written.
+	 *
 	 * @param string       $markup Block markup.
 	 * @param array<mixed> $schema Filled schema.
 	 */
 	public static function apply( string $markup, array $schema ): string {
 		$blocks = array_values( parse_blocks( $markup ) );
 		$cursor = 0;
+		$schema = array_values(
+			array_filter(
+				$schema,
+				static fn ( $entry ) => is_array( $entry ) && is_string( $entry['block'] ?? null ) && Block_Field_Resolver::has( $entry['block'] )
+			)
+		);
+
 		self::walk_apply( $blocks, $schema, $cursor );
+
 		return serialize_blocks( $blocks );
 	}
 
@@ -96,23 +106,57 @@ class Pattern_Schema {
 	 */
 	private static function walk_apply( array &$blocks, array $schema, int &$cursor ): void {
 		foreach ( $blocks as &$block ) {
-			$name = $block['blockName'] ?? null;
+			$name  = $block['blockName'] ?? null;
+			$entry = $schema[ $cursor ] ?? null;
 
-			// Content fields.
-			if ( $name && Block_Field_Resolver::has( $name ) && isset( $schema[ $cursor ] ) ) {
-				$entry    = $schema[ $cursor ];
-				$resolved = Block_Field_Resolver::resolve( $name );
-				foreach ( $entry['fields'] as $attr_key => $new_value ) {
-					if ( isset( $resolved[ $attr_key ] ) ) {
-						$resolved[ $attr_key ]['writer']->write( $block, $resolved[ $attr_key ]['field_def'], $new_value );
-					}
-				}
+			if ( $name && $entry && $entry['block'] === $name ) {
+				$fields = is_array( $entry['fields'] ?? null ) ? $entry['fields'] : [];
+
+				self::write_fields( $block, Block_Field_Resolver::resolve( $name ), $fields );
+
 				++$cursor;
 			}
 
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				self::walk_apply( $block['innerBlocks'], $schema, $cursor );
 			}
+		}
+	}
+
+	/**
+	 * Write the fields whose value changed.
+	 *
+	 * Every field is read before any is written, because writing a url clears the attachment ID. For the same reason the id is written last.
+	 *
+	 * @param array<string, mixed>                $block    Block (passed by reference).
+	 * @param array<string, array<string, mixed>> $resolved Field definitions and writers from Block_Field_Resolver.
+	 * @param array<mixed>                        $fields   New field values.
+	 */
+	private static function write_fields( array &$block, array $resolved, array $fields ): void {
+		$changed = [];
+
+		foreach ( $resolved as $attr_key => $field ) {
+			if ( ! isset( $fields[ $attr_key ] ) || ! is_scalar( $fields[ $attr_key ] ) ) {
+				continue;
+			}
+
+			$value = (string) $fields[ $attr_key ];
+
+			if ( $field['writer']->read( $block, $field['field_def'] ) !== $value ) {
+				$changed[ $attr_key ] = $value;
+			}
+		}
+
+		if ( isset( $changed['id'] ) ) {
+			$id = $changed['id'];
+
+			unset( $changed['id'] );
+
+			$changed['id'] = $id;
+		}
+
+		foreach ( $changed as $attr_key => $value ) {
+			$resolved[ $attr_key ]['writer']->write( $block, $resolved[ $attr_key ]['field_def'], $value );
 		}
 	}
 }

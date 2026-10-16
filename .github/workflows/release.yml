@@ -52,9 +52,47 @@ jobs:
       artifact-name: publishio
     secrets: inherit
 
+  release-tests:
+    name: Release tests (install + upgrade on the release zip)
+    needs: build
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      php-version: '8.2'
+      plugin-slug: publishio
+      project: install
+      update: plugin-update
+      zip-artifact: publishio
+      # notify-slack: true
+    secrets: inherit
+
+  qa-gate:
+    name: QA release gate (qa-management)
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Check the QA run issue for this release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: node bin/qa-release-gate.mjs "$TAG"
+
   wordpress-org-release:
     name: Create WordPress.org release
-    needs: [validate, build]
+    needs: [validate, build, release-tests, qa-gate]
+    if: always() && needs.validate.result == 'success' && needs.build.result == 'success' && needs.release-tests.result == 'success' && (needs.qa-gate.result == 'success' || (needs.qa-gate.result == 'skipped' && github.event_name == 'workflow_dispatch'))
+    environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -86,7 +124,7 @@ jobs:
   github-release:
     name: Create GitHub release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [validate, build]
+    needs: [validate, build, release-tests, qa-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

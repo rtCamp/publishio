@@ -1,0 +1,146 @@
+name: QA Hotfix Run
+
+on:
+  push:
+    branches:
+      - 'hotfix/**'
+  workflow_dispatch:
+    inputs:
+      incident:
+        description: 'Incident / bug reference this hotfix patches (issue #, ticket ID, or URL)'
+        required: true
+      blast_radius:
+        description: 'Areas touched by this patch (guides what to smoke-test)'
+        required: false
+        default: 'Not specified'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-hotfix-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  QA_PROJECT: publishio
+  QA_VAULT_REPO: rtCamp/qa
+  QA_VAULT_REF: master
+
+jobs:
+  build-plugin-zip:
+    name: Build Plugin Zip
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      php-version: '8.2'
+      artifact-name: publishio-hotfix-${{ github.run_id }}
+    secrets: inherit
+
+  automated-mounted:
+    name: Automated gate
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [smoke, smoke-wp69]
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      php-version: '8.2'
+      plugin-slug: publishio
+      project: ${{ matrix.project }}
+      update: plugin-update
+      # notify-slack: false
+    secrets: inherit
+
+  automated-install:
+    name: Automated gate
+    needs: build-plugin-zip
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [install, install-wp69]
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      php-version: '8.2'
+      plugin-slug: publishio
+      project: ${{ matrix.project }}
+      update: plugin-update
+      zip-artifact: publishio-hotfix-${{ github.run_id }}
+      # notify-slack: false
+    secrets: inherit
+
+  launch-hotfix-checklist:
+    name: Open hotfix QA issue
+    needs: [automated-mounted, automated-install]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Fetch the publishio smoke blueprint from the QA vault
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          repository: ${{ env.QA_VAULT_REPO }}
+          ref: ${{ env.QA_VAULT_REF }}
+          token: ${{ secrets.RTBOT_TOKEN }}
+          path: qa-vault
+          sparse-checkout: qa-management/${{ env.QA_PROJECT }}
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Open the emergency hotfix QA issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          INCIDENT: ${{ inputs.incident || '_not supplied (push-triggered run)_' }}
+          BLAST_RADIUS: ${{ inputs.blast_radius || 'Not specified' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The smoke file is spelled `smoke-suit.md` in the vault (not "suite").
+          SMOKE_FILE="qa-vault/qa-management/${QA_PROJECT}/smoke-suit.md"
+          if [ ! -f "$SMOKE_FILE" ]; then
+            echo "::error::Missing ${SMOKE_FILE} in ${QA_VAULT_REPO}. Add qa-management/${QA_PROJECT}/ to the vault."
+            exit 1
+          fi
+          {
+            echo "## 🚨 Emergency Hotfix Context"
+            echo "* **Project:** \`${QA_PROJECT}\`"
+            echo "* **Hotfix Branch:** \`${REF_NAME}\`"
+            echo "* **Commit:** ${SHA}"
+            echo "* **Triggered By:** @${ACTOR}"
+            echo "* **Incident Reference:** ${INCIDENT}"
+            echo "* **Stated Blast Radius:** ${BLAST_RADIUS}"
+            echo "* **Automated E2E gate:** passed, [report and artifacts](${RUN_URL})"
+            echo ""
+            echo "> ⚠️ **Regression validation is bypassed on this run.** A full QA execution run is"
+            echo "> still required on the next release."
+            echo ""
+            echo "### 🎯 Patch-Specific Verification"
+            echo "- [ ] **The reported incident is reproducible on the pre-patch build**"
+            echo "- [ ] **The incident no longer reproduces on the patched build**"
+            echo "- [ ] **No new errors in \`wp-content/debug.log\` or the browser console**"
+            echo ""
+            echo "### 💨 Minimum Viable Smoke Verification"
+            cat "$SMOKE_FILE"
+            echo ""
+            echo "## 🏁 Emergency Sign-Off"
+            echo "- [ ] **Hotfix resolves the target production issue**"
+            echo "- [ ] **Core smoke checks pass**"
+            echo "- [ ] **Follow-up full-regression issue opened for the next release**"
+            echo ""
+            echo "**Signed off by:** @ &nbsp;&nbsp; **Date:** ____"
+          } > qa-issue-body.md
+
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "🚨 [HOTFIX QA] ${QA_PROJECT} — ${REF_NAME}" \
+            --label qa-testing --label emergency-hotfix \
+            --assignee "$ACTOR" \
+            --body-file qa-issue-body.md

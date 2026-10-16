@@ -30,7 +30,6 @@ jobs:
       phpunit: ${{ steps.filter.outputs.phpunit }}
       js: ${{ steps.filter.outputs.js }}
       css: ${{ steps.filter.outputs.css }}
-      e2e: ${{ steps.filter.outputs.e2e }}
       jest: ${{ steps.filter.outputs.jest }}
 
     steps:
@@ -84,11 +83,6 @@ jobs:
               - '.browserslistrc'
               - '.stylelintignore'
               - '.stylelint.config.js'
-            e2e:
-              - '.github/workflows/ci.yml'
-              - '.github/workflows/reusable-e2e.yml' # Update this if using public reusable workflow
-              - 'tests/e2e/**/*'
-              - 'playwright.config.ts'
             jest:
               - '.github/workflows/ci.yml'
               - '.github/workflows/reusable-jest.yml' # Update this if using public reusable workflow
@@ -165,17 +159,19 @@ jobs:
       coverage: ${{ matrix.coverage == true }}
     secrets: inherit
 
-  # e2e:
-  #   name: E2E Tests
-  #   needs: [detect, build-plugin-zip]
-  #   # needs: phpstan
-  #   if: needs.detect.outputs.php == 'true' || needs.detect.outputs.e2e == 'true' || needs.detect.outputs.js == 'true' || needs.detect.outputs.css == 'true'
-  #   # uses: ./.github/workflows/reusable-e2e-public.yml
-  #   uses: ./.github/workflows/reusable-e2e.yml
-  #   permissions:
-  #     contents: read
-  #   with:
-  #     php-version: '8.2'
+  version-check:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Check plugin version is the same everywhere
+        run: node bin/check-version.mjs
 
   build-plugin-zip:
     name: Build Plugin Zip

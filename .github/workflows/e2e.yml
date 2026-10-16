@@ -84,6 +84,9 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         with:
+          # Pushes compare against the commit before the push (the default base, main, would count
+          # every unmerged change on a pushed branch). Ignored for pull requests.
+          base: ${{ github.ref_name }}
           # A file counts as code unless it matches one of the excluded patterns.
           predicate-quantifier: 'every'
           filters: |

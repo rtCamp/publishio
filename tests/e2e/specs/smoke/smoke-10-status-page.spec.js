@@ -44,12 +44,18 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			await expect( address ).toContainText(
 				'put the site on a public https:// address'
 			);
-			await address
-				.getByRole( 'button', { name: 'Technical details' } )
-				.click();
-			await expect( address ).toContainText(
-				`${ baseURL }/wp-json/mcp/publishio`
-			);
+			const details = address.getByRole( 'button', {
+				name: 'Technical details',
+			} );
+			const mcpUrl = `${ baseURL }/wp-json/mcp/publishio`;
+			await expect( details ).toHaveAttribute( 'aria-expanded', 'false' );
+			await expect( address ).not.toContainText( mcpUrl );
+			await details.click();
+			await expect( details ).toHaveAttribute( 'aria-expanded', 'true' );
+			await expect( address ).toContainText( mcpUrl );
+			await details.click();
+			await expect( details ).toHaveAttribute( 'aria-expanded', 'false' );
+			await expect( address ).not.toContainText( mcpUrl );
 
 			const caveats = page.getByRole( 'button', {
 				name: "What these checks can't see",
@@ -77,34 +83,47 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			await expectLocalStatus( page );
 
 			await page
-				.getByRole( 'button', { name: 'Show report' } )
-				.first()
-				.click();
+				.context()
+				.grantPermissions( [ 'clipboard-read', 'clipboard-write' ] );
+			// One in the header, one in the "Not sure how to fix this?" box.
+			const buttons = page.getByRole( 'button', { name: 'Show report' } );
+			await expect( buttons ).toHaveCount( 2 );
 			const report = page.getByRole( 'dialog', {
 				name: 'Status report',
 			} );
-			await expect( report ).toBeVisible();
-			for ( const text of [
-				'Public address',
-				'MCP server',
-				'Connection details',
-				'App verification',
-				'Access after approval',
-				branchHeader().version,
-			] ) {
-				await expect(
-					report,
-					`report mentions ${ text }`
-				).toContainText( text );
+			for ( const button of [ buttons.first(), buttons.last() ] ) {
+				await button.click();
+				await expect( report ).toBeVisible();
+				for ( const text of [
+					'Public address',
+					'MCP server',
+					'Connection details',
+					'App verification',
+					'Access after approval',
+					branchHeader().version,
+				] ) {
+					await expect(
+						report,
+						`report mentions ${ text }`
+					).toContainText( text );
+				}
+				await report
+					.getByRole( 'button', { name: 'Close' } )
+					.first()
+					.click();
+				await expect( report ).toBeHidden();
 			}
+
+			await buttons.first().click();
+			await report.getByRole( 'button', { name: 'Copy report' } ).click();
 			await expect(
-				report.getByRole( 'button', { name: 'Copy report' } )
+				report.getByRole( 'button', { name: 'Copied!' } )
 			).toBeVisible();
-			await report
-				.getByRole( 'button', { name: 'Close' } )
-				.first()
-				.click();
-			await expect( report ).toBeHidden();
+			const copied = await page.evaluate( () =>
+				navigator.clipboard.readText()
+			);
+			expect( copied ).toContain( 'Public address' );
+			expect( copied ).toContain( branchHeader().version );
 		}
 	);
 
@@ -237,6 +256,30 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 						name: '2 problems',
 					} )
 				).toBeVisible();
+
+				const details = verification.getByRole( 'button', {
+					name: 'Technical details',
+				} );
+				await details.click();
+				await expect( details ).toHaveAttribute(
+					'aria-expanded',
+					'true'
+				);
+				await expect( verification ).toContainText( 'Expected' );
+				await expect( verification ).toContainText(
+					'200 JSON, accepted'
+				);
+				await expect( verification ).toContainText( 'claude.ai' );
+
+				await page
+					.getByRole( 'button', { name: 'Show report' } )
+					.first()
+					.click();
+				await expect(
+					page.getByRole( 'dialog', { name: 'Status report' } )
+				).toContainText(
+					'WordPress is set to block outgoing connections'
+				);
 			} finally {
 				wpCli( 'config delete WP_HTTP_BLOCK_EXTERNAL --type=constant' );
 				await expect

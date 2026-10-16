@@ -1,12 +1,11 @@
 name: E2E
 
 on:
-  # pull_request:
-    # types: [opened, synchronize, reopened, ready_for_review]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
-      - e2e-playwright-tests
-      # - main
+      - main
   workflow_dispatch:
     inputs:
       projects:

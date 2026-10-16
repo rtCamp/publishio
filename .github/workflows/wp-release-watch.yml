@@ -1,0 +1,98 @@
+# A WordPress update: when WordPress ships a new version (checked daily), or on demand (e.g. for an
+# RC), run the tests tagged @wp-update: the full project (smoke + compat) across PHP and themes, and
+# the install project with the latest released plugin zip, i.e. what customers have.
+name: WordPress release watch
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # daily, 11:30 IST
+  workflow_dispatch:
+    inputs:
+      wp-version:
+        description: 'wp-env core to test, e.g. "WordPress/WordPress#7.1" or an RC zip URL. Empty = latest.'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.wp.outputs.version }}
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - id: wp
+        run: echo "version=$(curl -fsSL https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')" >> "$GITHUB_OUTPUT"
+      # A cache entry per tested version remembers what has already been covered.
+      - id: seen
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .wp-tested
+          key: wp-tested-${{ steps.wp.outputs.version }}
+          lookup-only: true
+      - id: decide
+        run: echo "run=${{ github.event_name == 'workflow_dispatch' || steps.seen.outputs.cache-hit != 'true' }}" >> "$GITHUB_OUTPUT"
+
+  full:
+    needs: detect
+    if: needs.detect.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: # pairwise WP x PHP x theme
+          - { php: '8.2', theme: 'twentytwentyfive' }
+          - { php: '8.3', theme: 'ollie' }
+          - { php: '8.4', theme: 'twentytwentyfive' }
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      plugin-slug: publishio
+      project: full
+      update: wp-update
+      wp-version: ${{ inputs.wp-version || '' }}
+      php-version: ${{ matrix.php }}
+      theme: ${{ matrix.theme }}
+      # notify-slack: true  # SLACK disabled for now
+    secrets: inherit
+
+  release-zip:
+    name: Get the released plugin zip
+    needs: detect
+    if: needs.detect.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsSL -o publishio.zip "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/publishio.zip"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: publishio-release-${{ github.run_id }}
+          path: publishio.zip
+          if-no-files-found: error
+
+  install:
+    needs: [ detect, release-zip ]
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      php-version: '8.2'
+      plugin-slug: publishio
+      project: install
+      update: wp-update
+      wp-version: ${{ inputs.wp-version || '' }}
+      zip-artifact: publishio-release-${{ github.run_id }}
+      # notify-slack: true  # SLACK disabled for now
+    secrets: inherit
+
+  remember:
+    needs: [ detect, full, install ]
+    if: github.event_name == 'schedule' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*([-.A-Za-z0-9]*)$ ]] || { echo "Unexpected version: $VERSION" >&2; exit 1; }
+          echo "$VERSION" > .wp-tested
+      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .wp-tested
+          key: wp-tested-${{ needs.detect.outputs.version }}

@@ -1,0 +1,208 @@
+# Playwright E2E tests on GitHub-hosted runners.
+#
+# Follows rtCamp/plugin-skeleton-d's reusable-e2e-public.yml (same name, inputs, steps and order), so
+# a caller written for the skeleton works unchanged: `php-version` (+ optional `plugin-slug`) runs
+# the default `smoke` project. Publishio adds optional inputs on top: which Playwright project to
+# run (sites and projects are defined in tests/e2e/config/sites.json), WordPress version, theme,
+# the built zip for install projects, and the test tags to select.
+name: Run E2E Tests
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to use'
+        required: true
+        type: string
+      plugin-slug:
+        description: 'Plugin slug. Unused here; accepted so callers can switch to the private variant unchanged.'
+        required: false
+        type: string
+        default: ''
+      # Publishio additions (all optional).
+      project:
+        description: 'Playwright project: smoke | full | install | smoke-wp69 | install-wp69 | smoke-multisite'
+        required: false
+        type: string
+        default: 'smoke'
+      wp-version:
+        description: 'wp-env core for projects without a pinned version, e.g. "WordPress/WordPress#7.0". Empty = latest.'
+        required: false
+        type: string
+        default: ''
+      theme:
+        description: 'Theme slug'
+        required: false
+        type: string
+        default: 'twentytwentyfive'
+      zip-artifact:
+        description: 'Plugin zip artifact to install (required for install projects)'
+        required: false
+        type: string
+        default: ''
+      update:
+        description: 'plugin-update | wp-update: run only the tests tagged for that kind of change. Empty = all.'
+        required: false
+        type: string
+        default: ''
+      extra-tags:
+        description: 'Extra test tags from impact analysis, e.g. "@oauth @patterns"'
+        required: false
+        type: string
+        default: ''
+      shard:
+        description: 'Run part of the project, e.g. "1/2" (Playwright --shard). Empty = all of it.'
+        required: false
+        type: string
+        default: ''
+      build-zip:
+        description: 'Install projects: build the plugin zip in this job instead of downloading zip-artifact (no wait for a separate build job)'
+        required: false
+        type: boolean
+        default: false
+      # SLACK (disabled until the webhook is available; uncomment to re-enable):
+      # notify-slack:
+        # description: 'Post to Slack when the run fails'
+        # type: boolean
+        # default: false
+    # SLACK (disabled until the webhook is available; uncomment to re-enable):
+    # secrets:
+      # SLACK_WEBHOOK_URL:
+        # required: false
+
+permissions: {}
+
+jobs:
+  e2e:
+    name: Playwright E2E Tests (${{ inputs.project }}${{ inputs.shard && format(' {0}', inputs.shard) || '' }}${{ inputs.update && format(', {0}', inputs.update) || '' }}, WP ${{ inputs.wp-version || 'project default' }}, PHP ${{ inputs.php-version }}, ${{ inputs.theme }})
+    runs-on: ubuntu-24.04
+    # Longer than the skeleton's 20: the full and install projects run more tests.
+    timeout-minutes: 40
+    env:
+      E2E_PROJECT: ${{ inputs.project }}
+      WP_ENV_CORE: ${{ inputs.wp-version }}
+      WP_ENV_PHP_VERSION: ${{ inputs.php-version }}
+      E2E_THEME: ${{ inputs.theme }}
+      E2E_TAGS: ${{ inputs.extra-tags }}
+      E2E_UPDATE: ${{ inputs.update }}
+      E2E_SHARD: ${{ inputs.shard }}
+      PUBLISHIO_ZIP: ${{ github.workspace }}/artifacts/zips/publishio.zip
+      # SLACK (disabled until the webhook is available; uncomment to re-enable):
+      # # Only whether a webhook exists; the secret itself is passed to the Slack step alone.
+      # HAS_SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      # Projects that mount the repo need its PHP and JS dependencies; install projects test the
+      # built zip, so they need them only when building the zip here (build-zip).
+      - name: Set up PHP
+        if: ${{ !startsWith( inputs.project, 'install' ) || inputs.build-zip }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: ${{ inputs.php-version }}
+          coverage: none
+
+      - name: Install Composer dependencies
+        if: ${{ !startsWith( inputs.project, 'install' ) || inputs.build-zip }}
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
+        with:
+          # The zip ships production dependencies only, as reusable-build.yml builds it.
+          composer-options: ${{ startsWith( inputs.project, 'install' ) && '--no-dev --optimize-autoloader' || '' }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build production assets
+        if: ${{ !startsWith( inputs.project, 'install' ) || inputs.build-zip }}
+        run: npm run build:prod
+
+      - name: Build the plugin zip
+        if: ${{ startsWith( inputs.project, 'install' ) && inputs.build-zip }}
+        run: |
+          npm run plugin-zip
+          mkdir -p artifacts/zips
+          mv publishio.zip artifacts/zips/publishio.zip
+
+      # Otherwise install projects test exactly the zip a build job produced for this commit.
+      - name: Download the plugin zip
+        if: ${{ inputs.zip-artifact != '' && !inputs.build-zip }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.zip-artifact }}
+          path: artifacts/zips
+
+      # Browsers are cached per Playwright version (from the lockfile); system packages are
+      # installed on every run, as the cache holds only the browser.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles( 'package-lock.json' ) }}
+
+      - name: Install Playwright browsers
+        run: |
+          if [ "$CACHE_HIT" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
+        env:
+          CACHE_HIT: ${{ steps.playwright-cache.outputs.cache-hit }}
+
+      # Starts the project's WordPress site (the project's setup then prepares it).
+      - name: Start the Docker testing environment
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: node bin/e2e.mjs "$E2E_PROJECT" start
+
+      - name: Run E2E tests
+        run: npm run test:e2e -- "$E2E_PROJECT" test ${E2E_SHARD:+"--shard=$E2E_SHARD"}
+
+      - name: Name the report
+        id: label
+        if: ${{ !cancelled() }}
+        run: echo "name=e2e-${E2E_PROJECT}${E2E_SHARD:+-shard-${E2E_SHARD%/*}-of-${E2E_SHARD#*/}}${E2E_UPDATE:+-$E2E_UPDATE}-wp-$(echo "${WP_ENV_CORE:-default}" | sed 's/.*#//; s/[^A-Za-z0-9.-]/-/g')-php${WP_ENV_PHP_VERSION}-${E2E_THEME}" >> "$GITHUB_OUTPUT"
+
+      # Report, screenshots, traces and the WordPress debug log. A name per project/version,
+      # because callers run several of these jobs in one workflow run.
+      - name: Upload E2E test results as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: ${{ steps.label.outputs.name }}
+          path: |
+            artifacts/report/
+            artifacts/test-results/
+            artifacts/results.json
+            tests/_output/**/*.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # Every environment this job started, including after failures and timeouts.
+      - name: Stop the Docker testing environment
+        if: always()
+        run: node bin/wp-env-down.mjs
+
+      # SLACK (disabled until the webhook is available; uncomment to re-enable):
+      # - name: Notify Slack
+        # if: failure() && inputs.notify-slack && env.HAS_SLACK_WEBHOOK == 'true'
+        # uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        # with:
+          # webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          # webhook-type: incoming-webhook
+          # payload: |
+            # text: ":red_circle: Publishio ${{ inputs.project }} tests failed (WP ${{ inputs.wp-version || 'project default' }}, PHP ${{ inputs.php-version }}, ${{ inputs.theme }}) on ${{ github.ref_name }}. Report: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

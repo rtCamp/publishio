@@ -1,0 +1,19 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/wp-env.json",
+	"core": "WordPress/WordPress#6.9",
+	"phpVersion": "8.2",
+	"port": 8891,
+	"testsEnvironment": false,
+	"plugins": [],
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_DISPLAY": false,
+		"WP_DEBUG_LOG": "/var/www/html/wp-content/publishio-e2e-logs/debug.log",
+		"SCRIPT_DEBUG": false,
+		"FS_METHOD": "direct"
+	},
+	"mappings": {
+		"wp-content/publishio-e2e-zips": "./artifacts/zips",
+		"wp-content/publishio-e2e-logs": "./tests/_output/install-wp69"
+	}
+}

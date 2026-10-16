@@ -1,0 +1,210 @@
+# Scheduled E2E regression on main.
+#
+# - Nightly (Sun-Fri, 02:00 IST): every test (functional, security, upgrade) on a reduced matrix of
+#   12 combinations. Skipped when main has not changed since the last nightly run.
+# - Weekly (Sunday, 02:00 IST): every combination, including a multisite network and WordPress
+#   nightly (trunk).
+# - On a change (a new failure, or back to green) the run summary says so. Slack alerts are
+#   commented out until the webhook is available.
+#
+# WordPress releases/RCs (wp-release-watch.yml), release tags (release.yml), PRs and manual runs
+# (e2e.yml) keep their own workflows.
+name: E2E scheduled
+run-name: E2E ${{ (github.event.schedule == '30 20 * * 6' || inputs.run == 'weekly') && 'weekly' || 'nightly' }}
+
+on:
+  schedule:
+    - cron: '30 20 * * 0-5' # nightly: 02:00 IST, Sunday to Friday nights
+    - cron: '30 20 * * 6' # weekly: 02:00 IST on Sunday
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'Which scheduled run to start now (always runs, even if main is unchanged)'
+        type: choice
+        options: [nightly, weekly]
+        default: nightly
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # find the last nightly run
+      contents: read
+    outputs:
+      type: ${{ steps.plan.outputs.type }}
+      run: ${{ steps.plan.outputs.run }}
+      mounted: ${{ steps.plan.outputs.mounted }}
+      zip: ${{ steps.plan.outputs.zip }}
+    steps:
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          WEEKLY: ${{ github.event.schedule == '30 20 * * 6' || inputs.run == 'weekly' }}
+        run: |
+          set -euo pipefail
+          type=$([ "$WEEKLY" = "true" ] && echo weekly || echo nightly)
+          echo "type=$type" >> "$GITHUB_OUTPUT"
+
+          # Nightly: skip when main has not moved since the last nightly that ran.
+          run=true
+          if [ "$type" = "nightly" ] && [ "$EVENT" = "schedule" ]; then
+            last=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow e2e-scheduled.yml --branch main \
+              --status completed --limit 20 --json headSha,displayTitle \
+              -q '[.[] | select(.displayTitle == "E2E nightly")][0].headSha // ""')
+            if [ "$last" = "$GITHUB_SHA" ]; then
+              run=false
+              echo "main is unchanged since the last nightly run ($GITHUB_SHA); skipping." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+          php='["8.2","8.3","8.4"]'
+          themes='["twentytwentyfive","ollie"]'
+          if [ "$type" = "nightly" ]; then
+            # 12 combinations: full (smoke + compat) on 3 PHP x 2 themes, install on 3 PHP plus
+            # Ollie, and the pinned WordPress 6.9 sites.
+            mounted=$(jq -cn --argjson php "$php" --argjson themes "$themes" '
+              [ $php[] as $p | $themes[] as $t | { project: "full", wp: "", php: $p, theme: $t } ]
+              + [ { project: "smoke-wp69", wp: "", php: "8.2", theme: "twentytwentyfive" } ]')
+            zip=$(jq -cn --argjson php "$php" '
+              [ $php[] as $p | { project: "install", wp: "", php: $p, theme: "twentytwentyfive" } ]
+              + [ { project: "install", wp: "", php: "8.3", theme: "ollie" },
+                  { project: "install-wp69", wp: "", php: "8.2", theme: "twentytwentyfive" } ]')
+          else
+            # Every combination, on the latest release and on WordPress nightly (trunk).
+            wps='["","WordPress/WordPress#master"]'
+            mounted=$(jq -cn --argjson php "$php" --argjson themes "$themes" --argjson wps "$wps" '
+              [ $wps[] as $w | $php[] as $p | $themes[] as $t | { project: "full", wp: $w, php: $p, theme: $t } ]
+              + [ $wps[] as $w | $themes[] as $t | { project: "smoke-multisite", wp: $w, php: "8.3", theme: $t } ]
+              + [ { project: "smoke-wp69", wp: "", php: "8.2", theme: "twentytwentyfive" } ]')
+            zip=$(jq -cn --argjson php "$php" --argjson themes "$themes" --argjson wps "$wps" '
+              [ $wps[] as $w | $php[] as $p | $themes[] as $t | { project: "install", wp: $w, php: $p, theme: $t } ]
+              + [ { project: "install-wp69", wp: "", php: "8.2", theme: "twentytwentyfive" } ]')
+          fi
+          echo "mounted=$mounted" >> "$GITHUB_OUTPUT"
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          {
+            echo "### $type run"
+            echo "- Repo-mounted jobs: $(jq length <<< "$mounted")"
+            echo "- Install (zip) jobs: $(jq length <<< "$zip")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build-plugin-zip:
+    name: Build Plugin Zip
+    needs: plan
+    if: needs.plan.outputs.run == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      php-version: '8.2'
+      artifact-name: publishio-e2e-${{ github.run_id }}
+    secrets: inherit
+
+  mounted:
+    name: E2E
+    needs: plan
+    if: needs.plan.outputs.run == 'true'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON( needs.plan.outputs.mounted ) }}
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      plugin-slug: publishio
+      project: ${{ matrix.project }}
+      wp-version: ${{ matrix.wp }}
+      php-version: ${{ matrix.php }}
+      theme: ${{ matrix.theme }}
+      update: all
+      # notify-slack: false  # SLACK disabled for now
+    secrets: inherit
+
+  install:
+    name: E2E
+    needs: [plan, build-plugin-zip]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON( needs.plan.outputs.zip ) }}
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      plugin-slug: publishio
+      project: ${{ matrix.project }}
+      wp-version: ${{ matrix.wp }}
+      php-version: ${{ matrix.php }}
+      theme: ${{ matrix.theme }}
+      update: all
+      zip-artifact: publishio-e2e-${{ github.run_id }}
+      # notify-slack: false  # SLACK disabled for now
+    secrets: inherit
+
+  notify:
+    name: Report change
+    needs: [plan, mounted, install]
+    if: always() && needs.plan.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # compare with the previous run of the same type
+      contents: read
+    steps:
+      - name: Compare with the previous run and alert on a change
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TYPE: ${{ needs.plan.outputs.type }}
+          FAILED: ${{ contains( needs.*.result, 'failure' ) || contains( needs.*.result, 'cancelled' ) }}
+          # SLACK (disabled until the webhook is available; uncomment to re-enable):
+          # HAS_SLACK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+          # SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The previous completed run of the same type that actually ran tests (a nightly skipped
+          # because main was unchanged runs only the plan job).
+          previous=none
+          while read -r id conclusion; do
+            ran=$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json jobs \
+              -q '[.jobs[] | select(.conclusion != "skipped")] | length')
+            if [ "$ran" -gt 1 ]; then
+              previous=$conclusion
+              break
+            fi
+          done < <(gh run list --repo "$GITHUB_REPOSITORY" --workflow e2e-scheduled.yml --branch main \
+            --status completed --limit 30 --json databaseId,displayTitle,conclusion \
+            -q ".[] | select(.displayTitle == \"E2E $TYPE\" and .databaseId != $GITHUB_RUN_ID) | \"\\(.databaseId) \\(.conclusion)\"")
+          now=$([ "$FAILED" = "true" ] && echo failure || echo success)
+          echo "Previous $TYPE run: $previous. This run: $now." >> "$GITHUB_STEP_SUMMARY"
+
+          message=""
+          if [ "$now" = "failure" ] && [ "$previous" != "failure" ]; then
+            message=":red_circle: Publishio $TYPE E2E run started failing on main. Report: $RUN_URL"
+          elif [ "$now" = "success" ] && [ "$previous" = "failure" ]; then
+            message=":large_green_circle: Publishio $TYPE E2E run is back to green on main. $RUN_URL"
+          fi
+
+          if [ -z "$message" ]; then
+            echo "No change; no alert."
+          else
+            # Shown in the run summary until Slack is set up.
+            echo "Result changed: $message" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          # SLACK (disabled until the webhook is available; uncomment to re-enable):
+          # if [ -n "$message" ] && [ "$HAS_SLACK" = "true" ]; then
+          #   jq -n --arg text "$message" '{ text: $text }' \
+          #     | curl -fsS -X POST -H 'Content-Type: application/json' --data @- "$SLACK_WEBHOOK_URL"
+          # fi
+          # Keep the workflow red when tests failed, so the run list shows it.
+          [ "$now" = "success" ]

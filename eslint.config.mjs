@@ -171,9 +171,21 @@ export default [
 
 	// Playwright E2E tests
 	{
-		files: [ 'tests/e2e/**/*.{ts,tsx}' ],
+		files: [ 'tests/e2e/**/*.js', 'playwright.config.js' ],
 		rules: {
 			'jsdoc/no-undefined-types': 'off',
+			// Playwright fixtures call use(), which is not a React hook.
+			'react-hooks/rules-of-hooks': 'off',
+			// OAuth/MCP wire fields are snake_case (client_id, redirect_uris).
+			camelcase: 'off',
+		},
+	},
+
+	// E2E and release CLI scripts
+	{
+		files: [ 'bin/**/*.mjs' ],
+		rules: {
+			'no-console': 'off',
 		},
 	},
 

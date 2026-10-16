@@ -147,6 +147,8 @@ Reports, screenshots, traces and `results.json` land in `artifacts/`
   SKILL-04, SKILL-05 and SKILL-08 (skill/plugin mismatches). Remove the `fixme` once fixed. COMPAT-01 checks that user-defined
   (synced/unsynced) patterns are _not_ listed: get-patterns covers registered patterns only, by design (#119 tracks support).
   #126 (Connections blank on WordPress 6.9) is fixed by #139: INSTALL-07, SMOKE-02, SMOKE-03 and ISSUE-126 now pass on 6.9.
+- **Flaky tests fail CI:** CI retries a failed test once (`retries` in `sites.json`), so a run shows whether it is flaky
+  (passes on retry) or broken, but `failOnFlakyTests` still fails the job either way. Local runs don't retry.
 - **Status page** (SMOKE-10, plus INSTALL-07, SMOKE-02 and SMOKE-04): on localhost the expected result is
   "Ready for Claude Code only" (one warning, Public address). Failures are real, not mocked: SMOKE-04 blocks
   `/.well-known/oauth-*` with an `.htaccess` rule, SMOKE-10 sets `WP_HTTP_BLOCK_EXTERNAL`. App verification

@@ -1,21 +1,9 @@
-# QA execution run for a release (rtCamp/qa → qa-management).
-#
-# On every push to release/** (or a manual run):
-#   1. Runs the full automated E2E suite on the release build (all tests, WP 6.9 and latest).
-#   2. Only when that is green, opens the live QA checklist issue in this repo, built from the
-#      publishio smoke + regression blueprints in rtCamp/qa (qa-management/publishio/).
-#
-# The issue is the release gate: release.yml deploys only when it is closed with `qa-passed`
-# (see "Release gate" in the issue body).
-#
-# Needs: the RTBOT_TOKEN secret (read access to rtCamp/qa), the publishio folder in the vault,
-# and the labels qa-testing, release-blocker, qa-passed, qa-blocked, P0-P3.
 name: QA Execution Run
 
 on:
   push:
     branches:
-      - 'release/**' # e.g. release/1.2.0 → tag 1.2.0
+      - 'release/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -35,7 +23,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Must match the folder name under qa-management/ in rtCamp/qa.
   QA_PROJECT: publishio
   QA_VAULT_REPO: rtCamp/qa
   QA_VAULT_REF: master
@@ -65,7 +52,7 @@ jobs:
       plugin-slug: publishio
       project: ${{ matrix.project }}
       update: all
-      # notify-slack: false  # SLACK disabled for now
+      # notify-slack: false
     secrets: inherit
 
   automated-install:
@@ -84,7 +71,7 @@ jobs:
       project: ${{ matrix.project }}
       update: all
       zip-artifact: publishio-qa-${{ github.run_id }}
-      # notify-slack: false  # SLACK disabled for now
+      # notify-slack: false
     secrets: inherit
 
   launch-qa-checklist:

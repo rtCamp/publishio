@@ -1,13 +1,5 @@
 /**
- * Shared fixtures. Specs import { test, expect } from here instead of
- * `@wordpress/e2e-test-utils-playwright` directly.
- *
- * - anonApi:  HTTP client with no cookies (what an AI client looks like to WordPress).
- * - adminApi: HTTP client logged in as admin via the stored session.
- * - connection: one OAuth connection per worker, reused by tests that only need a token.
- * - mcp:      an initialized MCP client authenticated with that token.
- *
- * Every fixture uses the site of the test's project (baseURL and storageState from the config).
+ * Shared fixtures; specs import { test, expect } from here.
  */
 /**
  * WordPress dependencies
@@ -25,7 +17,7 @@ import { McpClient } from './utils/mcp';
 import { pointWordPressUtilsAt } from './config/env';
 
 export const test = base.extend( {
-	// The WordPress utils keep one login file and one site URL for every site; use the project's.
+	// Override: the WordPress utils otherwise share one site URL and login file.
 	requestUtils: [
 		async ( {}, use, workerInfo ) => {
 			pointWordPressUtilsAt( workerInfo.project.use.baseURL );

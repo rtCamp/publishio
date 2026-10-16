@@ -1,13 +1,5 @@
 /**
- * SKILL: what skills/publishio/SKILL.md tells an AI client it can do, checked against the plugin.
- *
- * One test per rule or tool group in the skill. Every call goes through Publishio's MCP server
- * with an OAuth token, the way the AI client makes it. Where the skill describes something the
- * plugin does not support, the test asserts what the skill says and is skipped with test.fixme and
- * the reason, so CI stays green; remove the fixme once the skill or the plugin is fixed.
- *
- * Tools in the plugin but not in the skill (apply-pattern-schema, get-block, get-custom-blocks,
- * render-block) are out of scope here.
+ * SKILL: skills/publishio/SKILL.md checked against the plugin.
  */
 /**
  * External dependencies
@@ -28,7 +20,7 @@ import { requiresTwentyTwentyFive } from '../../utils/theme';
 const PARAGRAPH = ( text ) =>
 	`<!-- wp:paragraph --><p>${ text }</p><!-- /wp:paragraph -->`;
 
-/** The plugin (this repo) inside the wp-env containers; mounted sites only. */
+// The plugin inside the wp-env containers (mounted sites only).
 const PLUGIN_DIR = 'wp-content/plugins/publishio';
 
 /**
@@ -61,7 +53,6 @@ test.describe(
 		test( 'SKILL-01 everything stays a draft: no tool accepts a status or content override', async ( {
 			mcp,
 		} ) => {
-			// "Status — Default is draft. You cannot change that even if the user asks."
 			const publish = await mcp.callTool( 'publishio/create-post', {
 				title: 'Should not publish',
 				status: 'publish',
@@ -70,7 +61,6 @@ test.describe(
 			expect( publish.text ).toContain( 'status' );
 
 			const id = await draft( mcp, 'SKILL-01 draft' );
-			// "update-post … Does not accept content."
 			for ( const field of [ 'content', 'status' ] ) {
 				const res = await mcp.callTool( 'publishio/update-post', {
 					post_id: id,
@@ -98,7 +88,6 @@ test.describe(
 					markup: PARAGRAPH( 'First' ) + PARAGRAPH( 'Third' ),
 				} );
 
-				// insert-blocks-at: "Insert block markup at a position in a post".
 				const inserted = await mcp.callTool(
 					'publishio/insert-blocks-at',
 					{
@@ -120,7 +109,6 @@ test.describe(
 					content.indexOf( 'Third' )
 				);
 
-				// delete-block-at: "Delete a top-level block at a position (works on all post types)".
 				const deleted = await mcp.callTool(
 					'publishio/delete-block-at',
 					{
@@ -147,7 +135,6 @@ test.describe(
 				expect( outOfRange.isError ).toBe( true );
 				expect( outOfRange.text ).toMatch( /out of range/ );
 
-				// Pages: "returns error for pages" for append-blocks and insert-blocks-at.
 				const pageId = await draft( mcp, 'SKILL-02 page', 'page' );
 				const pageInsert = await mcp.callTool(
 					'publishio/insert-blocks-at',
@@ -211,7 +198,6 @@ test.describe(
 						: { block: entry.block, fields: {} }
 				);
 
-				// "render-pattern — Render a pattern … from a schema" (the plugin returns an HTML page).
 				const rendered = await mcp.callTool(
 					'publishio/render-pattern',
 					{
@@ -232,8 +218,6 @@ test.describe(
 				).toBeVisible();
 				await evidence( page, 'SKILL-03 render-pattern preview' );
 
-				// "preview-pattern … Never insert without review": it hands the schema to the approval
-				// widget and must not touch the page.
 				const pageId = await draft( mcp, 'SKILL-03 page', 'page' );
 				const preview = await mcp.callTool(
 					'publishio/preview-pattern',
@@ -265,7 +249,6 @@ test.describe(
 			anonApi,
 			connection,
 		} ) => {
-			// Known skill/plugin mismatch: skipped until fixed (remove fixme to run it).
 			test.fixme(
 				true,
 				'SKILL.md step 8 tells clients to write page content with POST /wp/v2/pages/{id}, but the ' +
@@ -293,7 +276,6 @@ test.describe(
 			mcp,
 		} ) => {
 			requiresTwentyTwentyFive();
-			// Known skill/plugin mismatch: skipped until fixed (remove fixme to run it).
 			test.fixme(
 				true,
 				'SKILL.md: "You may reduce count by removing entries." Schemas are a flat list applied by ' +
@@ -308,7 +290,7 @@ test.describe(
 			).length;
 			expect( images ).toBe( 3 );
 
-			// Drop the third service: its image, heading and paragraph (the last three entries).
+			// Drop the third service (the last three entries).
 			const pageId = await draft( mcp, 'SKILL-05 page', 'page' );
 			const res = await mcp.callTool(
 				'publishio/insert-pattern-confirmed',
@@ -333,8 +315,6 @@ test.describe(
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
 				requiresTwentyTwentyFive();
-				// Publishio no longer uploads media (upload-media was removed): images come from the
-				// library. Put one there the way a user would, with a keyword unique to this run.
 				const keyword = `skill06${ Date.now() }`;
 				const alt = 'Publishio icon';
 				const attachmentId = Number(
@@ -428,9 +408,7 @@ test.describe(
 						);
 					} );
 
-					// "Media IDs/URLs go into pattern schemas, never raw <img> tags."
-					// Fill every image field of the media blocks in schema order (url, alt, id): the
-					// url writer drops the wp-image-<id> class, so an id written first is lost.
+					// Fill image fields in schema order: writing url drops the wp-image-<id> class.
 					const fillMedia = async ( name, blockName ) => {
 						const schema = (
 							await mcp.callTool(
@@ -543,7 +521,6 @@ test.describe(
 				);
 				quietly( 'term create post_tag "SKILL Tag" --slug=skill-tag' );
 
-				// "Always call get-taxonomy-terms first to discover real existing terms."
 				const categories = await mcp.callTool(
 					'publishio/get-taxonomy-terms',
 					{
@@ -591,7 +568,6 @@ test.describe(
 					'skill-tag',
 				] );
 
-				// "Assigning categories/tags from memory" must not invent terms.
 				const unknown = await mcp.callTool(
 					'publishio/set-post-terms',
 					{
@@ -609,7 +585,6 @@ test.describe(
 			anonApi,
 			connection,
 		} ) => {
-			// Known skill/plugin mismatch: skipped until fixed (remove fixme to run it).
 			test.fixme(
 				true,
 				'SKILL.md: "if confirmed, create via the WordPress REST API". The Publishio token is only ' +
@@ -664,9 +639,7 @@ test.describe(
 			'SKILL-10 SEO without Yoast: the plugin works without errors, slug and excerpt are set, the Yoast tools fail cleanly',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
-				// Make Yoast absent. A copy installed by SKILL-11 (wp plugin install) is deleted, so the
-				// site has no Yoast at all; the test site maps Yoast in its wp-env config, so there it
-				// stays installed but inactive (an inactive plugin loads no code).
+				// Yoast mapped in wp-env config can't be deleted; inactive is enough there.
 				quietly( 'plugin deactivate wordpress-seo' );
 				const mapped = fs
 					.readFileSync( currentSite().wpEnvConfig, 'utf8' )
@@ -702,7 +675,6 @@ test.describe(
 
 				const postId = await draft( mcp, 'SKILL-10 post' );
 				await test.step( 'slug and excerpt are saved with update-post', async () => {
-					// "Always set slug and excerpt via update-post (works regardless of plugins)."
 					const updated = await mcp.callTool(
 						'publishio/update-post',
 						{
@@ -724,7 +696,6 @@ test.describe(
 				} );
 
 				await test.step( 'the Yoast tools return a clear error', async () => {
-					// "Probe Yoast … If the probe fails, skip silently."
 					const probe = await mcp.callTool(
 						'publishio/get-yoast-meta',
 						{
@@ -763,8 +734,6 @@ test.describe(
 							name: 'Connections',
 						} )
 					).toBeVisible();
-					// Loads without errors; the Status checks themselves are covered by
-					// INSTALL-07 and SMOKE-02.
 					await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
 					await expect(
 						page.getByRole( 'heading', {

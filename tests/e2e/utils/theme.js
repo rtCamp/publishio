@@ -8,9 +8,7 @@ import { test } from '@playwright/test';
 import { settings } from '../config/env';
 
 /**
- * Skip the current test (or describe block) unless the run uses Twenty Twenty-Five, for tests
- * built on its named patterns. Other themes (E2E_THEME=ollie in the release watch) don't
- * register those patterns.
+ * Skip unless the run uses Twenty Twenty-Five (its patterns are required).
  */
 export function requiresTwentyTwentyFive() {
 	test.skip(

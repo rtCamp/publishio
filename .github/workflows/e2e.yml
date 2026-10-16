@@ -1,25 +1,10 @@
-# Playwright E2E tests.
-#
-# A pull request or push is a plugin update: it runs the tests tagged @plugin-update.
-# Kept short so it does not hold up developers; every other environment runs nightly/weekly
-# (e2e-scheduled.yml) once the change is on main.
-# - Pull requests: latest WordPress only. smoke split into 2 parallel jobs (shards) + install,
-#   which builds its own zip (no wait for a separate build job). 3 jobs in parallel.
-# - Push to main: the same plus WordPress 6.9, the declared minimum (smoke-wp69 in 2 shards +
-#   install-wp69). Slack alerts on failure are commented out until the webhook is available.
-# - Manual: Actions → E2E → Run workflow, pick the branch in "Use workflow from", then the projects
-#   and the update type. WordPress releases are covered by wp-release-watch.yml (@wp-update).
 name: E2E
 
 on:
-  # PR-TRIGGER (disabled until the suite has been verified on a branch; uncomment to run E2E on
-  # every pull request automatically):
   # pull_request:
     # types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
-      # TEMPORARY: runs on pushes to the E2E branch while the suite is verified. Before merging,
-      # switch back to main (and uncomment the pull_request trigger above).
       - e2e-playwright-tests
       # - main
   workflow_dispatch:
@@ -48,9 +33,6 @@ on:
         type: string
         default: 'twentytwentyfive'
 
-# A new push to a PR cancels that PR's run still in progress and starts one for the latest commit.
-# Grouped by PR number (branch names can repeat across forks). Pushes to main and manual runs each
-# get their own group, so they always finish and report.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format( 'pr-{0}', github.event.pull_request.number ) || format( 'run-{0}', github.run_id ) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -59,17 +41,13 @@ permissions:
   contents: read
 
 jobs:
-  # The jobs to run, as a matrix of {project, shard}. Mounted projects (smoke, full, …) run as 2
-  # shards; install projects run whole (their tests share one site, in order) and build the zip.
-  # Skipped entirely (no E2E jobs) when a PR or push changes no code: only Markdown, docs/,
-  # .wordpress-org/ assets or the licence. Manual runs always run.
   plan:
     name: Pick projects
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     permissions:
       contents: read
-      pull-requests: read # list a PR's changed files
+      pull-requests: read
     outputs:
       jobs: ${{ steps.pick.outputs.jobs }}
     steps:
@@ -84,10 +62,7 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         with:
-          # Pushes compare against the commit before the push (the default base, main, would count
-          # every unmerged change on a pushed branch). Ignored for pull requests.
           base: ${{ github.ref_name }}
-          # A file counts as code unless it matches one of the excluded patterns.
           predicate-quantifier: 'every'
           filters: |
             code:
@@ -114,7 +89,7 @@ jobs:
             *:all) projects='smoke install smoke-wp69 install-wp69' ;;
             *) projects="$CHOICE" ;;
           esac
-          # shellcheck disable=SC2086 # word-split the project list on purpose
+          # shellcheck disable=SC2086
           jobs=$(printf '%s\n' $projects | jq -Rnc '[ inputs | if startswith( "install" )
             then { project: ., shard: "" }
             else ( { project: ., shard: "1/2" }, { project: ., shard: "2/2" } ) end ]')
@@ -141,5 +116,5 @@ jobs:
       wp-version: ${{ inputs.wp-version || '' }}
       php-version: ${{ inputs.php-version || '8.2' }}
       theme: ${{ inputs.theme || 'twentytwentyfive' }}
-      # notify-slack: ${{ github.event_name == 'push' }}  # SLACK disabled for now
+      # notify-slack: ${{ github.event_name == 'push' }}
     secrets: inherit

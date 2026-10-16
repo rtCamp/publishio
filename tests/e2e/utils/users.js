@@ -25,8 +25,7 @@ export async function ensureUser( requestUtils, role ) {
 			roles: [ role ],
 		} );
 	} catch ( e ) {
-		// RequestUtils rejects with the REST error object, not an Error. Single site reports an
-		// existing user as existing_user_login; multisite as rest_invalid_param with user_name.
+		// Single site: existing_user_login; multisite: user_name "already exists".
 		const error = JSON.stringify( e );
 		const exists =
 			error.includes( 'existing_user_login' ) ||
@@ -40,7 +39,7 @@ export async function ensureUser( requestUtils, role ) {
 }
 
 /**
- * An API request context logged in as `username` through wp-login.php (cookie auth).
+ * API request context logged in via wp-login.php.
  * @param {import('@playwright/test').PlaywrightWorkerArgs['playwright']} playwright Playwright fixture.
  * @param {string}                                                        username   User login.
  * @param {string}                                                        password   User password.
@@ -48,8 +47,7 @@ export async function ensureUser( requestUtils, role ) {
 export async function loginApi( playwright, username, password = PASSWORD ) {
 	const api = await playwright.request.newContext( {
 		baseURL: test.info().project.use.baseURL,
-		// wp-login.php needs its test cookie. Set it in the cookie jar: a Cookie header would
-		// replace the jar on every request and drop the login cookies.
+		// Jar, not a Cookie header: the header would drop the login cookies.
 		storageState: {
 			cookies: [
 				{
@@ -84,7 +82,7 @@ export async function loginApi( playwright, username, password = PASSWORD ) {
 }
 
 /**
- * A fresh browser context logged in as `username`.
+ * Fresh browser context logged in as `username`.
  * @param {import('@playwright/test').Browser} browser  Browser fixture.
  * @param {string}                             username User login.
  * @param {string}                             password User password.

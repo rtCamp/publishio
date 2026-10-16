@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# INSTALL-01: get the built plugin zip for the branch under test into artifacts/zips/publishio.zip.
-#
-#   bin/get-plugin-zip.sh <branch>   Download the zip CI built for the branch's latest green run
-#                                   (artifact "publishio-pr<N>-<sha>" from ci.yml → build-plugin-zip).
-#                                   Needs the GitHub CLI, logged in: gh auth login
-#   bin/get-plugin-zip.sh --build    Build the zip locally from the current checkout.
-#   bin/get-plugin-zip.sh --release  Download the latest released zip.
+# bin/get-plugin-zip.sh <branch>   Download the zip CI built for the branch's latest green run.
+# bin/get-plugin-zip.sh --build    Build the zip locally from the current checkout.
+# bin/get-plugin-zip.sh --release  Download the latest released zip.
 set -euo pipefail
 
 REPO="rtCamp/publishio"

@@ -1,5 +1,5 @@
 /**
- * SMOKE-06: creating content over MCP. Drafts only, correct post type, role-aware.
+ * SMOKE-06: creating drafts over MCP.
  */
 /**
  * Internal dependencies

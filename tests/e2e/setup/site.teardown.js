@@ -1,6 +1,5 @@
 /**
- * Teardown project "teardown-<site>": runs after every project that uses the site has finished,
- * and stops the site's wp-env instance if its setup started it (see utils/wp-env.js).
+ * Stops a site if its setup started it.
  */
 /**
  * External dependencies

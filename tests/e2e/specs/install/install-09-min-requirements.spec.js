@@ -1,10 +1,5 @@
 /**
- * INSTALL-09: minimum requirements are enforced.
- *
- * Only meaningful on WordPress below the plugin's "Requires at least". Start the install
- * site on an older core, then run just this file:
- *   WP_ENV_CORE="WordPress/WordPress#6.8" node bin/e2e.mjs install start
- *   node bin/e2e.mjs install test install-09
+ * INSTALL-09: minimum WordPress version is enforced (run with an older WP_ENV_CORE).
  */
 /**
  * Internal dependencies

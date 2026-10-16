@@ -1,13 +1,5 @@
 /**
- * 1. Plugin installation — INSTALL-01 to INSTALL-14 (INSTALL-09 lives in its own file; INSTALL-13,
- * visual baselines, was removed: CI could not capture comparable screenshots).
- *
- * Installs the plugin from the zip under test (PUBLISHIO_ZIP) on a clean site, the way a
- * customer does. Tests share site state and run in the order below, which follows the
- * customer journey rather than the ID order:
- *   01 zip → 02 source zip → 03 upload → 05 activate → 06 details → 07 screens → 08 discovery
- *   → 11 deactivate/reactivate → 04 WP-CLI → 10 upgrade → 12 uninstall
- *   → 14 content survives deactivation and uninstall (reinstalls on its own)
+ * INSTALL-01 to INSTALL-14: plugin installation (tests share site state and run in order).
  */
 /**
  * Internal dependencies
@@ -141,7 +133,7 @@ test.describe(
 			).toBeVisible();
 			await evidence( page, 'INSTALL-02 source zip activation' );
 
-			// WordPress keeps the plugin active, but without its autoloader it must load nothing.
+			// Stays active, but must load nothing without its autoloader.
 			await expect( page.getByText( 'Plugin activated.' ) ).toBeVisible();
 			await expect( page.getByText( /fatal error/i ) ).toHaveCount( 0 );
 			expect(
@@ -229,15 +221,13 @@ test.describe(
 				await expect(
 					row.getByRole( 'link', { name: header.author } )
 				).toHaveAttribute( 'href', header.authorUri );
-				// WordPress shows "View details" for plugins listed on WordPress.org, "Visit plugin site" otherwise.
+				// "View details" if listed on WordPress.org, "Visit plugin site" otherwise.
 				const site = row.getByRole( 'link', {
 					name: 'Visit plugin site',
 				} );
-				// Accessible name is the aria-label "More information about Publishio"; visible text is "View details".
 				const details = row.getByRole( 'link', {
 					name: `More information about ${ header.name }`,
 				} );
-				// Wait for whichever variant renders, then branch on it.
 				await expect( site.or( details ) ).toBeVisible();
 				if ( await site.isVisible() ) {
 					await expect( site ).toHaveAttribute( 'href', header.uri );
@@ -311,7 +301,6 @@ test.describe(
 				).toBeVisible();
 				await evidence( page, 'INSTALL-07 connections' );
 
-				// Status: whether Claude and ChatGPT can connect to this site over MCP.
 				await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
 				await expectLocalStatus( page );
 				await evidence( page, 'INSTALL-07 status' );
@@ -422,8 +411,7 @@ test.describe(
 				process.env.PUBLISHIO_PREVIOUS_ZIP ??
 				'https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip';
 
-			// Full uninstall (runs uninstall.php), so no option or table from the branch version leaks into
-			// the "previous release" site; a plain delete would keep publishio_db_version and skip migrations.
+			// Full uninstall: a plain delete keeps publishio_db_version and skips migrations.
 			try {
 				wpCli( 'plugin uninstall publishio --deactivate' );
 			} catch {}
@@ -440,7 +428,6 @@ test.describe(
 				}`,
 			} );
 
-			// Real customer data before the upgrade: a connected AI client.
 			const before = await connect( anonApi, adminApi );
 
 			await uploadZip( admin, page, zipPath(), true );
@@ -472,7 +459,6 @@ test.describe(
 				);
 
 			if ( before.discovery.cimd ) {
-				// Same client scheme on both sides: the connection and its token must survive.
 				await new McpClient(
 					anonApi,
 					before.discovery.resource,
@@ -483,8 +469,6 @@ test.describe(
 					'connection must survive the upgrade'
 				).toContain( before.client.client_id );
 			} else {
-				// Upgrading from dynamic client registration (<= 1.1.0) to Client ID Metadata Documents (#129):
-				// DCR connections are removed on purpose and AI apps connect again.
 				test.info().annotations.push( {
 					type: 'migration',
 					description:
@@ -509,7 +493,6 @@ test.describe(
 				).not.toContain( before.client.client_id );
 			}
 
-			// Connecting on the upgraded site works.
 			const after = await connect( anonApi, adminApi );
 			expect(
 				after.discovery.cimd,
@@ -567,11 +550,10 @@ test.describe(
 			'INSTALL-14 posts and pages created through Publishio survive deactivation and uninstall',
 			{ tag: '@wp-update' },
 			async ( { admin, page, anonApi, adminApi } ) => {
-				// Fresh install, so this test does not depend on the journey above.
+				// Fresh install: independent of the journey above.
 				removePlugin();
 				wpCli( `plugin install ${ zipPathInContainer() } --activate` );
 
-				// Content made the way an AI client makes it.
 				const { discovery, tokens } = await connect(
 					anonApi,
 					adminApi
@@ -602,7 +584,6 @@ test.describe(
 					post_type: 'page',
 				} );
 				expect( pageDraft.isError, pageDraft.text ).toBe( false );
-				// Any page pattern of the active theme, inserted as-is (no fields changed).
 				const pattern = (
 					await mcp.callTool( 'publishio/get-patterns' )
 				).data.find(
@@ -636,7 +617,7 @@ test.describe(
 				);
 				expect( inserted.isError, inserted.text ).toBe( false );
 
-				// Read through WP-CLI, which does not depend on the plugin being there.
+				// WP-CLI, so reads work without the plugin.
 				const ids = [ post.data.post_id, pageDraft.data.post_id ];
 				const snapshot = () =>
 					ids.map( ( id ) =>
@@ -648,7 +629,6 @@ test.describe(
 				expect( before[ 0 ] ).toContain( 'Written through Publishio.' );
 				expect( before[ 1 ] ).toContain( '<!-- wp:' );
 
-				// Deactivate from the Plugins screen.
 				await admin.visitAdminPage( 'plugins.php' );
 				await pluginRow( page )
 					.getByRole( 'link', { name: /^Deactivate/ } )
@@ -660,7 +640,6 @@ test.describe(
 					before
 				);
 
-				// Delete it (runs uninstall.php).
 				page.once( 'dialog', ( d ) => d.accept() );
 				await pluginRow( page )
 					.getByRole( 'link', { name: /^Delete/ } )
@@ -673,7 +652,6 @@ test.describe(
 					before
 				);
 
-				// And they are still there for the site owner.
 				await admin.visitAdminPage(
 					'edit.php',
 					'post_type=page&post_status=draft'

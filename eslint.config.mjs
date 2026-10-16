@@ -11,7 +11,7 @@ export default [
 			'.claude/**',
 			'node_modules/**',
 			'tests/_output/**',
-			// E2E reports, traces and zips (Playwright output, git-ignored).
+			// Playwright output.
 			'artifacts/**',
 			'vendor/**',
 			// Config files (not subject to project lint rules)
@@ -176,9 +176,9 @@ export default [
 		files: [ 'tests/e2e/**/*.js', 'playwright.config.js' ],
 		rules: {
 			'jsdoc/no-undefined-types': 'off',
-			// Playwright fixtures call use(), which is not a React hook.
+			// Fixture use() is not a React hook.
 			'react-hooks/rules-of-hooks': 'off',
-			// OAuth/MCP wire fields are snake_case (client_id, redirect_uris).
+			// OAuth/MCP wire fields are snake_case.
 			camelcase: 'off',
 		},
 	},

@@ -1,10 +1,5 @@
 /**
- * ISSUE: regression tests for GitHub issues (https://github.com/rtCamp/publishio/issues).
- *
- * Closed issues (#11, #12, #14) must stay fixed. Open issues are tested against their proposed
- * fix and marked as expected failures until it ships, so the test flags itself when it does.
- * Not covered here: #119 (synced patterns, see COMPAT-01) and #120 (opt-out filters, not yet designed;
- * the current pattern-only default is covered by SMOKE-06 and SKILL-02).
+ * ISSUE: regression tests for GitHub issues.
  */
 /**
  * External dependencies
@@ -24,7 +19,7 @@ const issue = ( n ) => ( {
 } );
 
 /**
- * Status of an MCP initialize call made with the given Authorization header.
+ * Status of an MCP initialize call with the given Authorization header.
  *
  * @param {import('@playwright/test').APIRequestContext} api           Request context.
  * @param {string}                                       endpoint      MCP server URL.
@@ -58,11 +53,9 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		{ tag: '@wp-update' },
 		async () => {
 			test.info().annotations.push( issue( 126 ) );
-			// Fixed in #139: must pass on every supported WordPress, including the 6.9 minimum.
 			const wp = wpCli( 'core version' );
 
-			// The check the issue asks for: WordPress silently drops a script with an
-			// unregistered dependency, which is how the Connections screen goes blank.
+			// WordPress silently drops a script with an unregistered dependency.
 			const missing = JSON.parse(
 				wpCli(
 					`eval '$out = []; foreach ( glob( WP_PLUGIN_DIR . "/publishio/build/*.asset.php" ) as $f ) { $a = include $f; foreach ( $a["dependencies"] as $d ) { if ( ! wp_script_is( $d, "registered" ) ) { $out[] = basename( $f ) . ": " . $d; } } } echo wp_json_encode( $out );'`
@@ -80,9 +73,6 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		{ tag: '@wp-update' },
 		async ( { anonApi, connection } ) => {
 			test.info().annotations.push( issue( 118 ) );
-			// Proposed in #118 as the documented fallback: with no Bearer token, Publishio leaves
-			// authentication to WordPress, so Basic auth with an Application Password works
-			// without any /.well-known/ discovery.
 			const available = wpCli(
 				`eval 'echo wp_is_application_passwords_available() ? "yes" : "no";'`
 			);
@@ -117,7 +107,6 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 
 	test( 'ISSUE-118 the readme documents that /.well-known/ must reach WordPress', async () => {
 		test.info().annotations.push( issue( 118 ) );
-		// Documented on main (Requirements and FAQ in readme.txt): must stay documented.
 		const readme = fs.readFileSync( 'readme.txt', 'utf8' );
 		expect( readme ).toMatch( /\/\.well-known\// );
 	} );
@@ -172,7 +161,6 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		expect( after ).not.toContain( first.client.client_id );
 		expect( after ).toContain( second.client.client_id );
 
-		// Revoking it again reports that it no longer exists.
 		await expect(
 			requestUtils.rest( {
 				method: 'DELETE',

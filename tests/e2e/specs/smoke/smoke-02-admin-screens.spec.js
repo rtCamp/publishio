@@ -1,6 +1,5 @@
 /**
- * SMOKE-02: every admin screen renders. Run on WordPress 6.9 (minimum) and latest.
- * Regression for #126 (Connections screen blank on WordPress 6.9).
+ * SMOKE-02: every admin screen renders (#126).
  */
 /**
  * External dependencies
@@ -49,7 +48,6 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			await admin.visitAdminPage( 'admin.php', 'page=publishio' );
 			await expectLocalGuideStatus( page );
 
-			// "Check again" opens the Status screen, which runs the full checks.
 			await page.getByRole( 'link', { name: 'Check again' } ).click();
 			await expect( page ).toHaveURL( new RegExp( STATUS_PAGE ) );
 			await expectLocalStatus( page );
@@ -68,11 +66,9 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 				.first()
 				.click();
 
-			// The URL is shown in a read-only, labelled input inside CopyField.
 			await expect(
 				page.getByRole( 'textbox', { name: 'MCP Server URL' } )
 			).toHaveValue( /\/wp-json\/mcp\/publishio$/ );
-			// If the connection fails, the guide points to the Status screen.
 			await expect(
 				page.getByRole( 'link', { name: 'Open Status' } )
 			).toHaveAttribute( 'href', new RegExp( `${ STATUS_PAGE }$` ) );
@@ -93,7 +89,6 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			await expect(
 				root.getByRole( 'heading', { level: 1, name: 'Connections' } )
 			).toBeVisible();
-			// Either the empty state or the DataViews table must render: a blank root is the #126 failure.
 			await expect(
 				root
 					.getByText( /No AI apps have connected yet/ )

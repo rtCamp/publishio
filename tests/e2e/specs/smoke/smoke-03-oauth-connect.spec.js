@@ -1,6 +1,5 @@
 /**
- * SMOKE-03: the OAuth connect flow every customer goes through first.
- * The browser test drives the real consent screen; the rest run over HTTP for speed.
+ * SMOKE-03: OAuth connect flow.
  */
 /**
  * Internal dependencies
@@ -66,7 +65,6 @@ test.describe(
 				expect( as.token_endpoint ).toContain(
 					'/publishio-oauth/v1/token'
 				);
-				// Clients are identified by metadata document URLs; dynamic registration was removed (#129).
 				expect( as.client_id_metadata_document_supported ).toBe( true );
 				expect( as.registration_endpoint ).toBeUndefined();
 			}
@@ -82,9 +80,8 @@ test.describe(
 			'SMOKE-03 approve on the consent screen, call MCP, then revoke from Connections',
 			{ tag: '@wp-update' },
 			async ( { page, admin, anonApi } ) => {
-				// The revoke half uses the Connections screen.
 				const discovery = await discover( anonApi );
-				// Unique per run, so a connection left by an earlier run never matches.
+				// Unique per run so leftovers from earlier runs never match.
 				const clientName = `E2E Claude Stand-in ${ randomState().slice(
 					0,
 					6
@@ -95,7 +92,7 @@ test.describe(
 				const pkce = createPkce();
 				const state = randomState();
 
-				// Nothing listens on the client callback; capture where the server sends the browser.
+				// Nothing listens on the callback; capture the redirect instead.
 				const callback = captureCallback( page );
 
 				await page.goto(
@@ -114,7 +111,6 @@ test.describe(
 				await expect(
 					page.getByText( TEST_REDIRECT_URI )
 				).toBeVisible();
-				// The verified domain of the client_id URL, and the loopback warning.
 				await expect(
 					page.getByText( `(${ TEST_CLIENT_HOST })` )
 				).toBeVisible();
@@ -150,7 +146,6 @@ test.describe(
 				);
 				await mcp.initialize();
 
-				// The new connection is listed for the admin...
 				await admin.visitAdminPage(
 					'admin.php',
 					'page=publishio-connections'
@@ -160,12 +155,11 @@ test.describe(
 					.filter( { hasText: clientName } );
 				await expect( row ).toBeVisible();
 
-				// ...and can be revoked. DataViews shows the action inline or in an "Actions" menu.
+				// DataViews shows Remove inline or in an "Actions" menu.
 				const inlineRemove = row.getByRole( 'button', {
 					name: 'Remove',
 				} );
 				const actions = row.getByRole( 'button', { name: 'Actions' } );
-				// Wait for whichever variant renders, then branch on it.
 				await expect( inlineRemove.or( actions ) ).toBeVisible();
 				if ( await inlineRemove.isVisible() ) {
 					await inlineRemove.click();
@@ -188,7 +182,6 @@ test.describe(
 						.filter( { hasText: 'Connection removed.' } )
 				).toBeVisible();
 
-				// Revocation takes effect immediately.
 				const after = await new McpClient(
 					anonApi,
 					discovery.resource,
@@ -274,7 +267,6 @@ test.describe(
 			).toBeUndefined();
 
 			const client = await registerClient( anonApi, discovery );
-			// What an AI app registered with an older Publishio still sends.
 			const res = await adminApi.get(
 				buildAuthorizeUrl(
 					discovery,
@@ -347,7 +339,6 @@ test.describe(
 			const discovery = await discover( anonApi );
 			const client = await registerClient( anonApi, discovery );
 
-			// Wrong verifier.
 			const pkce1 = createPkce();
 			const r1 = await submitConsentViaApi(
 				adminApi,
@@ -363,7 +354,6 @@ test.describe(
 			expect( wrong.status() ).toBe( 400 );
 			expect( ( await wrong.json() ).error ).toBe( 'invalid_grant' );
 
-			// Correct verifier works once, then the code is consumed.
 			const pkce2 = createPkce();
 			const r2 = await submitConsentViaApi(
 				adminApi,

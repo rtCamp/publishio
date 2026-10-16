@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 /**
- * Confirm every E2E WordPress environment is down; stop any that are still running.
- *
- *   node bin/wp-env-down.mjs
- *
- * Teardown projects normally stop the sites. This is the safety net run at the end of every CI
- * job (also after failures and timeouts): it stops each site in tests/e2e/config/sites.json with
- * wp-env, then stops any leftover wp-env container directly, and exits non-zero only if
- * something is still running after that.
+ * Stop any E2E wp-env sites still running; exit non-zero if some remain.
  */
 /**
  * External dependencies
@@ -46,7 +39,6 @@ for ( const site of Object.values( sites ) ) {
 	} );
 }
 
-// Anything wp-env did not stop (e.g. a config that is no longer in sites.json).
 containers = running();
 if ( containers.length ) {
 	spawnSync( 'docker', [ 'stop', ...containers ], { stdio: 'inherit' } );

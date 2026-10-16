@@ -1,9 +1,5 @@
 /**
- * Setup project "setup-<site>": starts the site's wp-env instance if it is not running, then puts
- * it into its starting state. Playwright runs it only when a selected project depends on that
- * site; the matching teardown project (site.teardown.js) stops it again after those projects.
- * - "mounted" sites: plugin active from the repo, chosen theme active, content reset.
- * - "zip" sites: plugin NOT installed, so tests install it the way a customer does.
+ * Starts a site if needed and resets it to its starting state.
  */
 /**
  * External dependencies
@@ -25,7 +21,7 @@ const quietly = ( cmd ) => {
 	try {
 		wpCli( cmd );
 	} catch {
-		// Expected when the plugin or theme is already in the target state.
+		// Already in the target state.
 	}
 };
 
@@ -49,9 +45,7 @@ setup( 'prepare site', async ( { playwright } ) => {
 		} );
 	}
 
-	// WP-CLI first: it is slow (docker exec), and Apache drops idle keep-alive sockets after 5s,
-	// which an open Playwright request context would then reuse and fail with ECONNRESET.
-	// Pretty permalinks: required for /.well-known/* and /publishio-oauth/authorize.
+	// WP-CLI before any request context: stale keep-alive sockets cause ECONNRESET.
 	wpCli( `rewrite structure '/%postname%/' --hard` );
 
 	if (

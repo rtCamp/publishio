@@ -1,14 +1,5 @@
 /**
  * SMOKE-09: OAuth rejects wrong credentials.
- *
- * Every step of the connect flow, the token endpoint and the MCP server, sent something wrong:
- * forged consent, a code or refresh token used by the wrong client or for the wrong target,
- * expired codes and tokens, tokens for another resource, made-up sessions and malformed headers.
- * Ends with an expired connection: the AI app is told to sign in again and the user sees the
- * consent screen again.
- *
- * Expiry and the token's resource are set through WP-CLI on the plugin's own storage (the token
- * table and the code transients), so nothing waits out real lifetimes.
  */
 /**
  * External dependencies
@@ -87,7 +78,7 @@ async function mcpInitialize( api, url, headers ) {
 }
 
 /**
- * Approve the consent screen over HTTP and return the authorization code.
+ * Approve the consent screen over HTTP.
  *
  * @param {import('@playwright/test').APIRequestContext} adminApi  Logged-in admin.
  * @param {import('../../utils/oauth').Discovery}        discovery Discovery result.
@@ -126,14 +117,12 @@ test.describe(
 				createPkce(),
 				randomState()
 			);
-			// The consent screen renders for the logged-in admin…
 			expect(
 				(
 					await adminApi.get( authorizeUrl, { maxRedirects: 0 } )
 				).status()
 			).toBe( 200 );
 
-			// …but approving without its nonce (a cross-site forged request) is refused.
 			const params = Object.fromEntries(
 				new URL( authorizeUrl ).searchParams
 			);
@@ -224,7 +213,7 @@ test.describe(
 			const pkce = createPkce();
 			const code = await approve( adminApi, discovery, client, pkce );
 
-			// Codes live 120 seconds; move this one's transient timeout into the past.
+			// Codes live 120 s; expire it by moving its transient timeout into the past.
 			const key = `_transient_timeout_publishio_oauth_code_${ crypto
 				.createHash( 'sha256' )
 				.update( code )
@@ -275,7 +264,6 @@ test.describe(
 				'invalid_grant'
 			);
 
-			// A refresh rotates the token; the old one must not work a second time.
 			const first = await refreshTokens(
 				anonApi,
 				discovery,
@@ -333,7 +321,6 @@ test.describe(
 				anonApi,
 				adminApi
 			);
-			// Same user and client, but the token claims another MCP server.
 			updateTokens( client.client_id, {
 				resource: new URL(
 					'/wp-json/mcp/some-other-server',
@@ -358,7 +345,6 @@ test.describe(
 			const url = connection.discovery.resource;
 			const token = connection.tokens.access_token;
 
-			// A session the server never issued.
 			const res = await anonApi.post( url, {
 				headers: {
 					Authorization: `Bearer ${ token }`,
@@ -374,7 +360,6 @@ test.describe(
 			expect( body.error?.code ).toBe( -32005 );
 			expect( body ).not.toHaveProperty( 'result' );
 
-			// A well-formed Bearer token the server never issued: a clear 401, not a silent failure.
 			const unknown = await anonApi.post( url, {
 				headers: {
 					Authorization: 'Bearer not-a-real-token',
@@ -387,7 +372,6 @@ test.describe(
 				'rest_oauth_invalid_token'
 			);
 
-			// Malformed Authorization headers: unauthenticated, with a pointer to discovery.
 			for ( const header of [
 				token, // no scheme
 				'Bearer ', // no token
@@ -407,7 +391,7 @@ test.describe(
 				);
 			}
 
-			// The scheme itself is case-insensitive (RFC 7235), so this one is valid.
+			// The scheme is case-insensitive (RFC 7235).
 			expect(
 				(
 					await mcpInitialize( anonApi, url, {
@@ -430,13 +414,11 @@ test.describe(
 					adminApi,
 					{ client_name: clientName }
 				);
-				// Both tokens past their lifetime, as after a long idle period.
 				updateTokens( client.client_id, {
 					access_expires_at: 1,
 					refresh_expires_at: 1,
 				} );
 
-				// The AI app's call is refused with a pointer to discovery (its cue to sign in again)…
 				const call = await mcpInitialize( anonApi, discovery.resource, {
 					Authorization: `Bearer ${ tokens.access_token }`,
 				} );
@@ -445,7 +427,6 @@ test.describe(
 					/^Bearer resource_metadata="/
 				);
 
-				// …and so is its refresh, so it must restart authorization.
 				await expectError(
 					await refreshTokens(
 						anonApi,
@@ -457,7 +438,6 @@ test.describe(
 					'invalid_grant'
 				);
 
-				// The expired connection no longer counts as connected.
 				const listed = async () =>
 					JSON.stringify(
 						(
@@ -468,7 +448,6 @@ test.describe(
 					);
 				expect( await listed() ).not.toContain( client.client_id );
 
-				// Re-authorization shows the consent screen again for this app.
 				const pkce = createPkce();
 				const callback = captureCallback( page );
 				await page.goto(
@@ -493,7 +472,6 @@ test.describe(
 					'SMOKE-09 consent screen after the connection expired'
 				);
 
-				// Approving restores a working connection.
 				await page
 					.getByRole( 'button', { name: 'Allow Access' } )
 					.click();

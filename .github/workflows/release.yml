@@ -64,12 +64,9 @@ jobs:
       project: install
       update: plugin-update
       zip-artifact: publishio
-      # notify-slack: true  # SLACK disabled for now
+      # notify-slack: true
     secrets: inherit
 
-  # Tag pushes deploy only after manual QA signed off in the qa-management QA run issue for
-  # release/<tag> (opened by qa-execution-runner.yml): closed with qa-passed, no qa-blocked, and
-  # no open P0/P1 blockers (P2/P3 may be deferred). Rules: bin/qa-release-gate.mjs.
   qa-gate:
     name: QA release gate (qa-management)
     if: startsWith(github.ref, 'refs/tags/')
@@ -94,9 +91,7 @@ jobs:
   wordpress-org-release:
     name: Create WordPress.org release
     needs: [validate, build, release-tests, qa-gate]
-    # A manual dry run from main has no tag and no QA run, so the gate is skipped there.
     if: always() && needs.validate.result == 'success' && needs.build.result == 'success' && needs.release-tests.result == 'success' && (needs.qa-gate.result == 'success' || (needs.qa-gate.result == 'skipped' && github.event_name == 'workflow_dispatch'))
-    # QA approves the deploy: add QA as required reviewers on the "production" environment.
     environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 30

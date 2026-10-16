@@ -1,11 +1,5 @@
 /**
- * SMOKE-08: build a complete landing page from theme patterns through Publishio, the way the
- * Publishio skill tells an AI client to (skills/publishio/SKILL.md → Landing Pages):
- *   create an empty page draft → for each section: get the pattern schema, change only the
- *   text, insert it at the end (insert-pattern-confirmed, the step after the user approves the
- *   preview) → set slug and excerpt → read back the page link.
- *
- * The page is left on the site so it can be reviewed; the next run's site setup removes it.
+ * SMOKE-08: build a landing page from theme patterns (page is left for review).
  */
 /**
  * Internal dependencies
@@ -15,7 +9,6 @@ import { BLOCK_WARNING } from '../../utils/editor';
 import { evidence } from '../install/helpers';
 import { requiresTwentyTwentyFive } from '../../utils/theme';
 
-/** Landing page sections, top to bottom, with the copy for each section's text slots. */
 const SECTIONS = [
 	{
 		pattern: 'twentytwentyfive/banner-intro-image',
@@ -68,7 +61,7 @@ const SECTIONS = [
 	},
 ];
 
-/** Text fields per block; images are left out so the theme's images (and their IDs) stay as they are. */
+// Text only: images are left out so the theme's images and IDs stay intact.
 const TEXT_FIELD = {
 	'core/heading': 'content',
 	'core/paragraph': 'content',
@@ -76,7 +69,7 @@ const TEXT_FIELD = {
 };
 
 /**
- * Fill a pattern schema's text slots in order, sending only the fields that change.
+ * Fill a pattern schema's text slots in order.
  *
  * @param {Array<{block: string, fields: Object}>} schema Schema from get-pattern-schema.
  * @param {string[]}                               text   Copy for the text slots, in order.
@@ -164,7 +157,6 @@ test.describe(
 					{ type: 'edit', description: saved.data.edit_url }
 				);
 
-				// Opens in the editor with every block valid.
 				await admin.visitAdminPage(
 					'post.php',
 					`post=${ pageId }&action=edit`
@@ -177,7 +169,6 @@ test.describe(
 				).toHaveCount( 0 );
 				await evidence( page, 'SMOKE-08 editor' );
 
-				// And renders on the front end (draft preview, as the signed-in admin).
 				await page.goto( `/?page_id=${ pageId }&preview=true` );
 				await expect(
 					page.getByRole( 'heading', {

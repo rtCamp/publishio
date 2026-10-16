@@ -1,13 +1,5 @@
 /**
- * Minimal OAuth 2.1 client that behaves like Claude/ChatGPT connecting to Publishio:
- * discovery (RFC 9728 + RFC 8414) -> client identification -> authorization code + PKCE (S256)
- * -> token exchange.
- *
- * Client identification follows what the server advertises:
- * - Client ID Metadata Documents (current Publishio): the client_id is an HTTPS URL. A test site
- *   cannot fetch a document from the internet reliably, so the validated document is put in the
- *   plugin's CIMD cache through WP-CLI; everything after that runs the real authorize/token code.
- * - Dynamic client registration (RFC 7591, Publishio 1.1.0 and earlier): used by the upgrade test.
+ * OAuth 2.1 helpers for the E2E tests.
  */
 /**
  * External dependencies
@@ -21,7 +13,7 @@ import { wpCli } from './wp-cli';
 
 export const TEST_REDIRECT_URI = 'http://localhost:9999/callback';
 
-/** Host of test client_id URLs. Must not be the site's own host or a blocked suffix (.local, .localhost). */
+/** Must not be the site's host or a blocked suffix (.local, .localhost). */
 export const TEST_CLIENT_HOST = 'e2e-client.example.com';
 
 /**
@@ -71,7 +63,6 @@ export function randomState() {
 }
 
 /**
- * Follow the same discovery path a real MCP client uses.
  * @param {import('@playwright/test').APIRequestContext} api Request context to send with.
  */
 export async function discover( api ) {
@@ -99,8 +90,7 @@ export async function discover( api ) {
 }
 
 /**
- * Make a client the server will accept: a cached Client ID Metadata Document on CIMD servers,
- * otherwise a dynamic registration.
+ * Cached CIMD client on CIMD servers, otherwise dynamic registration.
  * @param {import('@playwright/test').APIRequestContext} api       Request context to send with.
  * @param {Discovery}                                    discovery Result of discover().
  * @param {Object}                                       overrides Fields to override.
@@ -131,8 +121,7 @@ export async function registerClient( api, discovery, overrides = {} ) {
 }
 
 /**
- * Store a client's validated metadata in Publishio's CIMD cache (transient "publishio_cimd_<sha256>"),
- * the same record the plugin keeps after fetching and validating a real document.
+ * Seed the CIMD cache directly; the test site cannot reliably fetch a real document.
  * @param {{client_name: string, redirect_uris: string[]}} metadata Client metadata.
  */
 export function provisionMetadataClient( metadata ) {
@@ -187,8 +176,7 @@ export function buildAuthorizeUrl(
 }
 
 /**
- * Approve the consent screen over HTTP (no browser) using a logged-in API context.
- * Returns the redirect URL the server sends the user back to.
+ * Submit the consent screen over HTTP; returns the redirect URL.
  * @param {import('@playwright/test').APIRequestContext} userApi      Request context logged in as the approving user.
  * @param {string}                                       authorizeUrl Authorization URL with all OAuth parameters.
  * @param {'approve'|'deny'}                             consent      Button to press.
@@ -248,7 +236,7 @@ export async function refreshTokens( api, discovery, client, refreshToken ) {
 }
 
 /**
- * Full connect flow over HTTP. `userApi` must carry the WordPress login cookies.
+ * Full connect flow over HTTP.
  * @param {import('@playwright/test').APIRequestContext} anonApi         Request context without cookies, as an AI client.
  * @param {import('@playwright/test').APIRequestContext} userApi         Request context logged in as the approving user.
  * @param {Object}                                       clientOverrides Client metadata overrides.
@@ -280,9 +268,7 @@ export async function connect( anonApi, userApi, clientOverrides = {} ) {
 }
 
 /**
- * Record where the server sends the browser on the client's loopback callback. Nothing listens
- * there, and page.route() does not see requests reached through a redirect, so the request event
- * is used instead; the failed navigation that follows is expected.
+ * Uses the request event: page.route() misses redirected requests; the failed navigation is expected.
  * @param {import('@playwright/test').Page} page Page to use.
  */
 export function captureCallback( page ) {

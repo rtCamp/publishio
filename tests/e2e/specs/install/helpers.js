@@ -8,12 +8,12 @@ import { test } from '@playwright/test';
 import { expect } from '../../fixtures';
 
 /**
- * Upload a plugin zip through Plugins → Add New → Upload Plugin.
+ * Upload a plugin zip through Plugins → Add New.
  *
  * @param {import('@wordpress/e2e-test-utils-playwright').Admin} admin   Admin utils.
  * @param {import('@playwright/test').Page}                      page    Page to use.
  * @param {string}                                               file    Path of the file.
- * @param {boolean}                                              replace Replace an installed copy ("Replace current with uploaded").
+ * @param {boolean}                                              replace Replace an installed copy.
  */
 export async function uploadZip( admin, page, file, replace = false ) {
 	await admin.visitAdminPage( 'plugin-install.php', 'tab=upload' );
@@ -34,11 +34,7 @@ export async function uploadZip( admin, page, file, replace = false ) {
 	}
 }
 
-/**
- * Requests the site status checks (Guide and Status screens) send on purpose without
- * credentials. They are expected to be refused (401/400), and the browser logs each refusal as a
- * console error, so those log lines are not errors.
- */
+// Status checks probe these without credentials; their 401/400 console errors are expected.
 const STATUS_PROBES = [
 	/\/wp-json\/mcp\/publishio\b/,
 	/\/wp-json\/publishio-oauth\/v1\/token\b/,
@@ -82,7 +78,7 @@ export async function evidence( page, name ) {
 }
 
 /**
- * Show plain text (CLI output, file lists) in the page so it can be captured as evidence.
+ * Show plain text in the page for evidence screenshots.
  *
  * @param {import('@playwright/test').Page} page  Page to use.
  * @param {string}                          title Heading shown above the text.
@@ -102,7 +98,7 @@ export async function showText( page, title, text ) {
 }
 
 /**
- * The Publishio row on the Plugins screen, found by its "Select Publishio" checkbox.
+ * The Publishio row on the Plugins screen.
  *
  * @param {import('@playwright/test').Page} page Page to use.
  * @return {import('@playwright/test').Locator} The row.
@@ -113,7 +109,7 @@ export const pluginRow = ( page ) =>
 	} );
 
 /**
- * The admin content area (WordPress marks #wpbody as role="main"), excluding the admin menu.
+ * The admin content area, excluding the admin menu.
  *
  * @param {import('@playwright/test').Page} page Page to use.
  * @return {import('@playwright/test').Locator} The main region.
@@ -121,7 +117,7 @@ export const pluginRow = ( page ) =>
 export const adminMain = ( page ) => page.getByRole( 'main' );
 
 /**
- * The Publishio entry in the admin menu (WordPress labels the menu "Main menu").
+ * The admin menu navigation.
  *
  * @param {import('@playwright/test').Page} page Page to use.
  * @return {import('@playwright/test').Locator} The admin menu navigation.

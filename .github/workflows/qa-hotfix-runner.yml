@@ -1,12 +1,3 @@
-# QA hotfix run (rtCamp/qa → qa-management).
-#
-# On every push to hotfix/** (or a manual run):
-#   1. Runs the plugin-update E2E tests (smoke + install, WP 6.9 and latest) on the hotfix build.
-#   2. Only when that is green, opens a smoke-only QA checklist issue from the publishio smoke
-#      blueprint in rtCamp/qa. Regression is bypassed; the next release run covers it.
-#
-# Needs: the RTBOT_TOKEN secret, the publishio folder in the vault, and the labels qa-testing and
-# emergency-hotfix.
 name: QA Hotfix Run
 
 on:
@@ -60,7 +51,7 @@ jobs:
       plugin-slug: publishio
       project: ${{ matrix.project }}
       update: plugin-update
-      # notify-slack: false  # SLACK disabled for now
+      # notify-slack: false
     secrets: inherit
 
   automated-install:
@@ -79,7 +70,7 @@ jobs:
       project: ${{ matrix.project }}
       update: plugin-update
       zip-artifact: publishio-hotfix-${{ github.run_id }}
-      # notify-slack: false  # SLACK disabled for now
+      # notify-slack: false
     secrets: inherit
 
   launch-hotfix-checklist:

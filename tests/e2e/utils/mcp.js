@@ -1,6 +1,5 @@
 /**
- * Minimal MCP (Streamable HTTP, JSON-RPC 2.0) client for Publishio's server at
- * /wp-json/mcp/publishio. Mirrors what Claude/ChatGPT send, without an LLM.
+ * Minimal MCP client for the E2E tests.
  */
 /**
  * External dependencies
@@ -10,7 +9,7 @@ import { expect } from '@playwright/test';
 export const PROTOCOL_VERSION = '2025-06-18';
 
 /**
- * The MCP adapter exposes ability `publishio/create-post` as tool `publishio-create-post`.
+ * Tool name for an ability.
  * @param {string} abilityName Ability name, e.g. "publishio/create-post".
  */
 export const tool = ( abilityName ) => abilityName.replace( /\//g, '-' );
@@ -49,7 +48,7 @@ export class McpClient {
 	}
 
 	/**
-	 * Send a raw JSON-RPC request and return the HTTP response.
+	 * Send a raw JSON-RPC request.
 	 * @param {string}  method       JSON-RPC method.
 	 * @param {unknown} params       JSON-RPC params.
 	 * @param {boolean} notification Send as a notification (no id, no response expected).
@@ -135,7 +134,6 @@ export class McpClient {
 				data = text;
 			}
 		}
-		// Some adapter versions wrap array output as { result: [...] }.
 		if ( data && ! Array.isArray( data ) && Array.isArray( data.result ) ) {
 			data = data.result;
 		}

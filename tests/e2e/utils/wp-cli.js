@@ -8,10 +8,7 @@ import { execSync } from 'node:child_process';
 import { currentSite } from '../config/env';
 
 /**
- * Run a WP-CLI command against the site of the current test's project.
- *
- * Each call goes through `wp-env run` (docker exec), which can occasionally lose track of a
- * finished command; the timeout makes that fail the step instead of hanging the whole run.
+ * Run WP-CLI on the current project's site; the timeout stops `wp-env run` hangs.
  *
  * @param {string} args WP-CLI arguments, e.g. "plugin list".
  * @return {string} The command's output, trimmed.

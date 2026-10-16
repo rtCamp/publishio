@@ -1,15 +1,12 @@
 /**
- * SMOKE-04: OAuth when a CDN or firewall blocks /.well-known/ (#118).
- *
- * The plugin cannot stop a CDN from blocking requests, but it can (a) advertise
- * discovery URLs correctly and (b) tell the admin when they are unreachable.
+ * SMOKE-04: OAuth when /.well-known/ is blocked (#118).
  */
 /**
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';
 import { wpCli } from '../../utils/wp-cli';
-import { adminMain } from '../install/helpers';
+import { STATUS_PAGE, waitForChecks } from '../../utils/status';
 
 test.describe(
 	'Blocked discovery endpoints',
@@ -49,17 +46,6 @@ test.describe(
 					description:
 						'https://github.com/rtCamp/publishio/issues/118',
 				} );
-				// Pending the self-check proposed in #118 (where it lives and its wording are still open).
-				// When the self-check ships, remove fixme and adjust the locator below.
-				test.fixme(
-					true,
-					'No well-known self-check in the admin yet (#118).'
-				);
-
-				// Block the discovery paths at the web server, as the nginx/CDN rule in #118 does (verified:
-				// both return 403 while blocked). Note for a server-side wp_remote_get self-check: in wp-env
-				// the container cannot reach its own home_url (loopback fails), so such a check needs a
-				// way to tell "unreachable from here" apart from "blocked" before this test can pass.
 				const rule =
 					'RedirectMatch 403 ^/\\.well-known/oauth-(authorization-server|protected-resource)';
 				const htaccess = wpCli( `eval 'echo ABSPATH . ".htaccess";'` );
@@ -79,15 +65,26 @@ test.describe(
 							)
 						).status()
 					).toBe( 403 );
-					// The #118 comment proposes the Connections screen (today: "No AI apps have connected
-					// yet"); point this at the Guide instead if the warning ships there.
-					await admin.visitAdminPage(
-						'admin.php',
-						'page=publishio-connections'
+					await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
+					await waitForChecks( page );
+					const details = page
+						.getByRole( 'main' )
+						.getByRole( 'listitem' )
+						.filter( {
+							has: page.getByRole( 'heading', {
+								level: 3,
+								name: 'Connection details',
+							} ),
+						} );
+					await expect( details ).toContainText(
+						"AI apps can't read them"
 					);
-					await expect(
-						adminMain( page ).getByText( /well-known/i )
-					).toBeVisible();
+					await expect( details ).toContainText(
+						'Your web server blocked the connection details before WordPress saw them.'
+					);
+					await expect( details ).toContainText(
+						'/.well-known/oauth-'
+					);
 				} finally {
 					wpCli(
 						`eval 'file_put_contents( "${ htaccess }", base64_decode( "${ Buffer.from(

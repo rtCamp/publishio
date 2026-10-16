@@ -1,11 +1,8 @@
-# A WordPress update: when WordPress ships a new version (checked daily), or on demand (e.g. for an
-# RC), run the tests tagged @wp-update: the full project (smoke + compat) across PHP and themes, and
-# the install project with the latest released plugin zip, i.e. what customers have.
 name: WordPress release watch
 
 on:
   schedule:
-    - cron: '0 6 * * *' # daily, 11:30 IST
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       wp-version:
@@ -25,7 +22,6 @@ jobs:
     steps:
       - id: wp
         run: echo "version=$(curl -fsSL https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')" >> "$GITHUB_OUTPUT"
-      # A cache entry per tested version remembers what has already been covered.
       - id: seen
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -41,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: # pairwise WP x PHP x theme
+        include:
           - { php: '8.2', theme: 'twentytwentyfive' }
           - { php: '8.3', theme: 'ollie' }
           - { php: '8.4', theme: 'twentytwentyfive' }
@@ -53,7 +49,7 @@ jobs:
       wp-version: ${{ inputs.wp-version || '' }}
       php-version: ${{ matrix.php }}
       theme: ${{ matrix.theme }}
-      # notify-slack: true  # SLACK disabled for now
+      # notify-slack: true
     secrets: inherit
 
   release-zip:
@@ -79,7 +75,7 @@ jobs:
       update: wp-update
       wp-version: ${{ inputs.wp-version || '' }}
       zip-artifact: publishio-release-${{ github.run_id }}
-      # notify-slack: true  # SLACK disabled for now
+      # notify-slack: true
     secrets: inherit
 
   remember:

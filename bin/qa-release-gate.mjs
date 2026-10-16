@@ -1,14 +1,6 @@
 #!/usr/bin/env node
 /**
- * Release gate tied to the qa-management QA run issue (see .github/workflows/qa-execution-runner.yml).
- *
- *   node bin/qa-release-gate.mjs <tag> [owner/repo]
- *
- * Passes only when the QA run issue for release/<tag>:
- *   - exists, is closed, carries `qa-passed` and not `qa-blocked`, and
- *   - every bug linked under "Blockers Found" that is still open is P2 or P3 (deferred).
- *     An open P0/P1, or an open bug without a priority label, blocks the release.
- * Needs the GitHub CLI with read access to issues (GH_TOKEN in CI).
+ * Release gate based on the QA run issue for release/<tag>.
  */
 /**
  * External dependencies
@@ -56,7 +48,7 @@ const candidates = gh( [
 	'number,title,state,labels,body,url',
 ] ).filter( ( i ) => i.title.endsWith( `— ${ branch }` ) );
 
-// The most recent run wins (a re-run after fixes opens a new issue).
+// Most recent run wins.
 const qa = candidates.sort( ( a, b ) => b.number - a.number )[ 0 ];
 
 if ( ! qa ) {
@@ -80,7 +72,6 @@ if ( ! qa ) {
 		problems.push( `QA run #${ qa.number } is not labelled qa-passed.` );
 	}
 
-	// Bugs linked in the "Blockers Found" section: #123 or a full issue URL in this repo.
 	const section =
 		qa.body
 			.split( /^##\s+🐞 Blockers Found\s*$/m )[ 1 ]

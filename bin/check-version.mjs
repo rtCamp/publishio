@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 /**
- * GATE-02: every place the plugin version is declared must agree.
- * On a tag push, the tag (with or without a leading "v") must match too.
- *
- * Usage: node bin/check-version.mjs [expected-version]
+ * Check every declared plugin version (and the tag) agree.
  */
 /**
  * External dependencies

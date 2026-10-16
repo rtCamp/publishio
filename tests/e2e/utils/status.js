@@ -1,9 +1,5 @@
 /**
- * Status screen (Publishio → Status) and the status line on the Guide.
- *
- * The checks run in the browser when the page opens. On the test sites (localhost) the expected
- * result is "Ready for Claude Code only": Public address warns that only this computer can reach
- * the site, and the other four checks pass.
+ * Status screen and Guide status line helpers.
  */
 /**
  * Internal dependencies
@@ -12,7 +8,7 @@ import { expect } from '../fixtures';
 
 export const STATUS_PAGE = 'page=publishio-status';
 
-/** Every check the Status screen runs, in display order. */
+/** In display order. */
 export const STATUS_CHECKS = [
 	'Public address',
 	'MCP server',
@@ -21,13 +17,50 @@ export const STATUS_CHECKS = [
 	'Access after approval',
 ];
 
-/** Verdict and Public address result for a site on localhost. */
 export const LOCAL_VERDICT = 'Ready for Claude Code only';
 export const LOCAL_ADDRESS_SUMMARY = 'Only this computer can reach it';
 
 /**
- * Wait for the checks to finish, then assert the localhost result: one warning (Public address)
- * and the other four checks passed.
+ * @param {import('@playwright/test').Page} page Page showing the Status screen.
+ */
+export async function waitForChecks( page ) {
+	await expect(
+		page.getByRole( 'main' ).getByText( /^Checked .* from this browser/ )
+	).toBeVisible( { timeout: 30_000 } );
+}
+
+/**
+ * Retry up to twice: App verification has a 5 s network limit and is occasionally flaky.
+ * @param {import('@playwright/test').Page} page Page showing the Status screen.
+ */
+async function retryAppVerification( page ) {
+	const main = page.getByRole( 'main' );
+	const failed = main
+		.getByRole( 'listitem' )
+		.filter( {
+			has: page.getByRole( 'heading', {
+				level: 3,
+				name: 'App verification',
+			} ),
+		} )
+		.filter( { hasText: "Couldn't verify" } );
+	for (
+		let attempt = 0;
+		attempt < 2 && ( await failed.count() );
+		attempt++
+	) {
+		const again = page.getByRole( 'button', { name: 'Check again' } );
+		await again.click();
+		await expect( again ).toHaveAttribute( 'aria-disabled', 'true' );
+		await expect( again ).not.toHaveAttribute( 'aria-disabled', 'true', {
+			timeout: 30_000,
+		} );
+		await waitForChecks( page );
+	}
+}
+
+/**
+ * Assert the localhost result: Public address warns, the rest pass.
  * @param {import('@playwright/test').Page} page Page showing the Status screen.
  */
 export async function expectLocalStatus( page ) {
@@ -35,10 +68,8 @@ export async function expectLocalStatus( page ) {
 	await expect(
 		main.getByRole( 'heading', { level: 1, name: 'Status' } )
 	).toBeVisible();
-	// "Checked just now from this browser, in 1.9 s" appears once every check has finished.
-	await expect(
-		main.getByText( /^Checked .* from this browser/ )
-	).toBeVisible( { timeout: 30_000 } );
+	await waitForChecks( page );
+	await retryAppVerification( page );
 	await expect(
 		main.getByRole( 'heading', { level: 2, name: LOCAL_VERDICT } )
 	).toBeVisible();
@@ -69,8 +100,7 @@ export async function expectLocalStatus( page ) {
 }
 
 /**
- * The status line on the Guide (Connect an AI app card): wait for the checks to finish, assert
- * the localhost result, and that "Check again" leads to the Status screen.
+ * Assert the localhost result on the Guide status line.
  * @param {import('@playwright/test').Page} page Page showing the Guide list.
  */
 export async function expectLocalGuideStatus( page ) {

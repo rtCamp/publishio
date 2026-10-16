@@ -1,6 +1,5 @@
 /**
- * SMOKE-07: content built over MCP opens cleanly in the block editor, survives a save,
- * and stays a draft. Catches invalid block markup produced by pattern hydration.
+ * SMOKE-07: MCP-built content round-trips through the block editor.
  */
 /**
  * Internal dependencies
@@ -25,7 +24,7 @@ async function invalidBlocks( page ) {
 }
 
 /**
- * Pick a theme pattern usable in page content and fill its schema with test text.
+ * Pick a theme pattern for page content and fill its schema.
  *
  * @param {import('./utils/mcp').McpClient} mcp    Initialized MCP client.
  * @param {number}                          pageId ID of the page to build.
@@ -42,8 +41,7 @@ async function buildPageFromPattern( mcp, pageId ) {
 	);
 
 	for ( const p of patterns ) {
-		// A pattern that embeds another one (<!-- wp:pattern {"slug":…} /-->) is expanded into real
-		// blocks when the editor loads it, so it never re-serialises to the same markup. Skip those.
+		// Skip nested wp:pattern blocks: the editor expands them, so markup never round-trips.
 		const full = (
 			await mcp.callTool( 'publishio/get-pattern', { name: p.name } )
 		).data;
@@ -166,7 +164,7 @@ async function assertRoundTrip( {
 	await expect( editor.canvas.locator( BLOCK_WARNING ) ).toHaveCount( 0 );
 	expect( await invalidBlocks( page ) ).toEqual( [] );
 
-	// Make a trivial edit so Save is enabled, then save as draft.
+	// Trivial edit so Save is enabled.
 	await editor.canvas.getByRole( 'textbox', { name: 'Add title' } ).click();
 	await page.keyboard.press( 'End' );
 	await page.keyboard.type( ' (saved)' );
@@ -178,7 +176,7 @@ async function assertRoundTrip( {
 	} );
 	expect( after.status ).toBe( 'draft' );
 
-	// Whitespace between tags is not content; the editor drops it when it re-serialises.
+	// The editor drops whitespace between tags when it re-serialises.
 	const norm = ( s ) =>
 		s.replace( /\s+/g, ' ' ).replace( />\s+</g, '><' ).trim();
 	expect(

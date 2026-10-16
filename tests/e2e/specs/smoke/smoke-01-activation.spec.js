@@ -1,10 +1,5 @@
 /**
  * SMOKE-01: plugin activation.
- *
- * On single sites, activation from the built zip is covered by INSTALL-05 (activate without
- * errors), INSTALL-08 (discovery endpoints / rewrite rules) and INSTALL-11 (deactivate and
- * reactivate). Those three checks are repeated here tagged @multisite only, because there is no
- * install project on a multisite network. The schema-version check is unique and runs everywhere.
  */
 /**
  * External dependencies
@@ -19,7 +14,7 @@ import { wpCli } from '../../utils/wp-cli';
 import { branchHeader } from '../../utils/plugin-zip';
 import { adminMenu, pluginRow } from '../install/helpers';
 
-/** DB_VERSION declared in inc/Main.php: the schema version activation must record. */
+// DB_VERSION from inc/Main.php.
 const dbVersion = () =>
 	Number(
 		fs
@@ -75,7 +70,6 @@ test.describe( 'Activation', { tag: '@plugin-update' }, () => {
 		'SMOKE-01 activation flushes OAuth rewrite rules',
 		{ tag: [ '@multisite', '@wp-update' ] },
 		async ( { anonApi } ) => {
-			// If rules are not flushed on activation, these return the theme's 404.
 			for ( const p of [
 				'/.well-known/oauth-authorization-server',
 				'/.well-known/oauth-protected-resource',

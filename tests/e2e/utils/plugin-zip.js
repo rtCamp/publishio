@@ -9,11 +9,11 @@ import path from 'node:path';
  */
 import { settings } from '../config/env';
 
-/** Path of the zip under test on the host (set by the workflow or bin/get-plugin-zip.sh). */
+/** Host path of the zip under test. */
 export const zipPath = () => settings.zip;
 
 /**
- * Same zip as seen from inside the wp-env container (mapped in .wp-env.install.json).
+ * Zip path inside the wp-env container.
  * @param {string} file Path of the file.
  */
 export const zipPathInContainer = ( file = path.basename( zipPath() ) ) =>
@@ -46,15 +46,14 @@ export function parseHeader( php ) {
 	};
 }
 
-/** The header of the branch under test (the checked-out repo). */
+/** Plugin header of the checked-out branch. */
 export const branchHeader = () =>
 	parseHeader(
 		fs.readFileSync( path.join( process.cwd(), 'publishio.php' ), 'utf8' )
 	);
 
 /**
- * Build a zip of the raw source (what GitHub's "Download ZIP" gives you): no vendor/ or build/.
- * Written next to the real zip so the container can see it.
+ * Zip of the raw source (no vendor/ or build/), next to the real zip.
  */
 export function buildSourceZip() {
 	const out = path.join( path.dirname( zipPath() ), 'publishio-source.zip' );

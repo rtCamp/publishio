@@ -9,6 +9,13 @@ import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const [ tag, repo = process.env.GITHUB_REPOSITORY ] = process.argv.slice( 2 );
+
+/**
+ * Escape a string for use inside a regular expression.
+ * @param {string} text Text to match literally.
+ * @return {string} The escaped text.
+ */
+const escapeRegExp = ( text ) => text.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 if ( ! tag || ! repo ) {
 	console.error( 'Usage: node bin/qa-release-gate.mjs <tag> [owner/repo]' );
 	process.exit( 2 );
@@ -79,7 +86,12 @@ if ( ! qa ) {
 	const refs = new Set(
 		[
 			...section.matchAll(
-				new RegExp( `(?:#|github\\.com/${ repo }/issues/)(\\d+)`, 'g' )
+				new RegExp(
+					`(?:#|github\\.com/${ escapeRegExp(
+						repo
+					) }/issues/)(\\d+)`,
+					'g'
+				)
 			),
 		].map( ( m ) => Number( m[ 1 ] ) )
 	);

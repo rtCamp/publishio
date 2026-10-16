@@ -11,6 +11,8 @@ export default [
 			'.claude/**',
 			'node_modules/**',
 			'tests/_output/**',
+			// E2E reports, traces and zips (Playwright output, git-ignored).
+			'artifacts/**',
 			'vendor/**',
 			// Config files (not subject to project lint rules)
 			'eslint.config.mjs',

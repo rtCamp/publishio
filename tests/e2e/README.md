@@ -144,8 +144,7 @@ Reports, screenshots, traces and `results.json` land in `artifacts/`
   hosting a public HTTPS document; authorize, consent and token exchange run unmodified.
 - **INSTALL-09** only runs on WordPress below the plugin's minimum; start an install site with an older `WP_ENV_CORE`.
 - **Known-bug markers:** tests for known bugs are skipped with `test.fixme` (with the reason) so CI stays green:
-  SMOKE-04 blocked-discovery warning (#118), SMOKE-07 pattern page (image saved as `wp-image-0`), SKILL-04, SKILL-05 and
-  SKILL-08 (skill/plugin mismatches). Remove the `fixme` once fixed. COMPAT-01 checks that user-defined
+  SMOKE-04 blocked-discovery warning (#118), SKILL-04, SKILL-05 and SKILL-08 (skill/plugin mismatches). Remove the `fixme` once fixed. COMPAT-01 checks that user-defined
   (synced/unsynced) patterns are _not_ listed: get-patterns covers registered patterns only, by design (#119 tracks support).
   #126 (Connections blank on WordPress 6.9) is fixed by #139: INSTALL-07, SMOKE-02, SMOKE-03 and ISSUE-126 now pass on 6.9.
 - **GitHub issues** have regression tests in `specs/smoke/issue-regressions.spec.js` (ISSUE-11, 12, 14, 118, 126):

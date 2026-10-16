@@ -42,6 +42,14 @@ async function buildPageFromPattern( mcp, pageId ) {
 	);
 
 	for ( const p of patterns ) {
+		// A pattern that embeds another one (<!-- wp:pattern {"slug":…} /-->) is expanded into real
+		// blocks when the editor loads it, so it never re-serialises to the same markup. Skip those.
+		const full = (
+			await mcp.callTool( 'publishio/get-pattern', { name: p.name } )
+		).data;
+		if ( ! full?.content || full.content.includes( '<!-- wp:pattern ' ) ) {
+			continue;
+		}
 		const schema = (
 			await mcp.callTool( 'publishio/get-pattern-schema', {
 				name: p.name,
@@ -115,13 +123,6 @@ test.describe(
 			'SMOKE-07 MCP-built page from a theme pattern opens without block warnings',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
-				// Known plugin bug, not filed yet: an image block filled through the pattern schema is saved
-				// with the class wp-image-0 instead of the attachment ID, so the editor reports the block
-				// as invalid. Skipped until fixed (remove fixme to run it).
-				test.fixme(
-					true,
-					'Plugin bug: pattern image blocks are saved as wp-image-0, so the editor shows a block warning.'
-				);
 				const { data } = await mcp.callTool( 'publishio/create-post', {
 					title: 'E2E round-trip page',
 					post_type: 'page',
@@ -177,7 +178,9 @@ async function assertRoundTrip( {
 	} );
 	expect( after.status ).toBe( 'draft' );
 
-	const norm = ( s ) => s.replace( /\s+/g, ' ' ).trim();
+	// Whitespace between tags is not content; the editor drops it when it re-serialises.
+	const norm = ( s ) =>
+		s.replace( /\s+/g, ' ' ).replace( />\s+</g, '><' ).trim();
 	expect(
 		norm( after.content.raw ),
 		'editor re-serialised the content differently'

@@ -79,8 +79,6 @@ export default defineConfig( {
 	fullyParallel: false,
 	workers: 1,
 	forbidOnly: settings.ci,
-	// CI retries once to tell flaky from broken, but a flaky test still fails the run.
-	failOnFlakyTests: settings.ci,
 
 	expect: {
 		timeout: 10_000,

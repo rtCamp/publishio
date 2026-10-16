@@ -91,7 +91,21 @@ export default defineConfig( {
 			{ open: 'never', outputFolder: path.join( artifacts, 'report' ) },
 		],
 		[ 'json', { outputFile: path.join( artifacts, 'results.json' ) } ],
-		...( settings.ci ? [ [ 'github' ] ] : [] ),
+		...( settings.ci
+			? [
+					[ 'github' ],
+					// Merged across the run's jobs into one report (e2e.yml → report job).
+					[
+						'blob',
+						{
+							outputDir: path.join( artifacts, 'blob' ),
+							fileName: `${
+								process.env.E2E_REPORT_NAME || 'report'
+							}.zip`,
+						},
+					],
+			  ]
+			: [] ),
 	],
 
 	metadata: {

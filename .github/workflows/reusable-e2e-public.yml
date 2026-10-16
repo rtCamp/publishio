@@ -152,13 +152,24 @@ jobs:
           max_attempts: 3
           command: node bin/e2e.mjs "$E2E_PROJECT" start
 
+      - name: Name the report
+        id: label
+        run: |
+          name="e2e-${E2E_PROJECT}${E2E_SHARD:+-shard-${E2E_SHARD%/*}-of-${E2E_SHARD#*/}}${E2E_UPDATE:+-$E2E_UPDATE}-wp-$(echo "${WP_ENV_CORE:-default}" | sed 's/.*#//; s/[^A-Za-z0-9.-]/-/g')-php${WP_ENV_PHP_VERSION}-${E2E_THEME}"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "E2E_REPORT_NAME=$name" >> "$GITHUB_ENV"
+
       - name: Run E2E tests
         run: npm run test:e2e -- "$E2E_PROJECT" test ${E2E_SHARD:+"--shard=$E2E_SHARD"}
 
-      - name: Name the report
-        id: label
+      - name: Upload blob report for the merged run report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
-        run: echo "name=e2e-${E2E_PROJECT}${E2E_SHARD:+-shard-${E2E_SHARD%/*}-of-${E2E_SHARD#*/}}${E2E_UPDATE:+-$E2E_UPDATE}-wp-$(echo "${WP_ENV_CORE:-default}" | sed 's/.*#//; s/[^A-Za-z0-9.-]/-/g')-php${WP_ENV_PHP_VERSION}-${E2E_THEME}" >> "$GITHUB_OUTPUT"
+        with:
+          name: blob-${{ steps.label.outputs.name }}
+          path: artifacts/blob/
+          retention-days: 1
+          if-no-files-found: ignore
 
       - name: Upload E2E test results as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

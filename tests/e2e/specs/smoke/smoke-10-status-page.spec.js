@@ -207,16 +207,17 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			wpCli(
 				'config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant'
 			);
+			const appCodes = async () =>
+				(
+					await requestUtils.rest( {
+						path: '/publishio/v1/status/apps',
+					} )
+				).apps.map( ( a ) => a.code );
 			try {
-				const { apps } = await requestUtils.rest( {
-					path: '/publishio/v1/status/apps',
-				} );
-				for ( const app of apps ) {
-					expect( app, JSON.stringify( app ) ).toMatchObject( {
-						ok: false,
-						code: 'blocked_by_wordpress',
-					} );
-				}
+				// PHP's opcache re-reads wp-config.php only every ~2 s: wait until the site applies it.
+				await expect
+					.poll( appCodes, { timeout: 20_000 } )
+					.toEqual( Array( 3 ).fill( 'blocked_by_wordpress' ) );
 
 				await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
 				await expect(
@@ -238,6 +239,9 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 				).toBeVisible();
 			} finally {
 				wpCli( 'config delete WP_HTTP_BLOCK_EXTERNAL --type=constant' );
+				await expect
+					.poll( appCodes, { timeout: 20_000 } )
+					.not.toContain( 'blocked_by_wordpress' );
 			}
 		}
 	);

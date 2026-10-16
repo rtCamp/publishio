@@ -1,10 +1,6 @@
 /**
  * SMOKE-02: every admin screen renders. Run on WordPress 6.9 (minimum) and latest.
  * Regression for #126 (Connections screen blank on WordPress 6.9).
- *
- * On single sites, INSTALL-07 checks that the Guide and Connections screens render, from the
- * built zip. Those two checks are tagged @multisite only here, because there is no install
- * project on a multisite network. The other tests (status line, MCP URL, permissions) run everywhere.
  */
 /**
  * External dependencies
@@ -22,10 +18,10 @@ import {
 	STATUS_PAGE,
 } from '../../utils/status';
 
-test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
+test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	test(
 		'SMOKE-02 Guide screen renders',
-		{ tag: [ '@multisite', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
 			await admin.visitAdminPage( 'admin.php', 'page=publishio' );
@@ -47,7 +43,7 @@ test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
 
 	test(
 		'SMOKE-02 Guide shows whether AI apps can connect',
-		{ tag: [ '@smoke', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
 			await admin.visitAdminPage( 'admin.php', 'page=publishio' );
@@ -64,7 +60,7 @@ test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
 
 	test(
 		'SMOKE-02 Guide detail shows a copyable MCP server URL',
-		{ tag: [ '@smoke', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			await admin.visitAdminPage( 'admin.php', 'page=publishio' );
 			await page
@@ -85,7 +81,7 @@ test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
 
 	test(
 		'SMOKE-02 Connections screen renders (#126)',
-		{ tag: [ '@multisite', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
 			await admin.visitAdminPage(
@@ -110,7 +106,7 @@ test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
 
 	test(
 		'SMOKE-02 Connections REST endpoint is admin-only',
-		{ tag: [ '@smoke', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { requestUtils, anonApi } ) => {
 			const data = await requestUtils.rest( {
 				path: '/publishio/v1/connections',
@@ -127,7 +123,7 @@ test.describe( 'Admin screens', { tag: '@plugin-update' }, () => {
 
 	test(
 		'SMOKE-02 editors see the Guide but not Connections',
-		{ tag: [ '@smoke', '@wp-update' ] },
+		{ tag: '@wp-update' },
 		async ( { browser, requestUtils } ) => {
 			const username = await ensureUser( requestUtils, 'editor' );
 			const context = await loginBrowser( browser, username );

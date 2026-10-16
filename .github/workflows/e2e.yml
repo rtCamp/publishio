@@ -1,0 +1,120 @@
+name: E2E
+
+on:
+  # pull_request:
+    # types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - e2e-playwright-tests
+      # - main
+  workflow_dispatch:
+    inputs:
+      projects:
+        description: 'What to run'
+        type: choice
+        options: [all, smoke, install, full, smoke-wp69, install-wp69]
+        default: all
+      update:
+        description: 'Which tests: tagged @plugin-update, tagged @wp-update, or all'
+        type: choice
+        options: [plugin-update, wp-update, all]
+        default: plugin-update
+      wp-version:
+        description: 'wp-env core for projects without a pinned version (smoke, install, full), e.g. "WordPress/WordPress#7.0". Empty = latest.'
+        type: string
+        default: ''
+      php-version:
+        description: 'PHP for projects without a pinned version'
+        type: choice
+        options: ['8.2', '8.3', '8.4']
+        default: '8.2'
+      theme:
+        description: 'Theme slug'
+        type: string
+        default: 'twentytwentyfive'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format( 'pr-{0}', github.event.pull_request.number ) || format( 'run-{0}', github.run_id ) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Pick projects
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      jobs: ${{ steps.pick.outputs.jobs }}
+    steps:
+      - name: Checkout repository
+        if: github.event_name == 'push'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Detect code changes
+        id: changes
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          base: ${{ github.ref_name }}
+          predicate-quantifier: 'every'
+          filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!.wordpress-org/**'
+              - '!LICENSE*'
+
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          CHOICE: ${{ inputs.projects }}
+          CODE_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.changes.outputs.code == 'true' }}
+        run: |
+          if [ "$CODE_CHANGED" != "true" ]; then
+            echo "No code changes (only docs or assets), so E2E tests are skipped." >> "$GITHUB_STEP_SUMMARY"
+            echo "jobs=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          case "$EVENT:$CHOICE" in
+            pull_request:*) projects='smoke install' ;;
+            push:*) projects='smoke install smoke-wp69 install-wp69' ;;
+            *:all) projects='smoke install smoke-wp69 install-wp69' ;;
+            *) projects="$CHOICE" ;;
+          esac
+          # shellcheck disable=SC2086
+          jobs=$(printf '%s\n' $projects | jq -Rnc '[ inputs | if startswith( "install" )
+            then { project: ., shard: "" }
+            else ( { project: ., shard: "1/2" }, { project: ., shard: "2/2" } ) end ]')
+          echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
+          echo "E2E jobs: \`$jobs\`" >> "$GITHUB_STEP_SUMMARY"
+
+  e2e:
+    name: E2E
+    needs: plan
+    if: needs.plan.outputs.jobs != '[]'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON( needs.plan.outputs.jobs ) }}
+    uses: ./.github/workflows/reusable-e2e-public.yml
+    with:
+      plugin-slug: publishio
+      project: ${{ matrix.project }}
+      shard: ${{ matrix.shard }}
+      build-zip: true
+      update: ${{ inputs.update || 'plugin-update' }}
+      wp-version: ${{ inputs.wp-version || '' }}
+      php-version: ${{ inputs.php-version || '8.2' }}
+      theme: ${{ inputs.theme || 'twentytwentyfive' }}
+      # notify-slack: ${{ github.event_name == 'push' }}
+    secrets: inherit

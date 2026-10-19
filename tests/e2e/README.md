@@ -38,6 +38,17 @@ npm run test:e2e -- smoke start                # keep a site running between run
 node bin/wp-env-down.mjs                       # stop every test site
 ```
 
+**INSTALL-09 (local only):** this test checks that WordPress refuses to install the plugin below
+its 6.9 minimum, so it needs a WordPress 6.8 site. It is not run in CI; run it locally before a
+release, or after changing the plugin's `Requires at least` version:
+
+```bash
+npm run test:e2e -- install-wp68 test
+```
+
+The first run downloads WordPress 6.8 and takes a few minutes. Run one test command at a time, as
+two runs on the same site stop each other's site.
+
 **See the results:** `npx playwright show-report artifacts/report` opens the HTML report with
 screenshots, errors and traces.
 
@@ -72,6 +83,8 @@ report is the **e2e-report** download at the bottom of the run page (unzip it, o
 In CI, a failing `smoke`, `full` or `smoke-multisite` test is retried once: if it passes on the retry
 it is reported as **flaky** and the run stays green; if it fails again, the run fails. `install`
 tests are not retried (they share one site and run in order), so any failure there fails the run.
+
+INSTALL-09 is never run in CI (see [Run them locally](#run-them-locally)).
 
 ## Add a test
 

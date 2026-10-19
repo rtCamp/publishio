@@ -54,6 +54,7 @@ const testProjects = Object.entries( projects ).map( ( [ name, project ] ) => {
 	return {
 		name,
 		testMatch: project.testMatch,
+		testIgnore: project.testIgnore,
 		grep: projectGrep( project.grep ),
 		retries: settings.ci ? project.retries : 0,
 		timeout: project.timeout,

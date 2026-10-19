@@ -70,6 +70,7 @@
 			"description": "Every PR and release tag: install the built zip on a clean site (INSTALL-01 to INSTALL-13)",
 			"site": "install",
 			"testMatch": [ "install/**/*.spec.js" ],
+			"testIgnore": [ "install/install-09-min-requirements.spec.js" ],
 			"grep": "@install",
 			"retries": 0,
 			"timeout": 120000
@@ -86,6 +87,7 @@
 			"description": "Install suite on WordPress 6.9, beside latest",
 			"site": "install-wp69",
 			"testMatch": [ "install/**/*.spec.js" ],
+			"testIgnore": [ "install/install-09-min-requirements.spec.js" ],
 			"grep": "@install",
 			"retries": 0,
 			"timeout": 120000

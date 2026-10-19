@@ -9,6 +9,8 @@ import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const [ tag, repo = process.env.GITHUB_REPOSITORY ] = process.argv.slice( 2 );
+// Commit the tag points at; the QA run must have tested the same code.
+const releaseSha = process.env.RELEASE_SHA;
 
 /**
  * Escape a string for use inside a regular expression.
@@ -24,6 +26,8 @@ const branch = `release/${ tag.replace( /^v/, '' ) }`;
 
 const gh = ( args ) =>
 	JSON.parse( execFileSync( 'gh', args, { encoding: 'utf8' } ) );
+const treeOf = ( sha ) =>
+	gh( [ 'api', `repos/${ repo }/commits/${ sha }` ] ).commit.tree.sha;
 const labelsOf = ( issue ) => issue.labels.map( ( l ) => l.name );
 const priorityOf = ( labels ) => {
 	for ( const label of labels ) {
@@ -79,10 +83,33 @@ if ( ! qa ) {
 		problems.push( `QA run #${ qa.number } is not labelled qa-passed.` );
 	}
 
-	const section =
+	// The approval only counts for the commit QA tested (qa-execution-runner writes it).
+	const testedSha = qa.body.match(
+		/^\* \*\*Commit:\*\* ([0-9a-f]{40})\s*$/m
+	)?.[ 1 ];
+	if ( ! testedSha ) {
+		problems.push(
+			`QA run #${ qa.number } does not say which commit was tested (a "* **Commit:** <sha>" line).`
+		);
+	} else if ( releaseSha && treeOf( testedSha ) !== treeOf( releaseSha ) ) {
+		// Tags sit on the release PR's merge commit, so compare the code, not the commit.
+		problems.push(
+			`QA run #${ qa.number } tested ${ testedSha.slice(
+				0,
+				7
+			) }, whose code differs from ${ tag } (${ releaseSha.slice(
+				0,
+				7
+			) }); run QA on the code being released.`
+		);
+	}
+
+	// HTML comments hold the template's example lines, not blockers.
+	const section = (
 		qa.body
 			.split( /^##\s+🐞 Blockers Found\s*$/m )[ 1 ]
-			?.split( /^(?:---|## )/m )[ 0 ] ?? '';
+			?.split( /^(?:---|## )/m )[ 0 ] ?? ''
+	).replace( /<!--[\s\S]*?-->/g, '' );
 	const refs = new Set(
 		[
 			...section.matchAll(

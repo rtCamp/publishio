@@ -85,6 +85,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
         run: node bin/qa-release-gate.mjs "$TAG"
 
   wordpress-org-release:

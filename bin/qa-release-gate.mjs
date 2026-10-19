@@ -9,8 +9,6 @@ import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const [ tag, repo = process.env.GITHUB_REPOSITORY ] = process.argv.slice( 2 );
-// Commit the tag points at; the QA run must have tested the same code.
-const releaseSha = process.env.RELEASE_SHA;
 
 /**
  * Escape a string for use inside a regular expression.
@@ -49,8 +47,11 @@ const branch = `release/${ tag.replace( /^v/, '' ) }`;
 
 const gh = ( args ) =>
 	JSON.parse( execFileSync( 'gh', args, { encoding: 'utf8' } ) );
-const treeOf = ( sha ) =>
-	gh( [ 'api', `repos/${ repo }/commits/${ sha }` ] ).commit.tree.sha;
+const treeOf = ( ref ) =>
+	gh( [ 'api', `repos/${ repo }/commits/${ encodeURIComponent( ref ) }` ] )
+		.commit.tree.sha;
+// Commit the tag points at (release.yml passes it; otherwise the tag itself).
+const releaseRef = process.env.RELEASE_SHA || tag;
 const labelsOf = ( issue ) => issue.labels.map( ( l ) => l.name );
 const priorityOf = ( labels ) => {
 	for ( const label of labels ) {
@@ -95,6 +96,8 @@ if ( ! qa ) {
 			qa.url
 		}) (${ qa.state.toLowerCase() })`
 	);
+	// Only text GitHub shows counts: HTML comments hold the template's examples.
+	const body = withoutComments( qa.body.replace( /\r\n/g, '\n' ) );
 	const labels = labelsOf( qa );
 	if ( qa.state !== 'CLOSED' ) {
 		problems.push( `QA run #${ qa.number } is still open.` );
@@ -107,39 +110,46 @@ if ( ! qa ) {
 	}
 
 	// The approval only counts for the commit QA tested (qa-execution-runner writes it).
-	const testedSha = qa.body.match(
-		/^\* \*\*Commit:\*\* ([0-9a-f]{40})\s*$/m
-	)?.[ 1 ];
-	if ( ! testedSha ) {
+	const testedShas = [
+		...body.matchAll( /^\* \*\*Commit:\*\* ([0-9a-f]{40})\s*$/gm ),
+	].map( ( m ) => m[ 1 ] );
+	if ( testedShas.length !== 1 ) {
 		problems.push(
-			`QA run #${ qa.number } does not say which commit was tested (a "* **Commit:** <sha>" line).`
+			`QA run #${ qa.number } must say which commit was tested in exactly one "* **Commit:** <sha>" line (found ${ testedShas.length }).`
 		);
-	} else if ( releaseSha && treeOf( testedSha ) !== treeOf( releaseSha ) ) {
+	} else if ( treeOf( testedShas[ 0 ] ) !== treeOf( releaseRef ) ) {
 		// Tags sit on the release PR's merge commit, so compare the code, not the commit.
 		problems.push(
-			`QA run #${ qa.number } tested ${ testedSha.slice(
+			`QA run #${ qa.number } tested ${ testedShas[ 0 ].slice(
 				0,
 				7
-			) }, whose code differs from ${ tag } (${ releaseSha.slice(
-				0,
-				7
-			) }); run QA on the code being released.`
+			) }, whose code differs from ${ tag }; run QA on the code being released.`
 		);
 	}
 
-	// HTML comments hold the template's example lines, not blockers.
-	const section = withoutComments(
-		qa.body
-			.split( /^##\s+🐞 Blockers Found\s*$/m )[ 1 ]
-			?.split( /^(?:---|## )/m )[ 0 ] ?? ''
-	);
+	const parts = body.split( /^##\s+🐞 Blockers Found\s*$/m );
+	if ( parts.length !== 2 ) {
+		problems.push(
+			`QA run #${
+				qa.number
+			} needs exactly one "## 🐞 Blockers Found" heading (found ${
+				parts.length - 1
+			}).`
+		);
+	}
+	// Code spans are examples too, so drop them before reading issue references.
+	const section = ( parts[ 1 ]?.split( /^(?:---|## )/m )[ 0 ] ?? '' )
+		.split( '`' )
+		.filter( ( _, i ) => i % 2 === 0 )
+		.join( ' ' );
+	// "#12" or a link to an issue in this repo; not "other/repo#12", "#12abc" or URL anchors.
 	const refs = new Set(
 		[
 			...section.matchAll(
 				new RegExp(
-					`(?:#|github\\.com/${ escapeRegExp(
+					`(?:(?<![\\w/.#-])#|https://github\\.com/${ escapeRegExp(
 						repo
-					) }/issues/)(\\d+)`,
+					) }/issues/)(\\d+)(?![\\w-])`,
 					'g'
 				)
 			),
@@ -147,15 +157,23 @@ if ( ! qa ) {
 	);
 	const deferred = [];
 	for ( const number of refs ) {
-		const bug = gh( [
-			'issue',
-			'view',
-			String( number ),
-			'--repo',
-			repo,
-			'--json',
-			'number,title,state,labels',
-		] );
+		let bug;
+		try {
+			bug = gh( [
+				'issue',
+				'view',
+				String( number ),
+				'--repo',
+				repo,
+				'--json',
+				'number,title,state,labels',
+			] );
+		} catch {
+			problems.push(
+				`Blocker #${ number } is not an issue in ${ repo } (a pull request, or no such issue).`
+			);
+			continue;
+		}
 		if ( bug.state !== 'OPEN' ) {
 			continue;
 		}

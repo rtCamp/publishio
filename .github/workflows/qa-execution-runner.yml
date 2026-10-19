@@ -146,6 +146,8 @@ jobs:
             echo ""
             echo "## 🚦 Release gate (checked by release.yml when the tag is pushed)"
             echo "* Close this issue with the **\`qa-passed\`** label to allow the WordPress.org deploy."
+            echo "* The approval covers only the code at **Commit** above: if the release branch changes,"
+            echo "  QA runs again on the new issue that push opens."
             echo "* Add **\`qa-blocked\`** to stop the release, whatever else is set."
             echo "* Bugs linked under **Blockers Found** that are still open must be **P2** or **P3**"
             echo "  (deferred to a later release). Any open **P0/P1**, or an open bug without a"

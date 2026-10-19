@@ -18,6 +18,29 @@ const releaseSha = process.env.RELEASE_SHA;
  * @return {string} The escaped text.
  */
 const escapeRegExp = ( text ) => text.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
+
+/**
+ * Text outside HTML comments; an unclosed `<!--` hides the rest, as on GitHub.
+ * @param {string} text Markdown.
+ * @return {string} The visible text.
+ */
+const withoutComments = ( text ) => {
+	let visible = '';
+	let from = 0;
+	for (
+		let start = text.indexOf( '<!--' );
+		start !== -1;
+		start = text.indexOf( '<!--', from )
+	) {
+		visible += text.slice( from, start );
+		const end = text.indexOf( '-->', start + 4 );
+		if ( end === -1 ) {
+			return visible;
+		}
+		from = end + 3;
+	}
+	return visible + text.slice( from );
+};
 if ( ! tag || ! repo ) {
 	console.error( 'Usage: node bin/qa-release-gate.mjs <tag> [owner/repo]' );
 	process.exit( 2 );
@@ -105,11 +128,11 @@ if ( ! qa ) {
 	}
 
 	// HTML comments hold the template's example lines, not blockers.
-	const section = (
+	const section = withoutComments(
 		qa.body
 			.split( /^##\s+🐞 Blockers Found\s*$/m )[ 1 ]
 			?.split( /^(?:---|## )/m )[ 0 ] ?? ''
-	).replace( /<!--[\s\S]*?-->/g, '' );
+	);
 	const refs = new Set(
 		[
 			...section.matchAll(

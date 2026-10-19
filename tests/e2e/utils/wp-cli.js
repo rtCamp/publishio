@@ -80,3 +80,29 @@ export function wpCli( args ) {
 		timeout: 120_000,
 	} ).trim();
 }
+
+/** WP-CLI output when the plugin, term or post is already in the state a command wants. */
+export const ALREADY = {
+	pluginMissing: /plugin could not be found/,
+	termExists: /A term with the name provided already exists/,
+	postMissing: /Failed deleting post/,
+};
+
+/**
+ * Run WP-CLI, ignoring a failure only when its output matches `expected` (the "already in that
+ * state" message); any other failure is thrown with WP-CLI's own error.
+ *
+ * @param {string} args     WP-CLI arguments.
+ * @param {RegExp} expected Output of the failure to ignore, e.g. ALREADY.pluginMissing.
+ * @return {string} The command's output, trimmed, or '' when the failure was ignored.
+ */
+export function wpCliQuietly( args, expected ) {
+	try {
+		return wpCli( args );
+	} catch ( e ) {
+		if ( expected.test( `${ e.stdout ?? '' }${ e.stderr ?? '' }` ) ) {
+			return '';
+		}
+		throw e;
+	}
+}

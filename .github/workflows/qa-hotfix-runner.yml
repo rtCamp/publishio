@@ -35,7 +35,6 @@ jobs:
     with:
       php-version: '8.2'
       artifact-name: publishio-hotfix-${{ github.run_id }}
-    secrets: inherit
 
   automated-mounted:
     name: Automated gate
@@ -52,7 +51,6 @@ jobs:
       project: ${{ matrix.project }}
       update: plugin-update
       # notify-slack: false
-    secrets: inherit
 
   automated-install:
     name: Automated gate
@@ -71,7 +69,6 @@ jobs:
       update: plugin-update
       zip-artifact: publishio-hotfix-${{ github.run_id }}
       # notify-slack: false
-    secrets: inherit
 
   launch-hotfix-checklist:
     name: Open hotfix QA issue

@@ -33,6 +33,7 @@ Docker images and takes a few minutes). Before the `install` tests, build the pl
 ```bash
 npm run test:e2e -- smoke test -g "SMOKE-10"   # only tests whose title matches
 npm run test:e2e -- smoke test --headed        # watch the browser
+npm run test:e2e -- install-wp68 test         # INSTALL-09 on WordPress 6.8 (local only)
 npm run test:e2e -- smoke start                # keep a site running between runs
 node bin/wp-env-down.mjs                       # stop every test site
 ```
@@ -42,14 +43,15 @@ screenshots, errors and traces.
 
 ## Test groups
 
-| Group             | What it covers                                                 | WordPress     |
-| ----------------- | -------------------------------------------------------------- | ------------- |
-| `smoke`           | Admin screens, Status page, OAuth, MCP tools, editor, AI skill | latest        |
-| `install`         | Install from the zip, activate, upgrade, uninstall             | latest        |
-| `smoke-wp69`      | Same as `smoke`                                                | 6.9 (minimum) |
-| `install-wp69`    | Same as `install`                                              | 6.9 (minimum) |
-| `full`            | `smoke` plus pattern-compatibility checks                      | latest        |
-| `smoke-multisite` | Same as `smoke`, on a multisite network                        | latest        |
+| Group             | What it covers                                                 | WordPress                   |
+| ----------------- | -------------------------------------------------------------- | --------------------------- |
+| `smoke`           | Admin screens, Status page, OAuth, MCP tools, editor, AI skill | latest                      |
+| `install`         | Install from the zip, activate, upgrade, uninstall             | latest                      |
+| `smoke-wp69`      | Same as `smoke`                                                | 6.9 (minimum)               |
+| `install-wp69`    | Same as `install`                                              | 6.9 (minimum)               |
+| `full`            | `smoke` plus pattern-compatibility checks                      | latest                      |
+| `smoke-multisite` | Same as `smoke`, on a multisite network                        | latest                      |
+| `install-wp68`    | INSTALL-09 only: install is refused below the 6.9 minimum      | 6.8 (local only, not in CI) |
 
 ## In CI (GitHub Actions)
 
@@ -67,17 +69,24 @@ screenshots, errors and traces.
 **Results:** each run's summary page shows a passed / failed / flaky / skipped table. The full HTML
 report is the **e2e-report** download at the bottom of the run page (unzip it, open `index.html`).
 
-A failing test is retried once in CI. If it passes on the retry it is reported as **flaky** and the
-run stays green; if it fails again, the run fails.
+In CI, a failing `smoke`, `full` or `smoke-multisite` test is retried once: if it passes on the retry
+it is reported as **flaky** and the run stays green; if it fails again, the run fails. `install`
+tests are not retried (they share one site and run in order), so any failure there fails the run.
 
 ## Add a test
 
 1. Add a `*.spec.js` file under `tests/e2e/specs/smoke/` (or `install/`), named after its ID, e.g.
    `smoke-11-my-feature.spec.js`.
-2. Import `test` and `expect` from `../../fixtures`, and start each title with the ID
-   (`SMOKE-11 …`).
+2. Import `test` and `expect` from `../../fixtures`, and start each title with a unique ID: the
+   group plus a case number when a file has several tests (`SMOKE-11.1 …`, `SMOKE-11.2 …`), so a
+   failure maps to one case in the QA checklist.
 3. Tag it: the `describe` block gets `@smoke` (or `@install`) and `@plugin-update`; add
    `@wp-update` to tests that also depend on WordPress itself (admin screens, editor, plugins page).
 4. Prefer user-facing locators (`getByRole`, `getByLabel`, `getByText`) so tests wait for the page
    on their own.
 5. A test for a known bug: keep it, with `test.fixme( true, '<reason>' )` until the bug is fixed.
+6. Assert UI text through `STATUS_TEXT` in `tests/e2e/utils/status.js` (Status page copy), and
+   error messages with the exact text the plugin returns, not a single word.
+
+**Types are not checked here.** `tsconfig.json` excludes `tests/e2e/` and `bin/`, so the JSDoc
+types in these files are documentation only: TypeScript does not enforce them.

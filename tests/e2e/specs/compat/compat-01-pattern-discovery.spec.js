@@ -19,7 +19,7 @@ test.describe(
 	{ tag: [ '@compat', '@plugin-update' ] },
 	() => {
 		test(
-			'COMPAT-01 theme-registered patterns are discoverable over MCP',
+			'COMPAT-01.1 theme-registered patterns are discoverable over MCP',
 			{ tag: '@wp-update' },
 			async ( { mcp, requestUtils } ) => {
 				const editorPatterns = await requestUtils.rest( {
@@ -69,7 +69,7 @@ test.describe(
 		);
 
 		test(
-			'COMPAT-01 user-defined patterns (synced and unsynced) are not listed',
+			'COMPAT-01.2 user-defined patterns (synced and unsynced) are not listed',
 			{ tag: '@wp-update' },
 			async ( { mcp, requestUtils } ) => {
 				test.info().annotations.push( {
@@ -133,17 +133,53 @@ test.describe(
 		);
 
 		test(
-			'COMPAT-01 patterns without descriptions are still listed',
+			'COMPAT-01.3 patterns without descriptions are still listed',
 			{ tag: '@wp-update' },
-			async ( { mcp } ) => {
-				const data = ( await mcp.callTool( 'publishio/get-patterns' ) )
-					.data;
-				const undocumented = data.filter( ( p ) => ! p.description );
-				test.info().annotations.push( {
-					type: 'patterns-without-description',
-					description: `${ undocumented.length } of ${ data.length }`,
-				} );
-				expect( data.length ).toBeGreaterThan( 0 );
+			async ( { mcp, requestUtils } ) => {
+				// A pattern registered with no description, via a test-only mu-plugin.
+				const name = 'e2e/no-description';
+				const muPlugin = 'e2e-no-description-pattern.php';
+				const php = `<?php add_action( 'init', static function () { register_block_pattern( '${ name }', [ 'title' => 'E2E no description', 'categories' => [ 'text' ], 'content' => '<!-- wp:paragraph --><p>E2E</p><!-- /wp:paragraph -->' ] ); } );`;
+				wpCli(
+					`eval 'wp_mkdir_p( WPMU_PLUGIN_DIR ); file_put_contents( WPMU_PLUGIN_DIR . "/${ muPlugin }", base64_decode( "${ Buffer.from(
+						php
+					).toString( 'base64' ) }" ) );'`
+				);
+				try {
+					const data = (
+						await mcp.callTool( 'publishio/get-patterns' )
+					).data;
+					const own = data.find( ( p ) => p.name === name );
+					expect( own, `${ name } is listed` ).toBeTruthy();
+					expect( own.description ).toBe( '' );
+
+					// Every registered pattern the editor offers without a description is listed too.
+					const names = data.map( ( p ) => p.name );
+					const undocumented = (
+						await requestUtils.rest( {
+							path: '/wp/v2/block-patterns/patterns',
+						} )
+					)
+						.filter(
+							( p ) =>
+								! p.description &&
+								! DIRECTORY.includes( p.source ?? '' )
+						)
+						.map( ( p ) => p.name );
+					expect( undocumented ).toContain( name );
+					expect(
+						undocumented.filter( ( n ) => ! names.includes( n ) ),
+						'description-less patterns missing over MCP'
+					).toEqual( [] );
+					test.info().annotations.push( {
+						type: 'patterns-without-description',
+						description: `${ undocumented.length } of ${ data.length }`,
+					} );
+				} finally {
+					wpCli(
+						`eval 'wp_delete_file( WPMU_PLUGIN_DIR . "/${ muPlugin }" );'`
+					);
+				}
 			}
 		);
 	}

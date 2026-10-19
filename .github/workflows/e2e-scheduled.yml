@@ -97,7 +97,6 @@ jobs:
     with:
       php-version: '8.2'
       artifact-name: publishio-e2e-${{ github.run_id }}
-    secrets: inherit
 
   mounted:
     name: E2E
@@ -118,7 +117,6 @@ jobs:
       theme: ${{ matrix.theme }}
       update: all
       # notify-slack: false
-    secrets: inherit
 
   install:
     name: E2E
@@ -139,7 +137,6 @@ jobs:
       update: all
       zip-artifact: publishio-e2e-${{ github.run_id }}
       # notify-slack: false
-    secrets: inherit
 
   notify:
     name: Report change

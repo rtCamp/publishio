@@ -69,7 +69,7 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'ISSUE-118 MCP clients can fall back to Application Passwords when discovery is blocked',
+		'ISSUE-118.1 MCP clients can fall back to Application Passwords when discovery is blocked',
 		{ tag: '@wp-update' },
 		async ( { anonApi, connection } ) => {
 			test.info().annotations.push( issue( 118 ) );
@@ -105,7 +105,7 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		}
 	);
 
-	test( 'ISSUE-118 the readme documents that /.well-known/ must reach WordPress', async () => {
+	test( 'ISSUE-118.2 the readme documents that /.well-known/ must reach WordPress', async () => {
 		test.info().annotations.push( issue( 118 ) );
 		const readme = fs.readFileSync( 'readme.txt', 'utf8' );
 		expect( readme ).toMatch( /\/\.well-known\// );
@@ -208,8 +208,12 @@ test.describe( 'GitHub issues', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			before.connected_at
 		);
 
-		// Timestamps are in seconds; make the refresh land in a later second.
-		await new Promise( ( resolve ) => setTimeout( resolve, 1_100 ) );
+		// Timestamps are in seconds: start the refresh in a later second than last_active_at.
+		await expect
+			.poll( () => Math.floor( Date.now() / 1000 ), {
+				intervals: [ 50 ],
+			} )
+			.toBeGreaterThan( before.last_active_at );
 		const refreshed = await refreshTokens(
 			anonApi,
 			discovery,

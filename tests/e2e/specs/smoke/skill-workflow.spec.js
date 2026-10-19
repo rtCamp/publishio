@@ -10,7 +10,7 @@ import fs from 'node:fs';
  */
 import { test, expect } from '../../fixtures';
 import { BLOCK_WARNING } from '../../utils/editor';
-import { wpCli } from '../../utils/wp-cli';
+import { ALREADY, wpCli, wpCliQuietly } from '../../utils/wp-cli';
 import { collectErrors, evidence } from '../install/helpers';
 import { currentSite } from '../../config/env';
 import { markDebugLog } from '../../utils/debug-log';
@@ -40,12 +40,6 @@ async function draft( mcp, title, postType = 'post' ) {
 	return res.data.post_id;
 }
 
-const quietly = ( cmd ) => {
-	try {
-		wpCli( cmd );
-	} catch {}
-};
-
 test.describe(
 	'Skill workflow (SKILL.md)',
 	{ tag: [ '@smoke', '@plugin-update' ] },
@@ -58,7 +52,9 @@ test.describe(
 				status: 'publish',
 			} );
 			expect( publish.isError ).toBe( true );
-			expect( publish.text ).toContain( 'status' );
+			expect( publish.text ).toBe(
+				'Ability "publishio/create-post" has invalid input. Reason: status is not a valid property of Object.'
+			);
 
 			const id = await draft( mcp, 'SKILL-01 draft' );
 			for ( const field of [ 'content', 'status' ] ) {
@@ -67,7 +63,9 @@ test.describe(
 					[ field ]: field === 'status' ? 'publish' : 'Replaced',
 				} );
 				expect( res.isError, field ).toBe( true );
-				expect( res.text ).toContain( field );
+				expect( res.text ).toBe(
+					`Ability "publishio/update-post" has invalid input. Reason: ${ field } is not a valid property of Object.`
+				);
 			}
 
 			const saved = (
@@ -83,10 +81,14 @@ test.describe(
 			async ( { mcp } ) => {
 				requiresTwentyTwentyFive();
 				const postId = await draft( mcp, 'SKILL-02 post' );
-				await mcp.callTool( 'publishio/append-blocks', {
-					post_id: postId,
-					markup: PARAGRAPH( 'First' ) + PARAGRAPH( 'Third' ),
-				} );
+				const appended = await mcp.callTool(
+					'publishio/append-blocks',
+					{
+						post_id: postId,
+						markup: PARAGRAPH( 'First' ) + PARAGRAPH( 'Third' ),
+					}
+				);
+				expect( appended.isError, appended.text ).toBe( false );
 
 				const inserted = await mcp.callTool(
 					'publishio/insert-blocks-at',
@@ -133,7 +135,9 @@ test.describe(
 					}
 				);
 				expect( outOfRange.isError ).toBe( true );
-				expect( outOfRange.text ).toMatch( /out of range/ );
+				expect( outOfRange.text ).toMatch(
+					/^Position 9 is out of range \(0–\d+\)\.$/
+				);
 
 				const pageId = await draft( mcp, 'SKILL-02 page', 'page' );
 				const pageInsert = await mcp.callTool(
@@ -149,17 +153,23 @@ test.describe(
 					'Raw block markup is not allowed for pages'
 				);
 
-				await mcp.callTool( 'publishio/insert-pattern-confirmed', {
-					page_id: pageId,
-					position: -1,
-					pattern_name: 'twentytwentyfive/cta-centered-heading',
-					schema: [
-						{
-							block: 'core/heading',
-							fields: { content: 'Remove me' },
-						},
-					],
-				} );
+				const patternInserted = await mcp.callTool(
+					'publishio/insert-pattern-confirmed',
+					{
+						page_id: pageId,
+						position: -1,
+						pattern_name: 'twentytwentyfive/cta-centered-heading',
+						schema: [
+							{
+								block: 'core/heading',
+								fields: { content: 'Remove me' },
+							},
+						],
+					}
+				);
+				expect( patternInserted.isError, patternInserted.text ).toBe(
+					false
+				);
 				const pageDelete = await mcp.callTool(
 					'publishio/delete-block-at',
 					{
@@ -507,7 +517,10 @@ test.describe(
 						);
 					} );
 				} finally {
-					quietly( `post delete ${ attachmentId } --force` );
+					wpCliQuietly(
+						`post delete ${ attachmentId } --force`,
+						ALREADY.postMissing
+					);
 				}
 			}
 		);
@@ -516,10 +529,14 @@ test.describe(
 			'SKILL-07 taxonomies: list, assign and read back terms; unknown terms are refused',
 			{ tag: '@wp-update' },
 			async ( { mcp } ) => {
-				quietly(
-					'term create category "SKILL News" --slug=skill-news'
+				wpCliQuietly(
+					'term create category "SKILL News" --slug=skill-news',
+					ALREADY.termExists
 				);
-				quietly( 'term create post_tag "SKILL Tag" --slug=skill-tag' );
+				wpCliQuietly(
+					'term create post_tag "SKILL Tag" --slug=skill-tag',
+					ALREADY.termExists
+				);
 
 				const categories = await mcp.callTool(
 					'publishio/get-taxonomy-terms',
@@ -577,7 +594,9 @@ test.describe(
 					}
 				);
 				expect( unknown.isError ).toBe( true );
-				expect( unknown.text ).toContain( 'not found' );
+				expect( unknown.text ).toBe(
+					'Term "skill-made-up" not found in taxonomy "post_tag".'
+				);
 			}
 		);
 
@@ -640,12 +659,15 @@ test.describe(
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
 				// Yoast mapped in wp-env config can't be deleted; inactive is enough there.
-				quietly( 'plugin deactivate wordpress-seo' );
+				wpCliQuietly(
+					'plugin deactivate wordpress-seo',
+					ALREADY.pluginMissing
+				);
 				const mapped = fs
 					.readFileSync( currentSite().wpEnvConfig, 'utf8' )
 					.includes( 'wordpress-seo' );
 				if ( ! mapped ) {
-					quietly( 'plugin delete wordpress-seo' );
+					wpCli( 'plugin delete wordpress-seo' );
 				}
 				test.info().annotations.push( {
 					type: 'Yoast SEO',
@@ -766,7 +788,10 @@ test.describe(
 				wpCli( 'plugin install wordpress-seo --activate' );
 			} );
 			test.afterAll( () => {
-				quietly( 'plugin deactivate wordpress-seo' );
+				wpCliQuietly(
+					'plugin deactivate wordpress-seo',
+					ALREADY.pluginMissing
+				);
 			} );
 
 			test(

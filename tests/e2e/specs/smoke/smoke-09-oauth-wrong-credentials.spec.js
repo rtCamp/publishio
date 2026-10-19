@@ -105,7 +105,7 @@ test.describe(
 	'OAuth rejects wrong credentials',
 	{ tag: [ '@smoke', '@plugin-update' ] },
 	() => {
-		test( 'SMOKE-09 the consent form refuses a missing or forged nonce', async ( {
+		test( 'SMOKE-09.1 the consent form refuses a missing or forged nonce', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -147,7 +147,7 @@ test.describe(
 			}
 		} );
 
-		test( 'SMOKE-09 a code is refused for another client, redirect_uri or resource', async ( {
+		test( 'SMOKE-09.2 a code is refused for another client, redirect_uri or resource', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -204,7 +204,7 @@ test.describe(
 			);
 		} );
 
-		test( 'SMOKE-09 an expired authorization code is refused', async ( {
+		test( 'SMOKE-09.3 an expired authorization code is refused', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -233,7 +233,7 @@ test.describe(
 			);
 		} );
 
-		test( 'SMOKE-09 refresh tokens: garbage, reused after rotation, or another client’s are refused', async ( {
+		test( 'SMOKE-09.4 refresh tokens: garbage, reused after rotation, or another client’s are refused', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -283,7 +283,7 @@ test.describe(
 			);
 		} );
 
-		test( 'SMOKE-09 an expired access token is refused on MCP; refreshing restores access', async ( {
+		test( 'SMOKE-09.5 an expired access token is refused on MCP; refreshing restores access', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -313,7 +313,7 @@ test.describe(
 			).initialize();
 		} );
 
-		test( 'SMOKE-09 a token issued for a different resource is refused', async ( {
+		test( 'SMOKE-09.6 a token issued for a different resource is refused', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -338,7 +338,7 @@ test.describe(
 			);
 		} );
 
-		test( 'SMOKE-09 MCP rejects a made-up session ID, an unknown token and malformed Authorization headers', async ( {
+		test( 'SMOKE-09.7 MCP rejects a made-up session ID, an unknown token and malformed Authorization headers', async ( {
 			anonApi,
 			connection,
 		} ) => {
@@ -402,7 +402,7 @@ test.describe(
 		} );
 
 		test(
-			'SMOKE-09 an expired connection asks the user to authorize again',
+			'SMOKE-09.8 an expired connection asks the user to authorize again',
 			{ tag: '@wp-update' },
 			async ( { anonApi, adminApi, requestUtils, page } ) => {
 				const clientName = `E2E Expired ${ randomState().slice(

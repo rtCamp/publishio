@@ -9,7 +9,11 @@ import { branchHeader } from '../../utils/plugin-zip';
 import { ensureUser, loginBrowser } from '../../utils/users';
 import { wpCli } from '../../utils/wp-cli';
 import { collectErrors } from '../install/helpers';
-import { expectLocalStatus, STATUS_PAGE } from '../../utils/status';
+import {
+	expectLocalStatus,
+	STATUS_PAGE,
+	STATUS_TEXT,
+} from '../../utils/status';
 
 const APPS = [ 'claude', 'claude_code', 'chatgpt' ];
 
@@ -28,7 +32,7 @@ const checkItem = ( page, name ) =>
 
 test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	test(
-		'SMOKE-10 explains each problem, how to fix it, and what the checks cannot see',
+		'SMOKE-10.1 explains each problem, how to fix it, and what the checks cannot see',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
@@ -38,14 +42,14 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 
 			const address = checkItem( page, 'Public address' );
 			await expect( address ).toContainText(
-				'This address only works on this computer'
+				STATUS_TEXT.localAddressMessage
 			);
-			await expect( address ).toContainText( 'How to fix' );
+			await expect( address ).toContainText( STATUS_TEXT.howToFix );
 			await expect( address ).toContainText(
-				'put the site on a public https:// address'
+				STATUS_TEXT.localAddressFix
 			);
 			const details = address.getByRole( 'button', {
-				name: 'Technical details',
+				name: STATUS_TEXT.technicalDetails,
 			} );
 			const mcpUrl = `${ baseURL }/wp-json/mcp/publishio`;
 			await expect( details ).toHaveAttribute( 'aria-expanded', 'false' );
@@ -58,7 +62,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			await expect( address ).not.toContainText( mcpUrl );
 
 			const caveats = page.getByRole( 'button', {
-				name: "What these checks can't see",
+				name: STATUS_TEXT.caveats,
 			} );
 			await caveats.click();
 			await expect( caveats ).toHaveAttribute( 'aria-expanded', 'true' );
@@ -76,7 +80,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-10 Show report gives a copyable summary of every check',
+		'SMOKE-10.2 Show report gives a copyable summary of every check',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
@@ -89,7 +93,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			const buttons = page.getByRole( 'button', { name: 'Show report' } );
 			await expect( buttons ).toHaveCount( 2 );
 			const report = page.getByRole( 'dialog', {
-				name: 'Status report',
+				name: STATUS_TEXT.reportTitle,
 			} );
 			for ( const button of [ buttons.first(), buttons.last() ] ) {
 				await button.click();
@@ -115,9 +119,11 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 			}
 
 			await buttons.first().click();
-			await report.getByRole( 'button', { name: 'Copy report' } ).click();
+			await report
+				.getByRole( 'button', { name: STATUS_TEXT.copyReport } )
+				.click();
 			await expect(
-				report.getByRole( 'button', { name: 'Copied!' } )
+				report.getByRole( 'button', { name: STATUS_TEXT.copied } )
 			).toBeVisible();
 			const copied = await page.evaluate( () =>
 				navigator.clipboard.readText()
@@ -128,7 +134,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-10 status REST endpoints report the site facts and verify the AI apps',
+		'SMOKE-10.3 status REST endpoints report the site facts and verify the AI apps',
 		{ tag: '@wp-update' },
 		async ( { requestUtils, anonApi } ) => {
 			const facts = await requestUtils.rest( {
@@ -172,7 +178,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-10 contributors can open the Status page; subscribers cannot',
+		'SMOKE-10.4 contributors can open the Status page; subscribers cannot',
 		{ tag: '@wp-update' },
 		async ( { browser, requestUtils } ) => {
 			const restStatus = async ( context ) => {
@@ -220,7 +226,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-10 app verification fails clearly when WordPress blocks outgoing connections',
+		'SMOKE-10.5 app verification fails clearly when WordPress blocks outgoing connections',
 		{ tag: '@wp-update' },
 		async ( { admin, page, requestUtils } ) => {
 			wpCli(
@@ -243,9 +249,11 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 					page.getByText( /^Checked .* from this browser/ )
 				).toBeVisible( { timeout: 30_000 } );
 				const verification = checkItem( page, 'App verification' );
-				await expect( verification ).toContainText( "Couldn't verify" );
 				await expect( verification ).toContainText(
-					'WordPress is set to block outgoing connections.'
+					STATUS_TEXT.couldNotVerify
+				);
+				await expect( verification ).toContainText(
+					STATUS_TEXT.blockedOutgoing
 				);
 				await expect( verification ).toContainText(
 					'WP_ACCESSIBLE_HOSTS'
@@ -253,12 +261,12 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 				await expect(
 					page.getByRole( 'main' ).getByRole( 'heading', {
 						level: 2,
-						name: '2 problems',
+						name: STATUS_TEXT.twoProblems,
 					} )
 				).toBeVisible();
 
 				const details = verification.getByRole( 'button', {
-					name: 'Technical details',
+					name: STATUS_TEXT.technicalDetails,
 				} );
 				await details.click();
 				await expect( details ).toHaveAttribute(
@@ -267,7 +275,7 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 				);
 				await expect( verification ).toContainText( 'Expected' );
 				await expect( verification ).toContainText(
-					'200 JSON, accepted'
+					STATUS_TEXT.appExpected
 				);
 				await expect( verification ).toContainText( 'claude.ai' );
 
@@ -276,10 +284,10 @@ test.describe( 'Status page', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 					.first()
 					.click();
 				await expect(
-					page.getByRole( 'dialog', { name: 'Status report' } )
-				).toContainText(
-					'WordPress is set to block outgoing connections'
-				);
+					page.getByRole( 'dialog', {
+						name: STATUS_TEXT.reportTitle,
+					} )
+				).toContainText( STATUS_TEXT.blockedOutgoing );
 			} finally {
 				wpCli( 'config delete WP_HTTP_BLOCK_EXTERNAL --type=constant' );
 				await expect

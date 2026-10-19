@@ -14,16 +14,8 @@ import { RequestUtils } from '@wordpress/e2e-test-utils-playwright';
  * Internal dependencies
  */
 import { currentSite, pointWordPressUtilsAt, settings } from '../config/env';
-import { wpCli } from '../utils/wp-cli';
+import { ALREADY, wpCli, wpCliQuietly } from '../utils/wp-cli';
 import { ensureRunning } from '../utils/wp-env';
-
-const quietly = ( cmd ) => {
-	try {
-		wpCli( cmd );
-	} catch {
-		// Already in the target state.
-	}
-};
 
 setup( 'prepare site', async ( { playwright } ) => {
 	const site = currentSite();
@@ -61,8 +53,11 @@ setup( 'prepare site', async ( { playwright } ) => {
 		wpCli( 'plugin activate publishio' );
 		wpCli( 'rewrite flush --hard' );
 	} else {
-		quietly( 'plugin deactivate publishio --uninstall' );
-		quietly( 'plugin delete publishio' );
+		wpCliQuietly(
+			'plugin deactivate publishio --uninstall',
+			ALREADY.pluginMissing
+		);
+		wpCli( 'plugin delete publishio' );
 	}
 
 	pointWordPressUtilsAt( site.baseURL );

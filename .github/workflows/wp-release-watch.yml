@@ -50,7 +50,6 @@ jobs:
       php-version: ${{ matrix.php }}
       theme: ${{ matrix.theme }}
       # notify-slack: true
-    secrets: inherit
 
   release-zip:
     name: Get the released plugin zip
@@ -76,7 +75,6 @@ jobs:
       wp-version: ${{ inputs.wp-version || '' }}
       zip-artifact: publishio-release-${{ github.run_id }}
       # notify-slack: true
-    secrets: inherit
 
   remember:
     needs: [ detect, full, install ]

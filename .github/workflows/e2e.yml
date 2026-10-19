@@ -116,7 +116,6 @@ jobs:
       php-version: ${{ inputs.php-version || '8.2' }}
       theme: ${{ inputs.theme || 'twentytwentyfive' }}
       # notify-slack: ${{ github.event_name == 'push' }}
-    secrets: inherit
 
   report:
     name: E2E report

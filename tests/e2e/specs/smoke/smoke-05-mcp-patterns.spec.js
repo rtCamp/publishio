@@ -20,7 +20,7 @@ const CORE_TOOLS = [
 
 test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	test(
-		'SMOKE-05 initialize returns server info and capabilities',
+		'SMOKE-05.1 initialize returns server info and capabilities',
 		{ tag: '@wp-update' },
 		async ( { anonApi, connection } ) => {
 			const client = new McpClient(
@@ -37,7 +37,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-05 lists the Publishio tools',
+		'SMOKE-05.2 lists the Publishio tools',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
 			const names = ( await mcp.listTools() ).map( ( t ) => t.name );
@@ -48,7 +48,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-05 get-patterns returns the active theme patterns with metadata',
+		'SMOKE-05.3 get-patterns returns the active theme patterns with metadata',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
 			const { isError, data } = await mcp.callTool(
@@ -74,7 +74,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-05 get-patterns filters by keyword and category',
+		'SMOKE-05.4 get-patterns filters by keyword and category',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
 			const all = ( await mcp.callTool( 'publishio/get-patterns' ) ).data;
@@ -106,7 +106,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-05 get-pattern and get-pattern-schema return content for a known pattern',
+		'SMOKE-05.5 get-pattern and get-pattern-schema return content for a known pattern',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
 			const all = ( await mcp.callTool( 'publishio/get-patterns' ) ).data;
@@ -128,7 +128,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		}
 	);
 
-	test( 'SMOKE-05 unknown pattern returns a tool error, not a crash', async ( {
+	test( 'SMOKE-05.6 unknown pattern returns a tool error, not a crash', async ( {
 		mcp,
 	} ) => {
 		const res = await mcp.callTool( 'publishio/get-pattern-schema', {
@@ -138,7 +138,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		expect( res.text ).toMatch( /No pattern found/ );
 	} );
 
-	test( 'SMOKE-05 requests without a session are rejected', async ( {
+	test( 'SMOKE-05.7 requests without a session are rejected', async ( {
 		anonApi,
 		connection,
 	} ) => {

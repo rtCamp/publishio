@@ -15,13 +15,23 @@ const report = JSON.parse(
 const rows = {};
 
 const outcome = ( t ) => {
-	if ( t.status === 'unexpected' ) {
-		return 'failed';
+	switch ( t.status ) {
+		case 'expected':
+			return t.results.at( -1 )?.status === 'skipped'
+				? 'skipped'
+				: 'passed';
+		case 'unexpected':
+			return 'failed';
+		case 'flaky':
+			return 'flaky';
+		case 'skipped':
+			return 'skipped';
+		default:
+			// A status this script doesn't know: fail loudly rather than count it as passed.
+			throw new Error(
+				`Unknown test status "${ t.status }" (project ${ t.projectName })`
+			);
 	}
-	if ( t.status === 'flaky' ) {
-		return 'flaky';
-	}
-	return t.results.at( -1 )?.status === 'skipped' ? 'skipped' : 'passed';
 };
 
 const walk = ( suite ) => {

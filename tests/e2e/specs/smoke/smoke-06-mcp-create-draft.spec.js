@@ -18,9 +18,11 @@ test.describe(
 			await requestUtils.deleteAllPages();
 		} );
 
-		for ( const postType of [ 'post', 'page' ] ) {
+		for ( const [ index, postType ] of [ 'post', 'page' ].entries() ) {
 			test(
-				`SMOKE-06 create-post makes a ${ postType } draft`,
+				`SMOKE-06.${
+					index + 1
+				} create-post makes a ${ postType } draft`,
 				{ tag: '@wp-update' },
 				async ( { mcp, requestUtils } ) => {
 					const title = `E2E ${ postType } ${ Date.now() }`;
@@ -49,7 +51,7 @@ test.describe(
 		}
 
 		test(
-			'SMOKE-06 append-blocks adds valid block markup to a post',
+			'SMOKE-06.3 append-blocks adds valid block markup to a post',
 			{ tag: '@wp-update' },
 			async ( { mcp } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {
@@ -74,7 +76,7 @@ test.describe(
 			}
 		);
 
-		test( 'SMOKE-06 pages refuse raw markup; posts refuse patterns', async ( {
+		test( 'SMOKE-06.4 pages refuse raw markup; posts refuse patterns', async ( {
 			mcp,
 		} ) => {
 			const page = await mcp.callTool( 'publishio/create-post', {
@@ -108,7 +110,7 @@ test.describe(
 			expect( pattern.text ).toContain( 'Patterns are only for pages' );
 		} );
 
-		test( 'SMOKE-06 invalid input returns tool errors', async ( {
+		test( 'SMOKE-06.5 invalid input returns tool errors', async ( {
 			mcp,
 		} ) => {
 			const badType = await mcp.callTool( 'publishio/create-post', {
@@ -123,7 +125,7 @@ test.describe(
 		} );
 
 		test(
-			'SMOKE-06 contributors can draft posts but not pages',
+			'SMOKE-06.6 contributors can draft posts but not pages',
 			{ tag: '@wp-update' },
 			async ( { anonApi, requestUtils, playwright } ) => {
 				const username = await ensureUser(

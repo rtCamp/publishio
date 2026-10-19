@@ -1,5 +1,5 @@
 /**
- * INSTALL-01 to INSTALL-14: plugin installation (tests share site state and run in order).
+ * INSTALL-01 to INSTALL-13: plugin installation (tests share site state and run in order).
  */
 /**
  * Internal dependencies
@@ -18,7 +18,7 @@ import {
 	zipPath,
 	zipPathInContainer,
 } from '../../utils/plugin-zip';
-import { wpCli } from '../../utils/wp-cli';
+import { ALREADY, wpCli, wpCliQuietly } from '../../utils/wp-cli';
 import { expectLocalStatus, STATUS_PAGE } from '../../utils/status';
 import { settings } from '../../config/env';
 import {
@@ -31,21 +31,14 @@ import {
 	uploadZip,
 } from './helpers';
 
-const status = () => {
-	try {
-		return wpCli( 'plugin list --name=publishio --field=status' );
-	} catch {
-		return '';
-	}
-};
+/** Release INSTALL-10 upgrades from. Pinned so runs are reproducible; bump it after each release. */
+const PREVIOUS_RELEASE = '1.1.0';
+
+const status = () => wpCli( 'plugin list --name=publishio --field=status' );
 
 const removePlugin = () => {
-	try {
-		wpCli( 'plugin deactivate publishio' );
-	} catch {}
-	try {
-		wpCli( 'plugin delete publishio' );
-	} catch {}
+	wpCliQuietly( 'plugin deactivate publishio', ALREADY.pluginMissing );
+	wpCli( 'plugin delete publishio' );
 };
 
 test.describe(
@@ -424,12 +417,13 @@ test.describe(
 		} ) => {
 			const previous =
 				process.env.PUBLISHIO_PREVIOUS_ZIP ??
-				'https://github.com/rtCamp/publishio/releases/latest/download/publishio.zip';
+				`https://github.com/rtCamp/publishio/releases/download/${ PREVIOUS_RELEASE }/publishio.zip`;
 
 			// Full uninstall: a plain delete keeps publishio_db_version and skips migrations.
-			try {
-				wpCli( 'plugin uninstall publishio --deactivate' );
-			} catch {}
+			wpCliQuietly(
+				'plugin uninstall publishio --deactivate',
+				ALREADY.pluginMissing
+			);
 			wpCli(
 				`plugin install ${ JSON.stringify( previous ) } --activate`
 			);
@@ -551,8 +545,9 @@ test.describe(
 					`db query "SHOW TABLES LIKE '%publishio_oauth%'" --skip-column-names`
 				);
 				expect( tables, 'OAuth tables must be dropped' ).toBe( '' );
+				// Prefix-independent (works with any $table_prefix): transients and their timeouts.
 				const transients = wpCli(
-					`db query "SELECT COUNT(*) FROM wp_options WHERE option_name LIKE '%publishio_cimd_%'" --skip-column-names`
+					`option list --search="*publishio_cimd_*" --format=count`
 				);
 				expect(
 					transients,
@@ -562,7 +557,7 @@ test.describe(
 		);
 
 		test(
-			'INSTALL-14 posts and pages created through Publishio survive deactivation and uninstall',
+			'INSTALL-13 posts and pages created through Publishio survive deactivation and uninstall',
 			{ tag: '@wp-update' },
 			async ( { admin, page, anonApi, adminApi } ) => {
 				// Fresh install: independent of the journey above.
@@ -582,7 +577,7 @@ test.describe(
 				const run = Date.now();
 
 				const post = await mcp.callTool( 'publishio/create-post', {
-					title: `INSTALL-14 post ${ run }`,
+					title: `INSTALL-13 post ${ run }`,
 				} );
 				expect( post.isError, post.text ).toBe( false );
 				const appended = await mcp.callTool(
@@ -595,7 +590,7 @@ test.describe(
 				expect( appended.isError, appended.text ).toBe( false );
 
 				const pageDraft = await mcp.callTool( 'publishio/create-post', {
-					title: `INSTALL-14 page ${ run }`,
+					title: `INSTALL-13 page ${ run }`,
 					post_type: 'page',
 				} );
 				expect( pageDraft.isError, pageDraft.text ).toBe( false );
@@ -676,13 +671,13 @@ test.describe(
 						.getByRole( 'row' )
 						.filter( {
 							has: page.getByRole( 'checkbox', {
-								name: `Select INSTALL-14 page ${ run }`,
+								name: `Select INSTALL-13 page ${ run }`,
 							} ),
 						} )
 				).toBeVisible();
 				await evidence(
 					page,
-					'INSTALL-14 page still listed after uninstall'
+					'INSTALL-13 page still listed after uninstall'
 				);
 				await admin.visitAdminPage( 'edit.php', 'post_status=draft' );
 				await expect(
@@ -690,13 +685,13 @@ test.describe(
 						.getByRole( 'row' )
 						.filter( {
 							has: page.getByRole( 'checkbox', {
-								name: `Select INSTALL-14 post ${ run }`,
+								name: `Select INSTALL-13 post ${ run }`,
 							} ),
 						} )
 				).toBeVisible();
 				await evidence(
 					page,
-					'INSTALL-14 post still listed after uninstall'
+					'INSTALL-13 post still listed after uninstall'
 				);
 			}
 		);

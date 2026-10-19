@@ -6,14 +6,14 @@
  */
 import { test, expect } from '../../fixtures';
 import { wpCli } from '../../utils/wp-cli';
-import { STATUS_PAGE, waitForChecks } from '../../utils/status';
+import { STATUS_PAGE, STATUS_TEXT, waitForChecks } from '../../utils/status';
 
 test.describe(
 	'Blocked discovery endpoints',
 	{ tag: [ '@smoke', '@plugin-update' ] },
 	() => {
 		test(
-			'SMOKE-04 unauthenticated MCP calls advertise a reachable resource_metadata URL',
+			'SMOKE-04.1 unauthenticated MCP calls advertise a reachable resource_metadata URL',
 			{ tag: '@wp-update' },
 			async ( { anonApi } ) => {
 				const res = await anonApi.post( '/wp-json/mcp/publishio', {
@@ -38,7 +38,7 @@ test.describe(
 		);
 
 		test(
-			'SMOKE-04 admin is warned when /.well-known/ is blocked (#118)',
+			'SMOKE-04.2 admin is warned when /.well-known/ is blocked (#118)',
 			{ tag: '@wp-update' },
 			async ( { admin, page, anonApi } ) => {
 				test.info().annotations.push( {
@@ -77,13 +77,13 @@ test.describe(
 							} ),
 						} );
 					await expect( details ).toContainText(
-						"AI apps can't read them"
+						STATUS_TEXT.detailsUnreadable
 					);
 					await expect( details ).toContainText(
-						'Your web server blocked the connection details before WordPress saw them.'
+						STATUS_TEXT.blockedDiscovery
 					);
 					await expect( details ).toContainText(
-						'/.well-known/oauth-'
+						STATUS_TEXT.discoveryFixPath
 					);
 				} finally {
 					wpCli(

@@ -36,7 +36,6 @@ jobs:
     with:
       php-version: '8.2'
       artifact-name: publishio-qa-${{ github.run_id }}
-    secrets: inherit
 
   automated-mounted:
     name: Automated gate
@@ -53,7 +52,6 @@ jobs:
       project: ${{ matrix.project }}
       update: all
       # notify-slack: false
-    secrets: inherit
 
   automated-install:
     name: Automated gate
@@ -72,7 +70,6 @@ jobs:
       update: all
       zip-artifact: publishio-qa-${{ github.run_id }}
       # notify-slack: false
-    secrets: inherit
 
   launch-qa-checklist:
     name: Open QA checklist issue
@@ -142,6 +139,7 @@ jobs:
             echo ""
             echo "## 🐞 Blockers Found"
             echo "<!-- One line per bug, e.g. - [ ] #123 Connections screen blank on 6.9 -->"
+            echo "> The release gate reads blockers from this section only: link each bug here (editing this issue), not in a comment."
             echo "_None yet._"
             echo ""
             echo "---"

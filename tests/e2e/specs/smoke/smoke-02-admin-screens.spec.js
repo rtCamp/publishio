@@ -19,7 +19,7 @@ import {
 
 test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	test(
-		'SMOKE-02 Guide screen renders',
+		'SMOKE-02.1 Guide screen renders',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
@@ -41,7 +41,7 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-02 Guide shows whether AI apps can connect',
+		'SMOKE-02.2 Guide shows whether AI apps can connect',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
@@ -57,7 +57,7 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-02 Guide detail shows a copyable MCP server URL',
+		'SMOKE-02.3 Guide detail shows a copyable MCP server URL',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			await admin.visitAdminPage( 'admin.php', 'page=publishio' );
@@ -76,7 +76,7 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-02 Connections screen renders (#126)',
+		'SMOKE-02.4 Connections screen renders (#126)',
 		{ tag: '@wp-update' },
 		async ( { admin, page } ) => {
 			const errors = collectErrors( page );
@@ -100,7 +100,7 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-02 Connections REST endpoint is admin-only',
+		'SMOKE-02.5 Connections REST endpoint is admin-only',
 		{ tag: '@wp-update' },
 		async ( { requestUtils, anonApi } ) => {
 			const data = await requestUtils.rest( {
@@ -117,7 +117,7 @@ test.describe( 'Admin screens', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-02 editors see the Guide but not Connections',
+		'SMOKE-02.6 editors see the Guide but not Connections',
 		{ tag: '@wp-update' },
 		async ( { browser, requestUtils } ) => {
 			const username = await ensureUser( requestUtils, 'editor' );

@@ -90,7 +90,7 @@ test.describe(
 		} );
 
 		test(
-			'SMOKE-07 MCP-built post opens without block warnings and round-trips',
+			'SMOKE-07.1 MCP-built post opens without block warnings and round-trips',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {
@@ -122,7 +122,7 @@ test.describe(
 		);
 
 		test(
-			'SMOKE-07 MCP-built page from a theme pattern opens without block warnings',
+			'SMOKE-07.2 MCP-built page from a theme pattern opens without block warnings',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {

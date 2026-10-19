@@ -27,7 +27,7 @@ test.describe(
 	{ tag: [ '@smoke', '@plugin-update' ] },
 	() => {
 		test(
-			'SMOKE-03 publishes RFC 9728 and RFC 8414 metadata',
+			'SMOKE-03.1 publishes RFC 9728 and RFC 8414 metadata',
 			{ tag: '@wp-update' },
 			async ( { anonApi, baseURL } ) => {
 				const mcpUrl = new URL(
@@ -77,7 +77,7 @@ test.describe(
 	{ tag: [ '@smoke', '@plugin-update' ] },
 	() => {
 		test(
-			'SMOKE-03 approve on the consent screen, call MCP, then revoke from Connections',
+			'SMOKE-03.2 approve on the consent screen, call MCP, then revoke from Connections',
 			{ tag: '@wp-update' },
 			async ( { page, admin, anonApi } ) => {
 				const discovery = await discover( anonApi );
@@ -196,7 +196,7 @@ test.describe(
 		);
 
 		test(
-			'SMOKE-03 deny returns access_denied to the client',
+			'SMOKE-03.3 deny returns access_denied to the client',
 			{ tag: '@wp-update' },
 			async ( { page, anonApi } ) => {
 				const discovery = await discover( anonApi );
@@ -220,7 +220,7 @@ test.describe(
 		);
 
 		test(
-			'SMOKE-03 logged-out users are sent to wp-login and back',
+			'SMOKE-03.4 logged-out users are sent to wp-login and back',
 			{ tag: '@wp-update' },
 			async ( { browser, anonApi } ) => {
 				const discovery = await discover( anonApi );
@@ -252,7 +252,7 @@ test.describe(
 	'OAuth security (HTTP)',
 	{ tag: [ '@smoke', '@plugin-update' ] },
 	() => {
-		test( 'SMOKE-03 authorize rejects a client_id that is not a metadata document URL', async ( {
+		test( 'SMOKE-03.5 authorize rejects a client_id that is not a metadata document URL', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -282,7 +282,7 @@ test.describe(
 			);
 		} );
 
-		test( 'SMOKE-03 authorize rejects an unregistered redirect_uri', async ( {
+		test( 'SMOKE-03.6 authorize rejects an unregistered redirect_uri', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -302,7 +302,7 @@ test.describe(
 			expect( await res.text() ).toContain( 'invalid_redirect_uri' );
 		} );
 
-		test( 'SMOKE-03 authorize requires PKCE S256 and a matching resource', async ( {
+		test( 'SMOKE-03.7 authorize requires PKCE S256 and a matching resource', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -332,7 +332,7 @@ test.describe(
 			}
 		} );
 
-		test( 'SMOKE-03 code is single-use and bound to the PKCE verifier', async ( {
+		test( 'SMOKE-03.8 code is single-use and bound to the PKCE verifier', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -382,7 +382,7 @@ test.describe(
 			expect( ( await reuse.json() ).error ).toBe( 'invalid_grant' );
 		} );
 
-		test( 'SMOKE-03 refresh token issues a working access token', async ( {
+		test( 'SMOKE-03.9 refresh token issues a working access token', async ( {
 			anonApi,
 			adminApi,
 		} ) => {
@@ -409,7 +409,7 @@ test.describe(
 		} );
 
 		test(
-			'SMOKE-03 subscribers cannot authorize clients',
+			'SMOKE-03.10 subscribers cannot authorize clients',
 			{ tag: '@wp-update' },
 			async ( { anonApi, requestUtils, playwright } ) => {
 				const username = await ensureUser( requestUtils, 'subscriber' );

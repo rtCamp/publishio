@@ -65,7 +65,6 @@ jobs:
       update: plugin-update
       zip-artifact: publishio
       # notify-slack: true
-    secrets: inherit
 
   qa-gate:
     name: QA release gate (qa-management)

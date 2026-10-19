@@ -30,7 +30,7 @@ test.describe( 'Activation', { tag: '@plugin-update' }, () => {
 	} );
 
 	test(
-		'SMOKE-01 activates from the Plugins screen without errors',
+		'SMOKE-01.1 activates from the Plugins screen without errors',
 		{ tag: [ '@multisite', '@wp-update' ] },
 		async ( { admin, page, requestUtils } ) => {
 			await requestUtils.deactivatePlugin( 'publishio' );
@@ -67,7 +67,7 @@ test.describe( 'Activation', { tag: '@plugin-update' }, () => {
 	);
 
 	test(
-		'SMOKE-01 activation flushes OAuth rewrite rules',
+		'SMOKE-01.2 activation flushes OAuth rewrite rules',
 		{ tag: [ '@multisite', '@wp-update' ] },
 		async ( { anonApi } ) => {
 			for ( const p of [
@@ -84,7 +84,7 @@ test.describe( 'Activation', { tag: '@plugin-update' }, () => {
 	);
 
 	test(
-		'SMOKE-01 stores the current schema version',
+		'SMOKE-01.3 stores the current schema version',
 		{ tag: '@smoke' },
 		async () => {
 			expect( wpCli( 'option get publishio_version' ) ).toBe(
@@ -100,7 +100,7 @@ test.describe( 'Activation', { tag: '@plugin-update' }, () => {
 	);
 
 	test(
-		'SMOKE-01 deactivation does not leave the site broken',
+		'SMOKE-01.4 deactivation does not leave the site broken',
 		{ tag: [ '@multisite', '@wp-update' ] },
 		async ( { requestUtils, anonApi } ) => {
 			const newLogProblems = markDebugLog();

@@ -121,7 +121,7 @@ jobs:
   report:
     name: E2E report
     needs: [plan, e2e]
-    if: ${{ !cancelled() && needs.plan.outputs.jobs != '[]' }}
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.jobs != '[]' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

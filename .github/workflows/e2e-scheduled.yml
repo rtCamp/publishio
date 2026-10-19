@@ -143,7 +143,7 @@ jobs:
 
   notify:
     name: Report change
-    needs: [plan, mounted, install]
+    needs: [plan, build-plugin-zip, mounted, install]
     if: always() && needs.plan.outputs.run == 'true'
     runs-on: ubuntu-latest
     permissions:

@@ -261,6 +261,17 @@ test.describe(
 			{ tag: '@wp-update' },
 			async ( { admin, page } ) => {
 				const errors = collectErrors( page );
+				// Older releases (1.1.0 and before, tested by wp-release-watch) have no Status page.
+				const hasStatus = zipEntries().includes(
+					'publishio/templates/status-screen.php'
+				);
+				if ( ! hasStatus ) {
+					test.info().annotations.push( {
+						type: 'note',
+						description:
+							'This build has no Status page; its checks are skipped.',
+					} );
+				}
 				await admin.visitAdminPage( 'index.php' );
 
 				const menu = adminMenu( page );
@@ -270,7 +281,9 @@ test.describe(
 				await expect(
 					menu.getByRole( 'link', { name: 'Guide', exact: true } )
 				).toBeAttached();
-				for ( const name of [ 'Connections', 'Status' ] ) {
+				for ( const name of hasStatus
+					? [ 'Connections', 'Status' ]
+					: [ 'Connections' ] ) {
 					await expect(
 						menu.getByRole( 'link', { name, exact: true } )
 					).toBeAttached();
@@ -301,9 +314,11 @@ test.describe(
 				).toBeVisible();
 				await evidence( page, 'INSTALL-07 connections' );
 
-				await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
-				await expectLocalStatus( page );
-				await evidence( page, 'INSTALL-07 status' );
+				if ( hasStatus ) {
+					await admin.visitAdminPage( 'admin.php', STATUS_PAGE );
+					await expectLocalStatus( page );
+					await evidence( page, 'INSTALL-07 status' );
+				}
 
 				expect( errors ).toEqual( [] );
 			}

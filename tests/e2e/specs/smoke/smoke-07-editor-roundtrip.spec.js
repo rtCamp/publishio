@@ -96,15 +96,19 @@ test.describe(
 				const { data } = await mcp.callTool( 'publishio/create-post', {
 					title: 'E2E round-trip post',
 				} );
-				await mcp.callTool( 'publishio/append-blocks', {
-					post_id: data.post_id,
-					markup: [
-						'<!-- wp:heading --><h2 class="wp-block-heading">Section</h2><!-- /wp:heading -->',
-						'<!-- wp:paragraph --><p>Body with <strong>bold</strong> and <a href="https://example.com">a link</a>.</p><!-- /wp:paragraph -->',
-						'<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li>Two</li><!-- /wp:list-item --></ul><!-- /wp:list -->',
-						'<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Quote</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->',
-					].join( '\n\n' ),
-				} );
+				const appended = await mcp.callTool(
+					'publishio/append-blocks',
+					{
+						post_id: data.post_id,
+						markup: [
+							'<!-- wp:heading --><h2 class="wp-block-heading">Section</h2><!-- /wp:heading -->',
+							'<!-- wp:paragraph --><p>Body with <strong>bold</strong> and <a href="https://example.com">a link</a>.</p><!-- /wp:paragraph -->',
+							'<!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>One</li><!-- /wp:list-item --><!-- wp:list-item --><li>Two</li><!-- /wp:list-item --></ul><!-- /wp:list -->',
+							'<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Quote</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->',
+						].join( '\n\n' ),
+					}
+				);
+				expect( appended.isError, appended.text ).toBe( false );
 
 				await assertRoundTrip( {
 					admin,

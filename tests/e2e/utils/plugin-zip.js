@@ -7,17 +7,34 @@ import path from 'node:path';
 /**
  * Internal dependencies
  */
-import { settings } from '../config/env';
+import { artifacts, settings } from '../config/env';
 
 /** Host path of the zip under test. */
 export const zipPath = () => settings.zip;
 
+/** Host folder the install sites map to wp-content/publishio-e2e-zips. */
+const mappedZips = path.join( artifacts, 'zips' );
+
 /**
- * Zip path inside the wp-env container.
- * @param {string} file Path of the file.
+ * Zip path inside the wp-env container. Without `file`, the zip under test is copied into the
+ * mapped folder first when PUBLISHIO_ZIP points elsewhere, so WP-CLI installs that exact zip.
+ * @param {string} [file] File name inside the mapped folder.
  */
-export const zipPathInContainer = ( file = path.basename( zipPath() ) ) =>
-	`/var/www/html/wp-content/publishio-e2e-zips/${ file }`;
+export function zipPathInContainer( file ) {
+	if ( ! file ) {
+		const zip = zipPath();
+		file = path.basename( zip );
+		if (
+			path.resolve( path.dirname( zip ) ) !== path.resolve( mappedZips )
+		) {
+			// A separate name, so a built artifacts/zips/publishio.zip is never overwritten.
+			file = `selected-${ file }`;
+			fs.mkdirSync( mappedZips, { recursive: true } );
+			fs.copyFileSync( zip, path.join( mappedZips, file ) );
+		}
+	}
+	return `/var/www/html/wp-content/publishio-e2e-zips/${ file }`;
+}
 
 export function zipEntries( zip = zipPath() ) {
 	return execSync( `unzip -Z1 "${ zip }"`, { encoding: 'utf8' } )

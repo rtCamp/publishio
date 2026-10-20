@@ -67,13 +67,18 @@ export async function isRunning( site ) {
 }
 
 /**
- * Start the site unless running or reached via WP_BASE_URL.
+ * Start the site unless running or reached via WP_BASE_URL. Reusing a running site clears an
+ * earlier run's marker (e.g. one left by E2E_KEEP_SITES=1), so teardown leaves it running.
  *
  * @param {import('../config/env').Site} site Site.
  * @return {Promise<boolean>} True when this call started the site.
  */
 export async function ensureRunning( site ) {
-	if ( process.env.WP_BASE_URL || ( await isRunning( site ) ) ) {
+	if ( process.env.WP_BASE_URL ) {
+		return false;
+	}
+	if ( await isRunning( site ) ) {
+		fs.rmSync( marker( site ), { force: true } );
 		return false;
 	}
 	// Must exist before wp-env maps them into the container.

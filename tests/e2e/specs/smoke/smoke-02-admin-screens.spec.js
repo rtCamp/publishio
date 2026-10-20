@@ -2,10 +2,6 @@
  * SMOKE-02: every admin screen renders (#126).
  */
 /**
- * External dependencies
- */
-
-/**
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';

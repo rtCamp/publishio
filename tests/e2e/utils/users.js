@@ -2,9 +2,7 @@
  * External dependencies
  */
 import { test } from '@playwright/test';
-/**
- * WordPress dependencies
- */
+
 export const PASSWORD = 'e2e-Password-123!';
 
 /**

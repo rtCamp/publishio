@@ -1,0 +1,112 @@
+{
+	"sites": {
+		"test": {
+			"description": "Repo mounted as the plugin, latest WordPress (or WP_ENV_CORE)",
+			"wpEnvConfig": ".wp-env.test.json",
+			"baseURL": "http://localhost:8889",
+			"plugin": "mounted",
+			"debugLog": "tests/_output/debug-test.log"
+		},
+		"install": {
+			"description": "Clean site, plugin installed from the zip, latest WordPress (or WP_ENV_CORE)",
+			"wpEnvConfig": ".wp-env.install.json",
+			"baseURL": "http://localhost:8890",
+			"plugin": "zip",
+			"debugLog": "tests/_output/install/debug.log"
+		},
+		"test-wp69": {
+			"description": "Repo mounted as the plugin, WordPress 6.9 + PHP 8.2 (declared minimum)",
+			"wpEnvConfig": ".wp-env.test-wp69.json",
+			"baseURL": "http://localhost:8892",
+			"plugin": "mounted",
+			"debugLog": "tests/_output/debug-test-wp69.log",
+			"wp": "6.9",
+			"php": "8.2"
+		},
+		"install-wp68": {
+			"description": "Clean site on WordPress 6.8, below the plugin's 6.9 minimum: install must be refused (INSTALL-09)",
+			"wpEnvConfig": ".wp-env.install-wp68.json",
+			"baseURL": "http://localhost:8894",
+			"plugin": "zip",
+			"debugLog": "tests/_output/install-wp68/debug.log",
+			"wp": "6.8",
+			"php": "8.2"
+		},
+		"install-wp69": {
+			"description": "Clean site, plugin installed from the zip, WordPress 6.9 + PHP 8.2 (declared minimum)",
+			"wpEnvConfig": ".wp-env.install-wp69.json",
+			"baseURL": "http://localhost:8891",
+			"plugin": "zip",
+			"debugLog": "tests/_output/install-wp69/debug.log",
+			"wp": "6.9",
+			"php": "8.2"
+		},
+		"test-multisite": {
+			"description": "Repo mounted as the plugin on a multisite network, latest WordPress (or WP_ENV_CORE); weekly run",
+			"wpEnvConfig": ".wp-env.test-multisite.json",
+			"baseURL": "http://localhost:8893",
+			"plugin": "mounted",
+			"debugLog": "tests/_output/debug-test-multisite.log"
+		}
+	},
+	"projects": {
+		"smoke": {
+			"description": "Every PR: critical paths on the repo build",
+			"site": "test",
+			"testMatch": [ "smoke/**/*.spec.js" ],
+			"grep": "@smoke",
+			"retries": 1,
+			"timeout": 60000
+		},
+		"full": {
+			"description": "New WordPress release/RC or on demand: smoke + compatibility tests",
+			"site": "test",
+			"testMatch": [ "smoke/**/*.spec.js", "compat/**/*.spec.js" ],
+			"grep": "@smoke|@compat",
+			"retries": 1,
+			"timeout": 90000
+		},
+		"install": {
+			"description": "Every PR and release tag: install the built zip on a clean site (INSTALL-01 to INSTALL-13)",
+			"site": "install",
+			"testMatch": [ "install/**/*.spec.js" ],
+			"testIgnore": [ "install/install-09-min-requirements.spec.js" ],
+			"grep": "@install",
+			"retries": 0,
+			"timeout": 120000
+		},
+		"smoke-wp69": {
+			"description": "Smoke on WordPress 6.9, beside latest",
+			"site": "test-wp69",
+			"testMatch": [ "smoke/**/*.spec.js" ],
+			"grep": "@smoke",
+			"retries": 1,
+			"timeout": 60000
+		},
+		"install-wp69": {
+			"description": "Install suite on WordPress 6.9, beside latest",
+			"site": "install-wp69",
+			"testMatch": [ "install/**/*.spec.js" ],
+			"testIgnore": [ "install/install-09-min-requirements.spec.js" ],
+			"grep": "@install",
+			"retries": 0,
+			"timeout": 120000
+		},
+		"install-wp68": {
+			"description": "Local only (not run in CI): INSTALL-09, installing on WordPress below the declared minimum is refused",
+			"site": "install-wp68",
+			"testMatch": [ "install/install-09-min-requirements.spec.js" ],
+			"grep": "@install",
+			"retries": 0,
+			"timeout": 120000
+		},
+		"smoke-multisite": {
+			"description": "Smoke on a multisite network (weekly scheduled run), plus the @multisite activation checks that INSTALL covers on single sites",
+			"site": "test-multisite",
+			"testMatch": [ "smoke/**/*.spec.js" ],
+			"grep": "@smoke|@multisite",
+			"retries": 1,
+			"timeout": 60000
+		}
+	}
+}

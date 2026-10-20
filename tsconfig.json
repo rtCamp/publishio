@@ -27,6 +27,8 @@
 		"**/build-apps/*",
 		"vendor/*",
 		"node_modules/*",
+		"bin/*",
+		"tests/e2e/**/*",
 		"eslint.config.mjs"
 	]
 }

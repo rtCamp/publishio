@@ -34,7 +34,7 @@
 	],
 	"require": {
 		"php": "^8.2",
-		"wordpress/mcp-adapter": "0.6.1"
+		"wordpress/mcp-adapter": "0.6.2"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.2",

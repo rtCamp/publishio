@@ -95,7 +95,7 @@ class Insert_Pattern {
 						return new \WP_Error( 'invalid_post', __( 'Page not found.', 'publishio' ) );
 					}
 					if ( 'page' !== $post->post_type ) {
-						return new \WP_Error( 'posts_use_markup', __( 'Patterns are only for pages. Use insert-blocks-at for posts.', 'publishio' ) );
+						return new \WP_Error( 'posts_use_markup', __( 'Patterns can be inserted here only into pages. For posts, use apply-pattern-schema, then append-blocks or insert-blocks-at.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $page_id ) ) {

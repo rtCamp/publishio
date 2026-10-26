@@ -28,7 +28,7 @@ https://youtu.be/yUo94HqA9os
 * **Connect ChatGPT, Claude, and other MCP clients:** A standard MCP server for WordPress that works with ChatGPT, Claude, Claude Code, and other MCP clients that support Client ID Metadata Documents (CIMD).
 * **Pattern auto-discovery:** Automatically discovers every pattern registered on your site — from your theme, plugins, and core.
 * **Structured content generation:** The AI builds pages with proper, Block Editor-compatible block structures — no messy HTML insertion.
-* **In-chat previews:** Preview each section inside the AI chat before anything is published.
+* **In-chat approval:** Approve each section in the AI chat before it's added to the draft — page sections in a visual preview, blog post sections as text.
 * **SEO & metadata:** Automatically adds metadata and SEO details (compatible with Yoast).
 * **Runs on your own site:** A self-hosted MCP endpoint with OAuth — no third-party service in the middle.
 * **Theme agnostic:** Works with any block-based / FSE theme.
@@ -67,7 +67,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 2. **Metadata sent to AI** — each pattern's `title`, `description`, `categories`, and `keywords` are sent to the AI as structured data. The actual block markup is fetched separately, on demand.
 3. **AI selects a pattern** — the AI reads the pattern metadata and decides which pattern best fits the user's request.
 4. **Content is filled** — the AI hydrates the selected pattern with new content (headings, paragraphs, images, buttons).
-5. **Preview and approve** — the generated page is previewed in the AI chat before insertion.
+5. **Preview and approve** — each section is shown in the AI chat for your approval before it's added: on pages in a visual preview, in blog posts as text.
 
 **When a pattern has no description (or a generic one), the AI has only the `title` to work with for matching.** A title like "Hero Section" doesn't tell the AI whether it's a full-width hero, a split hero with an image, a centered hero with a CTA, or a hero with a background video. The AI must then fetch the full content of every pattern that matches a keyword — adding expensive round trips — just to understand what each one looks like.
 
@@ -88,7 +88,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 == Frequently Asked Questions ==
 
 = Will it change my design? =
-No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You review every section in an in-chat preview before anything is published, so nothing reaches your site without your approval.
+No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You approve every section in the chat before it's added to the draft, and nothing goes live until you publish it in WordPress.
 
 = How do I connect ChatGPT to WordPress? =
 Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. The Publishio dashboard includes a step-by-step ChatGPT setup guide alongside the Claude guide.
@@ -112,7 +112,7 @@ Yes, if the app supports Client ID Metadata Documents (CIMD), the OAuth sign-in 
 No, it works with any block-based / FSE theme. Themes with well-described patterns (like Twenty Twenty-Five) yield the best results, because the AI matches patterns from their names and descriptions.
 
 = Does the AI publish directly, or can I review content first? =
-You're always in control. The plugin shows in-chat previews of each section before anything is inserted. You can review, request changes, or approve before content is published.
+You're always in control. The AI shows you each section in the chat before adding it: page sections in a visual preview with Insert and Show alternative buttons, blog post sections as text. You can approve, request changes, or ask for a different pattern. The AI can't publish: everything stays a draft until you publish it in WordPress. Building pages needs an AI app that can show the visual preview; in an app that can't, the AI tells you.
 
 = Does it work with classic (non-block) themes? =
 Publishio is designed for block-based and Full Site Editing (FSE) themes. Classic themes without block editor support are not recommended — the AI generates Block Editor content that requires block-aware themes to render correctly.
@@ -136,12 +136,13 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 1. The chat prompt in ChatGPT or Claude, where you describe the page or post you want in plain language.
 2. The AI's plan in the chat — a section-by-section outline of the page, with each section mapped to one of your site's own block patterns.
-3. The in-chat preview of a generated section, shown for review with insert and show-alternative controls before anything is added to the draft.
+3. The in-chat preview of a generated page section, shown for review with insert and show-alternative controls before anything is added to the draft.
 4. The finished page on your site, assembled from your patterns and styled by your active theme.
-5. The Publishio Guide page in the WordPress dashboard — lists available AI setup guides.
+5. The Publishio Guide page, with your MCP server URL, a readiness check, and setup guides for Claude and ChatGPT.
 6. The Claude AI setup guide showing how to add a custom MCP connector in Claude's Customize > Connectors panel.
-7. The WordPress OAuth authorization screen, where Claude requests access to your site via the Publishio MCP server.
+7. The authorization screen, where you approve an AI app's access to your site.
 8. The Connections page listing all AI apps that have authenticated with your site, with user, connection date, and last-active details.
+9. The Status page, checking whether AI apps can connect to your site.
 
 == Changelog ==
 

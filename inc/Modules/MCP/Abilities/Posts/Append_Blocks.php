@@ -66,7 +66,7 @@ class Append_Blocks {
 					}
 
 					if ( 'page' === $post->post_type ) {
-						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Use append-pattern instead.', 'publishio' ) );
+						return new \WP_Error( 'pages_use_patterns', __( 'Raw block markup is not allowed for pages. Add patterns to pages with preview-pattern.', 'publishio' ) );
 					}
 
 					$markup = trim( $input['markup'] ?? '' );

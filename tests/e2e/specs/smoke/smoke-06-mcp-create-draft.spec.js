@@ -107,7 +107,9 @@ test.describe(
 				}
 			);
 			expect( pattern.isError ).toBe( true );
-			expect( pattern.text ).toContain( 'Patterns are only for pages' );
+			expect( pattern.text ).toContain(
+				'Patterns can be inserted here only into pages'
+			);
 		} );
 
 		test( 'SMOKE-06.5 invalid input returns tool errors', async ( {

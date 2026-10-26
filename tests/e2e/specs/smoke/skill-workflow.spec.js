@@ -254,43 +254,56 @@ test.describe(
 			}
 		);
 
-		test( 'SKILL-04 landing pages: append a section through the WordPress REST API, as the skill says', async ( {
+		test( 'SKILL-04 landing pages: each approved section is appended at the end; the token cannot write pages over the REST API', async ( {
 			mcp,
 			anonApi,
 			connection,
 		} ) => {
-			test.fixme(
-				true,
-				'SKILL.md step 8 tells clients to write page content with POST /wp/v2/pages/{id}, but the ' +
-					'Publishio token is only accepted on the MCP endpoint (401). insert-pattern-confirmed works.'
-			);
+			requiresTwentyTwentyFive();
 			const pageId = await draft( mcp, 'SKILL-04 page', 'page' );
-			const current = (
+			for ( const headline of [ 'First section', 'Second section' ] ) {
+				const res = await mcp.callTool(
+					'publishio/insert-pattern-confirmed',
+					{
+						page_id: pageId,
+						position: -1,
+						pattern_name: 'twentytwentyfive/cta-centered-heading',
+						schema: [
+							{
+								block: 'core/heading',
+								fields: { content: headline },
+							},
+						],
+					}
+				);
+				expect( res.isError, res.text ).toBe( false );
+			}
+			const content = (
 				await mcp.callTool( 'publishio/get-post', { post_id: pageId } )
 			).data.content;
-			const res = await anonApi.post(
+			expect( content.indexOf( 'First section' ) ).toBeGreaterThan( -1 );
+			expect( content.indexOf( 'Second section' ) ).toBeGreaterThan(
+				content.indexOf( 'First section' )
+			);
+
+			const rest = await anonApi.post(
 				`/wp-json/wp/v2/pages/${ pageId }`,
 				{
 					headers: {
 						Authorization: `Bearer ${ connection.tokens.access_token }`,
 					},
 					data: {
-						content: current + PARAGRAPH( 'Appended over REST' ),
+						content: content + PARAGRAPH( 'Appended over REST' ),
 					},
 				}
 			);
-			expect( res.status(), await res.text() ).toBe( 200 );
+			expect( rest.status(), await rest.text() ).toBe( 401 );
 		} );
 
-		test( 'SKILL-05 repeating items: removing an entry shows one item fewer', async ( {
+		test( 'SKILL-05 repeating items: a left-out entry keeps its item, with the pattern placeholder content', async ( {
 			mcp,
 		} ) => {
 			requiresTwentyTwentyFive();
-			test.fixme(
-				true,
-				'SKILL.md: "You may reduce count by removing entries." Schemas are a flat list applied by ' +
-					'position, so removing an entry shifts the text instead of removing the item.'
-			);
 			const name = 'twentytwentyfive/services-3-col';
 			const schema = (
 				await mcp.callTool( 'publishio/get-pattern-schema', { name } )
@@ -300,7 +313,21 @@ test.describe(
 			).length;
 			expect( images ).toBe( 3 );
 
-			// Drop the third service (the last three entries).
+			// Fill every text entry except the third service (the last three entries).
+			const kept = schema.slice( 0, -3 ).map( ( entry, i ) =>
+				'content' in entry.fields
+					? {
+							block: entry.block,
+							fields: { content: `SKILL-05 text ${ i }` },
+					  }
+					: entry
+			);
+			const leftOut = schema
+				.slice( -3 )
+				.filter( ( entry ) => entry.fields.content )
+				.map( ( entry ) => entry.fields.content );
+			expect( leftOut.length ).toBeGreaterThan( 0 );
+
 			const pageId = await draft( mcp, 'SKILL-05 page', 'page' );
 			const res = await mcp.callTool(
 				'publishio/insert-pattern-confirmed',
@@ -308,7 +335,7 @@ test.describe(
 					page_id: pageId,
 					position: -1,
 					pattern_name: name,
-					schema: schema.slice( 0, -3 ),
+					schema: kept,
 				}
 			);
 			expect( res.isError, res.text ).toBe( false );
@@ -316,8 +343,12 @@ test.describe(
 				await mcp.callTool( 'publishio/get-post', { post_id: pageId } )
 			).data.content;
 			expect( content.match( /<!-- wp:image/g ) ?? [] ).toHaveLength(
-				images - 1
+				images
 			);
+			expect( content ).toContain( 'SKILL-05 text 0' );
+			for ( const placeholder of leftOut ) {
+				expect( content ).toContain( placeholder );
+			}
 		} );
 
 		test(
@@ -600,22 +631,17 @@ test.describe(
 			}
 		);
 
-		test( 'SKILL-08 new terms: create a tag through the WordPress REST API, as the skill says', async ( {
+		test( 'SKILL-08 new terms: the token cannot create them over the REST API, so the user adds them in WordPress', async ( {
 			anonApi,
 			connection,
 		} ) => {
-			test.fixme(
-				true,
-				'SKILL.md: "if confirmed, create via the WordPress REST API". The Publishio token is only ' +
-					'accepted on the MCP endpoint, so this is refused (401) and no MCP tool creates terms.'
-			);
 			const res = await anonApi.post( '/wp-json/wp/v2/tags', {
 				headers: {
 					Authorization: `Bearer ${ connection.tokens.access_token }`,
 				},
 				data: { name: `SKILL confirmed ${ Date.now() }` },
 			} );
-			expect( res.status(), await res.text() ).toBe( 201 );
+			expect( res.status(), await res.text() ).toBe( 401 );
 		} );
 
 		test(
@@ -836,6 +862,27 @@ test.describe(
 					expect( read.data ).toMatchObject( fields );
 				}
 			);
+		} );
+
+		test( 'SKILL-12 every tool the skill tells the AI to call is listed by the MCP server', async ( {
+			mcp,
+		} ) => {
+			const appOnly = [
+				'publishio-render-pattern',
+				'publishio-insert-pattern-confirmed',
+			];
+			const guide = await mcp.rpc( 'resources/read', {
+				uri: 'wordpress://publishio/content-generation-guide',
+			} );
+			const named = [
+				...new Set(
+					guide.contents[ 0 ].text.match( /publishio-[a-z-]+[a-z]/g )
+				),
+			].filter( ( name ) => ! appOnly.includes( name ) );
+			expect( named.length ).toBeGreaterThan( 10 );
+
+			const listed = ( await mcp.listTools() ).map( ( t ) => t.name );
+			expect( listed ).toEqual( expect.arrayContaining( named ) );
 		} );
 	}
 );

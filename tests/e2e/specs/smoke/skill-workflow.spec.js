@@ -24,6 +24,24 @@ const PARAGRAPH = ( text ) =>
 const PLUGIN_DIR = 'wp-content/plugins/publishio';
 
 /**
+ * Yoast SEO zip for SKILL-11, the same one `.wp-env.test.json` pre-installs. Pinned so a Yoast
+ * release can't break the test (28.8 needs WordPress 7.0). Installed by URL because
+ * `wp plugin install wordpress-seo --version=…` checks the latest release's requirements and
+ * refuses on the 6.9 site.
+ */
+const YOAST_ZIP =
+	'https://downloads.wordpress.org/plugin/wordpress-seo.28.7.zip';
+
+/**
+ * Whether this site's wp-env config pre-installs Yoast SEO (a pinned zip). That copy can't be
+ * deleted, and `wp plugin install` fails on it once WordPress.org has a newer Yoast.
+ */
+const yoastPreinstalled = () =>
+	fs
+		.readFileSync( currentSite().wpEnvConfig, 'utf8' )
+		.includes( 'wordpress-seo' );
+
+/**
  * Create a draft through Publishio and return its ID.
  *
  * @param {import('../../utils/mcp').McpClient} mcp      MCP client.
@@ -689,9 +707,7 @@ test.describe(
 					'plugin deactivate wordpress-seo',
 					ALREADY.pluginMissing
 				);
-				const mapped = fs
-					.readFileSync( currentSite().wpEnvConfig, 'utf8' )
-					.includes( 'wordpress-seo' );
+				const mapped = yoastPreinstalled();
 				if ( ! mapped ) {
 					wpCli( 'plugin delete wordpress-seo' );
 				}
@@ -811,7 +827,17 @@ test.describe(
 
 		test.describe( 'with Yoast SEO active', () => {
 			test.beforeAll( () => {
-				wpCli( 'plugin install wordpress-seo --activate' );
+				// Activate the copy wp-env pre-installs; elsewhere install the same pinned zip.
+				wpCli(
+					yoastPreinstalled()
+						? 'plugin activate wordpress-seo'
+						: `plugin install ${ YOAST_ZIP } --activate`
+				);
+				expect(
+					wpCli( 'plugin list --status=active --field=name' ).split(
+						'\n'
+					)
+				).toContain( 'wordpress-seo' );
 			} );
 			test.afterAll( () => {
 				wpCliQuietly(

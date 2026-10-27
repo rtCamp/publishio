@@ -1,12 +1,12 @@
 === Publishio – Build Pages & Posts with ChatGPT and Claude using MCP ===
-Contributors:      rtCamp, utsavladani, iamdanih17, aviral89, hiabhaykulkarni, justlevine, muralig, dipankardas011
+Contributors:      rtCamp, utsavladani, iamdanih17, aviral89, hiabhaykulkarni, justlevine, jayson31, muralig, dipankardas011
 Tags:              chatgpt, claude, ai, mcp, ai content
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.1
-Stable tag:        1.1.0
+Stable tag:        1.2.0
 
 AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
@@ -82,7 +82,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 
 1. Install and activate the plugin in your WordPress dashboard.
 2. Ensure you meet the requirements (WordPress 6.9+, PHP 8.2+, pretty permalinks).
-3. Open the **Publishio** page in your dashboard. It shows your site's MCP server URL and a step-by-step guide for connecting Claude; ChatGPT and other MCP clients connect to the same URL (see the FAQ).
+3. Open the **Publishio** page in your dashboard. It shows your site's MCP server URL and step-by-step guides for connecting Claude and ChatGPT; other MCP clients connect to the same URL (see the FAQ).
 4. Add the connection in your AI, authorize it, and start prompting it to build pages and posts from your patterns.
 
 == Frequently Asked Questions ==
@@ -146,6 +146,16 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 == Changelog ==
 
+= 1.2.0 =
+* Add a Status page (Publishio → Status) that checks whether AI apps can reach your site and tells you what to fix.
+* Let Claude Code connect to live sites, not just development sites.
+* Let AI apps see and change only the Yoast SEO fields you see in the editor.
+* Replace dynamic client registration (DCR) with Client ID Metadata Documents (CIMD). Claude, Claude Code and ChatGPT support it. Apps that only support DCR, such as Cursor, can't connect until they add CIMD.
+* Fix the Connections page, which was blank on WordPress 6.9.
+* Fix pattern images and covers that showed "Attempt Block Recovery" in the editor.
+* Remove the upload-media tool, which let AI apps make your site download any web address. Upload images to the media library instead.
+* Disconnect AI apps when a user changes their password or clicks "Log Out Everywhere Else" on their profile, and ask for approval again 90 days after an app was connected.
+
 = 1.1.0 =
 * Add an in-dashboard ChatGPT setup guide for connecting OpenAI to your site.
 * Update bundled dependencies and fix reported npm vulnerabilities.
@@ -177,6 +187,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+* MCP specification and security update. AI apps now connect with CIMD instead of DCR, as the latest MCP specification recommends, so approve each app, such as ChatGPT or Claude, again after updating. Apps without CIMD support, such as Cursor, can't connect yet.
 
 = 1.1.0 =
 * Adds an in-dashboard ChatGPT setup guide. No upgrade steps required.

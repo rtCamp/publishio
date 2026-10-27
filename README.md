@@ -153,6 +153,7 @@ See [./docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#directory-structure) for a detai
 [@aviral-mittal](https://github.com/aviral-mittal)
 [@HiAbhayKulkarni](https://github.com/HiAbhayKulkarni)
 [@justlevine](https://github.com/justlevine)
+[@jayson31](https://github.com/jayson31)
 [@muralig-hub](https://github.com/muralig-hub)
 [@dipankardas011](https://github.com/dipankardas011)
 

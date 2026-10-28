@@ -1,11 +1,11 @@
 {
 	"sites": {
 		"test": {
-			"description": "Repo mounted as the plugin, latest WordPress (or WP_ENV_CORE)",
-			"wpEnvConfig": ".wp-env.test.json",
-			"baseURL": "http://localhost:8889",
+			"description": "Repo mounted as the plugin, latest WordPress (or WP_ENV_CORE). Own config: .wp-env.test.json is the PHP unit tests' site",
+			"wpEnvConfig": ".wp-env.e2e.json",
+			"baseURL": "http://localhost:8895",
 			"plugin": "mounted",
-			"debugLog": "tests/_output/debug-test.log"
+			"debugLog": "tests/_output/debug-e2e.log"
 		},
 		"install": {
 			"description": "Clean site, plugin installed from the zip, latest WordPress (or WP_ENV_CORE)",

@@ -9,6 +9,9 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
+
 /**
  * Class - Set_Post_Terms
  */
@@ -27,16 +30,16 @@ class Set_Post_Terms {
 					'type'                 => 'object',
 					'required'             => [ 'post_id', 'taxonomy', 'terms' ],
 					'properties'           => [
-						'post_id'  => [
+						'post_id'        => [
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'description' => 'ID of the post.',
 						],
-						'taxonomy' => [
+						'taxonomy'       => [
 							'type'        => 'string',
 							'description' => 'Taxonomy slug, e.g. "category" or "post_tag".',
 						],
-						'terms'    => [
+						'terms'          => [
 							'type'        => 'array',
 							'description' => 'Term slugs or integer IDs to assign. Pass an empty array to remove all terms.',
 							'items'       => [
@@ -49,6 +52,7 @@ class Set_Post_Terms {
 								],
 							],
 						],
+						'approval_token' => Schema::approval_token(),
 					],
 					'additionalProperties' => false,
 				],
@@ -80,13 +84,10 @@ class Set_Post_Terms {
 					$taxonomy = sanitize_key( $input['taxonomy'] ?? '' );
 					$terms    = $input['terms'] ?? [];
 
-					$post = get_post( $post_id );
-					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
-					}
+					$post = Post_Writer::writable( $post_id, (string) ( $input['approval_token'] ?? '' ) );
 
-					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+					if ( is_wp_error( $post ) ) {
+						return $post;
 					}
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {

@@ -31,6 +31,47 @@ class Set_Yoast_MetaTest extends Yoast_Ability_TestCase {
 	}
 
 	/**
+	 * Yoast fields work on a custom post type, backslashes included, and a published post needs the user's approval first.
+	 */
+	public function test_writes_on_a_custom_post_type(): void {
+		register_post_type(
+			'publishio_book',
+			[
+				'public'       => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor' ],
+			]
+		);
+
+		$post_id = $this->own_post_as( 'editor' );
+		set_post_type( $post_id, 'publishio_book' );
+
+		$result = $this->execute(
+			[
+				'post_id'   => $post_id,
+				'seo_title' => 'Books \\ reading',
+			]
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Books \\ reading', get_post_meta( $post_id, '_yoast_wpseo_title', true ) );
+
+		wp_publish_post( $post_id );
+
+		$this->assertAbilityError(
+			$this->execute(
+				[
+					'post_id'   => $post_id,
+					'seo_title' => 'Changed',
+				]
+			),
+			'live_post_needs_approval'
+		);
+
+		unregister_post_type( 'publishio_book' );
+	}
+
+	/**
 	 * A call with any field Yoast hides is refused, and none of its fields are written.
 	 */
 	public function test_refuses_hidden_fields_and_writes_nothing(): void {

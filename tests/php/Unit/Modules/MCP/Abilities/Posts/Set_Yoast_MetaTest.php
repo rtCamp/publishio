@@ -30,7 +30,7 @@ class Set_Yoast_MetaTest extends Ability_TestCase {
 	 */
 	public function test_errors_when_yoast_is_not_active(): void {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 
 		$result = $this->execute(
 			[

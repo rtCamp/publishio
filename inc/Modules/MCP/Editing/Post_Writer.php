@@ -125,6 +125,24 @@ final class Post_Writer {
 	}
 
 	/**
+	 * Find a post the current user can edit and that may change now, for tools that change a post's details rather than its blocks.
+	 *
+	 * @param int    $post_id        The post ID.
+	 * @param string $approval_token The token the user's approval unlocked, for a live post.
+	 */
+	public static function writable( int $post_id, string $approval_token = '' ): \WP_Post|\WP_Error {
+		$post = self::find( $post_id );
+
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$guard = self::guard( $post, $approval_token );
+
+		return is_wp_error( $guard ) ? $guard : $post;
+	}
+
+	/**
 	 * Refuse a change to a post that is open in the editor.
 	 *
 	 * @param \WP_Post $post The post.

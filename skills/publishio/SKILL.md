@@ -35,7 +35,7 @@ Every interactive question goes through `ask_user_input` as buttons. Never use p
 | `publishio-update-post`        | Update metadata only: `title`, `slug`, `excerpt`, `parent_id`, `template`. Does **not** accept `content`                                       |
 | `publishio-insert-blocks`      | Insert block markup at a path in any post type, before or after a block or at the start or end inside it                                       |
 | `publishio-delete-blocks`      | Delete blocks by path (works on all post types)                                                                                                |
-| `publishio-render-block`       | Render block markup to HTML. `is_valid` is false when no block parses or a block type isn't registered                                         |
+| `publishio-render-blocks`      | Dry run: check block markup the way a write would, and render it to HTML                                                                       |
 | `publishio-set-featured-image` | Set the featured image by attachment ID                                                                                                        |
 | `publishio-search-posts`       | Search existing posts/pages                                                                                                                    |
 
@@ -140,7 +140,7 @@ Prose body (paragraphs, headings, lists, quotes, inline images) uses direct bloc
 5. **Draft section content** in chat (prose, headings, excerpt, proposed categories/tags, SEO fields). For pattern sections, fetch the schema first and size content to its default content. Get approval.
 6. **Create an empty draft** via `publishio-create-post`.
 7. **For each section in order:**
-   - Prose section: write block markup directly, check it with `publishio-render-block`, append via `publishio-insert-blocks`
+   - Prose section: write block markup directly, check it with `publishio-render-blocks`, append via `publishio-insert-blocks`
    - Pattern section: fetch schema → fill → `publishio-apply-pattern-schema` → **show the content in chat, wait for approval** → append the returned `markup` via `publishio-insert-blocks`
 8. **Set the featured image** if the user wanted one: `publishio-set-featured-image` with the attachment ID found in step 3.
 9. **Assign categories and tags** using `publishio-set-post-terms` (taxonomy `"category"` then `"post_tag"`).

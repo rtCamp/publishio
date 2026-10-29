@@ -10,9 +10,9 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities;
 
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\Get_Block;
-use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\Get_Custom_Blocks;
-use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\Render_Block;
+use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\Get_Block_Type;
+use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\List_Block_Types;
+use rtCamp\Publishio\Modules\MCP\Abilities\Blocks\Render_Blocks;
 use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Blocks as Blocks_Category;
 use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Patterns as Patterns_Category;
 use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts as Posts_Category;
@@ -89,9 +89,9 @@ final class Abilities implements Registrable {
 			new Preview_Pattern(),
 			new Render_Pattern(),
 			new Insert_Pattern(),
-			new Get_Custom_Blocks(),
-			new Get_Block(),
-			new Render_Block(),
+			new List_Block_Types(),
+			new Get_Block_Type(),
+			new Render_Blocks(),
 			new Get_Post_Types(),
 			new Create_Post(),
 			new Get_Post(),

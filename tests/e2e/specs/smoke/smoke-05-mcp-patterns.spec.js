@@ -15,6 +15,7 @@ const CORE_TOOLS = [
 	'publishio/get-post',
 	'publishio/insert-blocks',
 	'publishio/insert-pattern',
+	'publishio/preview-post',
 ].map( tool );
 
 test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {

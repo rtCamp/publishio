@@ -128,6 +128,13 @@ final class Create_Pattern extends Block_Edit_Ability {
 	/**
 	 * {@inheritDoc}
 	 */
+	protected function preview(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function execute( array $input ): array|\WP_Error {
 		$has_markup = isset( $input['markup'] );
 		$has_paths  = isset( $input['post_id'] ) || isset( $input['paths'] );

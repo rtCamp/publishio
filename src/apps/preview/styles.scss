@@ -1,0 +1,522 @@
+/* The Publishio Preview card, as designed in the Preview Kit. */
+
+:root {
+	--card: #fff;
+	--raise: #f7f6f4;
+	--ink: #1d1b1a;
+	--ink-2: #4a4644;
+	--muted: #78716c;
+	--line: #e5e1dd;
+	--line-2: #d2ccc6;
+	--brand: #d4441f;
+	--brand-hover: #bd3b19;
+	--ok-ink: #007017;
+	--warn-ink: #8a5a00;
+	--info-ink: #135e96;
+	--serp-t: #1a0dab;
+	--font-app: "Instrument Sans", -apple-system, blinkmacsystemfont, "Segoe UI", system-ui, sans-serif;
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--r: 8px;
+
+	color-scheme: light;
+}
+
+@mixin dark {
+	--card: #1f1d1c;
+	--raise: #252322;
+	--ink: #f1eeeb;
+	--ink-2: #cfc9c4;
+	--muted: #9a938d;
+	--line: #2f2c2a;
+	--line-2: #403b38;
+	--brand-hover: #e2522c;
+	--ok-ink: #62d27e;
+	--warn-ink: #f0c060;
+	--info-ink: #7ab4ec;
+	--serp-t: #8ab4f8;
+
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+
+	:root:not([data-theme="light"]) {
+
+		@include dark;
+	}
+}
+
+:root[data-theme="dark"] {
+
+	@include dark;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: transparent;
+	font-family: var(--font-app);
+	-webkit-font-smoothing: antialiased;
+}
+
+p {
+	margin: 0;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--brand);
+	outline-offset: 2px;
+}
+
+/* Card: one bar, no footer. */
+
+.pc {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	background: var(--card);
+	color: var(--ink);
+	border: 1px solid var(--line);
+	border-radius: var(--r);
+	text-align: left;
+}
+
+.pc-head {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	min-width: 0;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--line);
+}
+
+.logo-wrap {
+	position: relative;
+	display: block;
+	flex: none;
+}
+
+.pc-logo {
+	display: block;
+	width: 26px;
+	height: 26px;
+	overflow: hidden;
+	border-radius: 6px;
+	box-shadow: 0 0 0 1px var(--line);
+
+	svg {
+		display: block;
+	}
+}
+
+.kind-badge {
+	position: absolute;
+	right: -5px;
+	bottom: -5px;
+	display: grid;
+	place-items: center;
+	width: 17px;
+	height: 17px;
+	border-radius: 50%;
+	background: var(--ink);
+	color: var(--card);
+	box-shadow: 0 0 0 2px var(--card);
+
+	svg {
+		width: 10px;
+		height: 10px;
+	}
+}
+
+.pc-titles {
+	flex: 1;
+	min-width: 0;
+}
+
+.pc-title,
+.pc-sub {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pc-title {
+	font-size: 13.5px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.kind-tag {
+	margin-right: 7px;
+	color: var(--muted);
+	font: 600 10.5px/1 var(--font-app);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	vertical-align: 1px;
+}
+
+.pc-sub {
+	color: var(--muted);
+	font-size: 12.5px;
+	line-height: 1.35;
+}
+
+.sub-st {
+	font-weight: 600;
+}
+
+.tone-ok {
+	color: var(--ok-ink);
+}
+
+.tone-warn {
+	color: var(--warn-ink);
+}
+
+.tone-info {
+	color: var(--info-ink);
+}
+
+.tone-muted {
+	color: var(--muted);
+}
+
+.sub-sep {
+	color: var(--muted);
+	font-weight: 400;
+}
+
+/* Buttons: one solid brand color, corners follow the card. */
+
+.btn {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 32px;
+	padding: 0 13px;
+	border: 1px solid transparent;
+	border-radius: var(--r);
+	background: transparent;
+	font: 600 13px/1 var(--font-app);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: transform 140ms var(--ease-out), background-color 150ms ease, border-color 150ms ease;
+
+	&:active {
+		transform: scale(0.97);
+	}
+
+	svg {
+		flex: none;
+		width: 13px;
+		height: 13px;
+	}
+}
+
+.btn-p {
+	background: var(--brand);
+	color: #fff;
+}
+
+.btn-s {
+	border-color: var(--line-2);
+	background: var(--card);
+	color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+
+	.btn-p:hover {
+		background: var(--brand-hover);
+	}
+
+	.btn-s:hover {
+		border-color: var(--muted);
+	}
+
+	.tabs button:hover {
+		color: var(--ink);
+	}
+}
+
+/* Tabs: page view only, underlined. */
+
+.tabs {
+	display: flex;
+	gap: 6px;
+	padding: 0 12px;
+	border-bottom: 1px solid var(--line);
+
+	button {
+		margin-bottom: -1px;
+		padding: 11px 6px 10px;
+		border: 0;
+		border-bottom: 2px solid transparent;
+		background: none;
+		color: var(--muted);
+		font: 600 13px/1 var(--font-app);
+		cursor: pointer;
+		transition: color 150ms ease, border-color 150ms ease;
+	}
+
+	button[aria-selected="true"] {
+		border-bottom-color: var(--brand);
+		color: var(--ink);
+	}
+}
+
+/* Body: the render touches the card's edges. */
+
+.pc-body {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transition: height 280ms var(--ease-out);
+
+	&.scrolls {
+		overflow-y: auto;
+		scrollbar-width: thin;
+	}
+
+	&.fixed {
+		height: 220px;
+	}
+
+	&.pad {
+		padding: 16px;
+		background: var(--card);
+	}
+}
+
+.pc-frame {
+	flex: none;
+	width: 100%;
+	margin-block: auto;
+	overflow: hidden;
+
+	iframe {
+		display: block;
+		border: 0;
+		pointer-events: none;
+		transform-origin: top left;
+	}
+}
+
+/* Loading: bloom. */
+
+.ld {
+	display: grid;
+	place-items: center;
+	height: 100%;
+}
+
+.bloom {
+	width: 112px;
+	height: 112px;
+	overflow: visible;
+}
+
+.spin {
+	transform-box: view-box;
+	transform-origin: 0 0;
+	animation: bloom-spin 2.8s var(--ease-in-out) infinite;
+}
+
+.petal {
+	transform-box: view-box;
+	transform-origin: 0 0;
+	opacity: 0;
+	fill: var(--brand);
+	animation: bloom-fan 2.8s var(--ease-in-out) infinite;
+}
+
+@keyframes bloom-fan {
+
+	0%,
+	6% {
+		transform: rotate(0deg);
+		opacity: 0;
+	}
+
+	30%,
+	70% {
+		transform: rotate(calc(var(--i) * 60deg));
+		opacity: var(--o);
+	}
+
+	94%,
+	100% {
+		transform: rotate(0deg);
+		opacity: 0;
+	}
+}
+
+@keyframes bloom-spin {
+
+	0%,
+	30% {
+		transform: rotate(0deg);
+	}
+
+	70%,
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Error: calm, since nothing was lost. */
+
+.er {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 100%;
+	padding: 24px 18px;
+	text-align: center;
+}
+
+.er-ico {
+	display: grid;
+	place-items: center;
+	width: 64px;
+	height: 64px;
+	margin-bottom: 8px;
+	border-radius: 17px;
+	background: var(--raise);
+	color: var(--muted);
+
+	svg {
+		width: 34px;
+		height: 34px;
+	}
+}
+
+.er-t {
+	font-size: 15.5px;
+	font-weight: 600;
+}
+
+.er-d {
+	max-width: 36ch;
+	color: var(--ink-2);
+	font-size: 13.5px;
+}
+
+.er-b {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+/* Search and social tabs. */
+
+.serp {
+	display: grid;
+	gap: 3px;
+	max-width: 520px;
+
+	.u {
+		color: var(--muted);
+		font-size: 12px;
+	}
+
+	.t {
+		overflow: hidden;
+		color: var(--serp-t);
+		font-size: 17px;
+		line-height: 1.3;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.d {
+		display: -webkit-box;
+		overflow: hidden;
+		color: var(--ink-2);
+		font-size: 13px;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.d.none {
+		color: var(--muted);
+	}
+}
+
+.serp-hidden {
+	color: var(--muted);
+	font-size: 13.5px;
+}
+
+.share {
+	max-width: 420px;
+	overflow: hidden;
+	border-radius: 4px;
+	box-shadow: 0 0 0 1px var(--line);
+
+	.img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 1.91 / 1;
+		object-fit: cover;
+	}
+
+	.txt {
+		display: grid;
+		gap: 2px;
+		padding: 10px 12px;
+		background: var(--raise);
+	}
+
+	small {
+		color: var(--muted);
+		font-size: 11px;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	b {
+		font-size: 14px;
+	}
+
+	span {
+		overflow: hidden;
+		color: var(--muted);
+		font-size: 12.5px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.pc-body,
+	.btn {
+		transition: none;
+	}
+
+	.spin {
+		animation: none;
+	}
+
+	.petal {
+		animation: none;
+		opacity: 0;
+	}
+}

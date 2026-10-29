@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts as Posts_Category;
+use rtCamp\Publishio\Modules\MCP\Apps\Preview\App as Preview_App;
 
 /**
  * Class - Ability
@@ -100,11 +101,25 @@ abstract class Ability {
 	}
 
 	/**
+	 * Whether apps that show previews open the Publishio Preview app with this tool's result.
+	 */
+	protected function preview(): bool {
+		return false;
+	}
+
+	/**
 	 * Register the ability.
 	 */
 	public function register(): void {
 		$mcp  = [ 'public' => true ];
 		$meta = $this->mcp_meta();
+
+		if ( $this->preview() ) {
+			$meta['ui'] = [
+				'resourceUri' => Preview_App::URI,
+				'visibility'  => [ 'model', 'app' ],
+			];
+		}
 
 		if ( [] !== $meta ) {
 			$mcp['_meta'] = $meta;

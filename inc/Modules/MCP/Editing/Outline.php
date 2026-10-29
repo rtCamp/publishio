@@ -124,7 +124,7 @@ final class Outline {
 	 *
 	 * @param array<string, mixed> $block The block.
 	 */
-	private static function text( array $block ): string {
+	public static function text( array $block ): string {
 		$html = Block_Tree::own_html( $block );
 		$text = trim( (string) preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
 

@@ -101,6 +101,13 @@ final class Update_Pattern extends Ability {
 	/**
 	 * {@inheritDoc}
 	 */
+	protected function preview(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function execute( array $input ): array|\WP_Error {
 		$pattern = Pattern_Library::find( (string) ( $input['pattern'] ?? '' ) );
 

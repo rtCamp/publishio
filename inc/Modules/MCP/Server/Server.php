@@ -12,7 +12,7 @@ namespace rtCamp\Publishio\Modules\MCP\Server;
 use WP\MCP\Infrastructure\ErrorHandling\ErrorLogMcpErrorHandler;
 use WP\MCP\Transport\HttpTransport;
 use rtCamp\Publishio\Framework\Contracts\Interfaces\Registrable;
-use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\App as Pattern_Approval_App;
+use rtCamp\Publishio\Modules\MCP\Apps\Preview\App as Preview_App;
 use rtCamp\Publishio\Modules\MCP\Resources\Content_Guide\Content_Guide;
 
 /**
@@ -78,7 +78,7 @@ class Server implements Registrable {
 	 */
 	private function get_resources(): array {
 		$config = ( new Content_Guide() )->add_resource( [] );
-		$config = ( new Pattern_Approval_App() )->add_resource( $config );
+		$config = ( new Preview_App() )->add_resource( $config );
 		return $config['resources'] ?? [];
 	}
 

@@ -24,6 +24,7 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Content\Get_Post_Content;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Insert_Blocks;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Insert_Pattern;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Move_Block;
+use rtCamp\Publishio\Modules\MCP\Abilities\Content\Preview_Post;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Replace_Block;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Update_Post;
 use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Create_Pattern;
@@ -39,6 +40,7 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
 use rtCamp\Publishio\Modules\MCP\Abilities\Site\Get_Post_Types;
+use rtCamp\Publishio\Modules\MCP\Apps\Preview\Render_Preview;
 
 /**
  * Class - Abilities
@@ -92,6 +94,8 @@ final class Abilities implements Registrable {
 			new Get_Post(),
 			new Get_Post_Content(),
 			new Update_Post(),
+			new Preview_Post(),
+			new Render_Preview(),
 			new Insert_Blocks(),
 			new Insert_Pattern(),
 			new Replace_Block(),

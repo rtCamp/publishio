@@ -59,6 +59,13 @@ final class Insert_Pattern extends Block_Edit_Ability {
 	/**
 	 * {@inheritDoc}
 	 */
+	protected function preview(): bool {
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	protected function execute( array $input ): array|\WP_Error {
 		$opened = self::open( $input );
 

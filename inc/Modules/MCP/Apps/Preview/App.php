@@ -1,13 +1,13 @@
 <?php
 /**
- * Pattern Approval MCP App resource.
+ * Publishio Preview MCP App resource.
  *
- * @package rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval
+ * @package rtCamp\Publishio\Modules\MCP\Apps\Preview
  */
 
 declare( strict_types = 1 );
 
-namespace rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval;
+namespace rtCamp\Publishio\Modules\MCP\Apps\Preview;
 
 use rtCamp\Publishio\Modules\MCP\Apps\McpAppResource;
 
@@ -15,7 +15,7 @@ use rtCamp\Publishio\Modules\MCP\Apps\McpAppResource;
  * Class - App
  */
 class App extends McpAppResource {
-	public const URI = 'ui://publishio/pattern-approval';
+	public const URI = 'ui://publishio/preview';
 
 	/**
 	 * {@inheritDoc}
@@ -28,14 +28,14 @@ class App extends McpAppResource {
 	 * {@inheritDoc}
 	 */
 	protected function title(): string {
-		return 'Pattern Approval';
+		return 'Publishio Preview';
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return 'Shows a rendered block-pattern preview and collects user approval before inserting it into a page.';
+		return 'Shows what a Publishio tool changed: the inserted blocks, a saved pattern, or a whole page with its search and social details.';
 	}
 
 	/**
@@ -66,10 +66,10 @@ class App extends McpAppResource {
 	 * placeholder with the real asset base URL so <link>/<script> tags resolve.
 	 */
 	protected function build_html(): string {
-		$build_file = PUBLISHIO_PATH . 'build-apps/pattern-approval.html';
+		$build_file = PUBLISHIO_PATH . 'build-apps/preview.html';
 
 		if ( ! is_readable( $build_file ) ) {
-			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build</code> to generate the Pattern Approval app.</body></html>';
+			return '<html><body style="font-family:sans-serif;padding:1rem">Run <code>npm run build</code> to generate the Publishio Preview app.</body></html>';
 		}
 
 		$plugin_url = PUBLISHIO_URL . 'build-apps';

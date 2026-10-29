@@ -136,10 +136,18 @@ final class Pattern_Library {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function blocks_to_insert( array $pattern ): array {
-		if ( $pattern['synced'] ) {
-			return [ self::reference( $pattern['id'] ) ];
-		}
+		return $pattern['synced'] ? [ self::reference( $pattern['id'] ) ] : self::blocks( $pattern );
+	}
 
+	/**
+	 * A pattern's own blocks, with nested patterns resolved.
+	 *
+	 * @param array<string, mixed> $pattern The pattern.
+	 * @phpstan-param Pattern $pattern
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	public static function blocks( array $pattern ): array {
 		return Block_Tree::parse( serialize_blocks( resolve_pattern_blocks( parse_blocks( $pattern['markup'] ) ) ) );
 	}
 

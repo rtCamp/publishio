@@ -1,6 +1,6 @@
 <?php
 /**
- * Content Guide resource — rules and workflows for generating WordPress content.
+ * Content Guide resource: the Publishio content guide, from the skill file.
  *
  * @package rtCamp\Publishio\Modules\MCP\Resources\Content_Guide
  */
@@ -13,8 +13,29 @@ use WP\MCP\Domain\Resources\McpResource;
 
 /**
  * Class - Content_Guide
+ *
+ * One file, skills/publishio/SKILL.md, feeds this resource, the get-content-guide tool and the guide page's download, so they always match the installed version.
  */
 class Content_Guide {
+	public const FILE = 'skills/publishio/SKILL.md';
+
+	/**
+	 * The skill file as it ships, frontmatter included.
+	 */
+	public static function file(): string {
+		$path = PUBLISHIO_PATH . self::FILE;
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- A file in the plugin.
+		return is_readable( $path ) ? (string) file_get_contents( $path ) : '';
+	}
+
+	/**
+	 * The guide without the skill's frontmatter.
+	 */
+	public static function guide(): string {
+		return ltrim( (string) preg_replace( '/^---\R.*?\R---\R/s', '', self::file(), 1 ) );
+	}
+
 	/**
 	 * Add the resource to the MCP server config.
 	 *
@@ -26,11 +47,10 @@ class Content_Guide {
 			[
 				'uri'         => 'wordpress://publishio/content-generation-guide',
 				'name'        => 'publishio/content-generation-guide',
-				'title'       => 'WordPress Content Generation Guide',
-				'description' => 'Rules and workflows for generating WordPress content using patterns and incremental assembly. Read this before creating any post or page.',
+				'title'       => 'Publishio content guide',
+				'description' => 'How to plan, build and finish content on this site with Publishio. Read it before creating or editing content.',
 				'mimeType'    => 'text/markdown',
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
-				'handler'     => static fn () => file_get_contents( PUBLISHIO_PATH . 'skills/publishio/SKILL.md' ),
+				'handler'     => static fn () => self::file(),
 				'permission'  => static fn () => current_user_can( 'edit_posts' ),
 			]
 		);

@@ -16,6 +16,8 @@ interface Window {
 		tokenUrl: string;
 		statusUrl: string;
 		autoRunChecks: boolean;
+		/** The content guide, on the Guide page only. */
+		skillFile?: string;
 		guideImages: {
 			claude: {
 				connectorMenu: string;

@@ -9,6 +9,7 @@ description: Builds and edits content on the user's WordPress site through Publi
 
 - If a write returns "This connection has read-only access, so it cannot make changes to the site.", stop. Tell the user this connection can read the site but can't change it, so they need to connect the app again and approve access to create and edit content. Don't retry.
 - Every other refusal starts with a code and says how to fix it. Fix it yourself and tell the user only what affects their content.
+- If the user wants this guide as a skill in their app, send them to the `guide_page_url` from `publishio-get-content-guide`, where they can download SKILL.md. Never write the file yourself.
 
 ## 2. Understand
 

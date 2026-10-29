@@ -39,6 +39,7 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Search_Posts;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
+use rtCamp\Publishio\Modules\MCP\Abilities\Site\Get_Content_Guide;
 use rtCamp\Publishio\Modules\MCP\Abilities\Site\Get_Post_Types;
 use rtCamp\Publishio\Modules\MCP\Apps\Preview\Render_Preview;
 
@@ -89,6 +90,7 @@ final class Abilities implements Registrable {
 			new List_Block_Types(),
 			new Get_Block_Type(),
 			new Render_Blocks(),
+			new Get_Content_Guide(),
 			new Get_Post_Types(),
 			new Create_Post(),
 			new Get_Post(),

@@ -12,6 +12,7 @@ import { markDebugLog } from '../../utils/debug-log';
 import { compareVersions } from '../../utils/plugin-zip';
 import { STATUS_PAGE } from '../../utils/status';
 import { requiresTwentyTwentyFive } from '../../utils/theme';
+import { McpClient } from '../../utils/mcp';
 
 const PARAGRAPH = ( text ) =>
 	`<!-- wp:paragraph --><p>${ text }</p><!-- /wp:paragraph -->`;
@@ -902,6 +903,36 @@ test.describe(
 
 			const listed = ( await mcp.listTools() ).map( ( t ) => t.name );
 			expect( listed ).toEqual( expect.arrayContaining( named ) );
+		} );
+
+		test( 'SKILL-13 the server points the AI to get-content-guide, which returns the skill and the page to download it from', async ( {
+			anonApi,
+			connection,
+			mcp,
+		} ) => {
+			const client = new McpClient(
+				anonApi,
+				connection.discovery.resource,
+				connection.tokens.access_token
+			);
+			const { instructions } = await client.initialize();
+			expect( instructions ).toContain(
+				'call publishio-get-content-guide before creating or editing content'
+			);
+
+			const guide = await mcp.callTool( 'publishio/get-content-guide' );
+			expect( guide.isError, guide.text ).toBe( false );
+
+			const resource = await mcp.rpc( 'resources/read', {
+				uri: 'wordpress://publishio/content-generation-guide',
+			} );
+			expect(
+				resource.contents[ 0 ].text.endsWith( guide.data.guide )
+			).toBe( true );
+			expect( guide.data.guide ).toMatch( /^# Publishio content guide/ );
+			expect( guide.data.guide_page_url ).toMatch(
+				/\/wp-admin\/admin\.php\?page=publishio$/
+			);
 		} );
 	}
 );

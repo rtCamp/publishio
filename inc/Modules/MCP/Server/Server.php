@@ -50,7 +50,7 @@ class Server implements Registrable {
 			'mcp',
 			self::SERVER_ID,
 			__( 'Publishio — rtCamp', 'publishio' ),
-			__( 'MCP server for the Publishio plugin.', 'publishio' ),
+			__( 'MCP server for the Publishio plugin. For best results, follow the Publishio content guide: call publishio-get-content-guide before creating or editing content.', 'publishio' ),
 			PUBLISHIO_VERSION,
 			[ HttpTransport::class ],
 			ErrorLogMcpErrorHandler::class,

@@ -49,6 +49,13 @@ final class Block_Validator {
 	private ?array $pattern_forms = null;
 
 	/**
+	 * The blocks the site's registered patterns put directly inside each block, as parent name and child name.
+	 *
+	 * @var array<string, array<string, true>>
+	 */
+	private array $pattern_nesting = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param \WP_Post $post The post the blocks are for.
@@ -216,33 +223,63 @@ final class Block_Validator {
 	 * @param mixed  $value     The attribute value.
 	 */
 	private function used_in_patterns( string $block, string $attribute, mixed $value ): bool {
-		if ( null === $this->pattern_forms ) {
-			$this->pattern_forms = [];
-
-			foreach ( \WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern ) {
-				$this->collect_forms( parse_blocks( (string) ( $pattern['content'] ?? '' ) ) );
-			}
-		}
+		$this->index_patterns();
 
 		return isset( $this->pattern_forms[ $block ][ $attribute ][ self::value_type( $value ) ] );
 	}
 
 	/**
-	 * Record the attribute forms of blocks and everything inside them.
+	 * Whether the site's registered patterns put a block directly inside another.
 	 *
-	 * @param array<int|string, array<string, mixed>> $blocks Parsed blocks.
+	 * Some containers, such as core/navigation-submenu, set the blocks they take only in JavaScript, so the registered block types don't show that these placements are allowed.
+	 *
+	 * @param string $parent_name The container's full name.
+	 * @param string $child       The block's full name.
 	 */
-	private function collect_forms( array $blocks ): void {
+	private function nested_in_patterns( string $parent_name, string $child ): bool {
+		$this->index_patterns();
+
+		return isset( $this->pattern_nesting[ $parent_name ][ $child ] );
+	}
+
+	/**
+	 * Read the attribute forms and nesting of every registered pattern, once.
+	 */
+	private function index_patterns(): void {
+		if ( null !== $this->pattern_forms ) {
+			return;
+		}
+
+		$this->pattern_forms = [];
+
+		foreach ( \WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern ) {
+			$this->collect_forms( parse_blocks( (string) ( $pattern['content'] ?? '' ) ), null );
+		}
+	}
+
+	/**
+	 * Record the attribute forms and nesting of blocks and everything inside them.
+	 *
+	 * @param array<int|string, array<string, mixed>> $blocks      Parsed blocks.
+	 * @param ?string                                 $parent_name The full name of the block they're in.
+	 */
+	private function collect_forms( array $blocks, ?string $parent_name ): void {
 		foreach ( $blocks as $block ) {
 			$name = $block['blockName'] ?? null;
 
-			if ( is_string( $name ) ) {
-				foreach ( (array) ( $block['attrs'] ?? [] ) as $attribute => $value ) {
-					$this->pattern_forms[ $name ][ (string) $attribute ][ self::value_type( $value ) ] = true;
-				}
+			if ( ! is_string( $name ) ) {
+				continue;
 			}
 
-			$this->collect_forms( (array) ( $block['innerBlocks'] ?? [] ) );
+			foreach ( (array) ( $block['attrs'] ?? [] ) as $attribute => $value ) {
+				$this->pattern_forms[ $name ][ (string) $attribute ][ self::value_type( $value ) ] = true;
+			}
+
+			if ( null !== $parent_name ) {
+				$this->pattern_nesting[ $parent_name ][ $name ] = true;
+			}
+
+			$this->collect_forms( (array) ( $block['innerBlocks'] ?? [] ), $name );
 		}
 	}
 
@@ -301,7 +338,7 @@ final class Block_Validator {
 				$problems[] = Errors::problem( 'block_not_allowed', $path, $this->not_allowed_message( $name ) );
 			}
 
-			$placement = self::placement_problem( $type, $ancestors );
+			$placement = $this->placement_problem( $type, $ancestors );
 
 			if ( null !== $placement ) {
 				$problems[] = Errors::problem( 'invalid_parent', $path, $placement );
@@ -366,27 +403,36 @@ final class Block_Validator {
 	/**
 	 * Why a block can't go where it is, or null if it can.
 	 *
+	 * As in the editor, a block may go directly inside a container that its parent list names or whose allowed blocks name it; either one is enough when both are set. Wherever the site's registered patterns put it is also accepted.
+	 *
 	 * @param \WP_Block_Type     $type      The block type.
 	 * @param array<int, string> $ancestors Full names of the blocks around it, outermost first.
 	 */
-	private static function placement_problem( \WP_Block_Type $type, array $ancestors ): ?string {
+	private function placement_problem( \WP_Block_Type $type, array $ancestors ): ?string {
 		$parent = [] === $ancestors ? null : $ancestors[ count( $ancestors ) - 1 ];
 
-		if ( is_array( $type->parent ) && [] !== $type->parent && ! in_array( $parent, $type->parent, true ) ) {
+		if ( null !== $parent && $this->nested_in_patterns( $parent, $type->name ) ) {
+			return null;
+		}
+
+		$parent_type    = null === $parent ? null : \WP_Block_Type_Registry::get_instance()->get_registered( $parent );
+		$parent_takes   = $parent_type && is_array( $parent_type->allowed_blocks ) ? in_array( $type->name, $parent_type->allowed_blocks, true ) : null;
+		$parent_listed  = is_array( $type->parent ) && [] !== $type->parent ? in_array( $parent, $type->parent, true ) : null;
+		$parent_allowed = null === $parent_takes || null === $parent_listed ? ( $parent_takes ?? $parent_listed ?? true ) : ( $parent_takes || $parent_listed );
+
+		if ( ! $parent_allowed && false === $parent_listed ) {
 			/* translators: 1: block name, 2: allowed parents, 3: short name of the first allowed parent */
-			return sprintf( __( '%1$s must be directly inside %2$s. Wrap it in a %3$s block.', 'publishio' ), $type->name, wp_sprintf( '%l', $type->parent ), Block_Path::short_name( $type->parent[0] ) );
+			return sprintf( __( '%1$s must be directly inside %2$s. Wrap it in a %3$s block.', 'publishio' ), $type->name, wp_sprintf( '%l', (array) $type->parent ), Block_Path::short_name( (string) ( (array) $type->parent )[0] ) );
+		}
+
+		if ( ! $parent_allowed && $parent_type ) {
+			/* translators: 1: block name, 2: parent block name, 3: the blocks the parent takes */
+			return sprintf( __( '%1$s can\'t go inside %2$s, which takes only %3$s.', 'publishio' ), $type->name, $parent_type->name, wp_sprintf( '%l', (array) $parent_type->allowed_blocks ) );
 		}
 
 		if ( is_array( $type->ancestor ) && [] !== $type->ancestor && [] === array_intersect( $type->ancestor, $ancestors ) ) {
 			/* translators: 1: block name, 2: allowed ancestors */
 			return sprintf( __( '%1$s must be somewhere inside %2$s.', 'publishio' ), $type->name, wp_sprintf( '%l', $type->ancestor ) );
-		}
-
-		$parent_type = null === $parent ? null : \WP_Block_Type_Registry::get_instance()->get_registered( $parent );
-
-		if ( $parent_type && is_array( $parent_type->allowed_blocks ) && ! in_array( $type->name, $parent_type->allowed_blocks, true ) ) {
-			/* translators: 1: block name, 2: parent block name, 3: the blocks the parent takes */
-			return sprintf( __( '%1$s can\'t go inside %2$s, which takes only %3$s.', 'publishio' ), $type->name, $parent_type->name, wp_sprintf( '%l', $parent_type->allowed_blocks ) );
 		}
 
 		return null;

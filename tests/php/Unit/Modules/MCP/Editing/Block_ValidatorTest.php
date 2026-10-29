@@ -101,6 +101,30 @@ class Block_ValidatorTest extends TestCase {
 	}
 
 	/**
+	 * A block may go in a container that lists it, even when its own parent list doesn't name that container, as in the editor; placements the site's patterns use are accepted too.
+	 */
+	public function test_placement_follows_the_editor_and_the_site_patterns(): void {
+		$link    = '<!-- wp:navigation-link {"label":"Menu","url":"#"} /-->';
+		$submenu = '<!-- wp:navigation --><!-- wp:navigation-submenu {"label":"More"} -->' . $link . '<!-- /wp:navigation-submenu --><!-- /wp:navigation -->';
+
+		$this->assertSame( [], $this->check( '<!-- wp:navigation --><!-- wp:navigation-link {"label":"A","url":"#"} -->' . $link . '<!-- /wp:navigation-link --><!-- /wp:navigation -->' ) );
+		$this->assertSame( [ 'invalid_parent' ], array_column( $this->check( $submenu ), 'code' ) );
+
+		register_block_pattern(
+			'publishio-test/menu',
+			[
+				'title'   => 'Menu',
+				'content' => $submenu,
+			]
+		);
+		$problems = $this->check( $submenu );
+		unregister_block_pattern( 'publishio-test/menu' );
+
+		$this->assertSame( [], $problems );
+		$this->assertSame( [ 'invalid_parent' ], array_column( $this->check( '<!-- wp:column --><div class="wp-block-column"></div><!-- /wp:column -->' ), 'code' ) );
+	}
+
+	/**
 	 * Blocks the post's editor doesn't allow are refused.
 	 */
 	public function test_refuses_blocks_the_post_does_not_allow(): void {

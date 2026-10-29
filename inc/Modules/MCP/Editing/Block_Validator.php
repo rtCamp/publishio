@@ -42,6 +42,13 @@ final class Block_Validator {
 	private bool|array|null $allowed = null;
 
 	/**
+	 * The attribute forms the site's registered patterns use, as block name, attribute name and value type.
+	 *
+	 * @var array<string, array<string, array<string, true>>>|null
+	 */
+	private ?array $pattern_forms = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param \WP_Post $post The post the blocks are for.
@@ -200,6 +207,63 @@ final class Block_Validator {
 	}
 
 	/**
+	 * Whether the site's registered patterns use an attribute with this type of value on this block.
+	 *
+	 * Patterns are editor output, and the editor migrates attributes that a newer version of a block moved or retyped. Those migrations run only in JavaScript, so the registered block type doesn't list them, and the forms patterns use are accepted as they are.
+	 *
+	 * @param string $block     The block's full name.
+	 * @param string $attribute The attribute name.
+	 * @param mixed  $value     The attribute value.
+	 */
+	private function used_in_patterns( string $block, string $attribute, mixed $value ): bool {
+		if ( null === $this->pattern_forms ) {
+			$this->pattern_forms = [];
+
+			foreach ( \WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern ) {
+				$this->collect_forms( parse_blocks( (string) ( $pattern['content'] ?? '' ) ) );
+			}
+		}
+
+		return isset( $this->pattern_forms[ $block ][ $attribute ][ self::value_type( $value ) ] );
+	}
+
+	/**
+	 * Record the attribute forms of blocks and everything inside them.
+	 *
+	 * @param array<int|string, array<string, mixed>> $blocks Parsed blocks.
+	 */
+	private function collect_forms( array $blocks ): void {
+		foreach ( $blocks as $block ) {
+			$name = $block['blockName'] ?? null;
+
+			if ( is_string( $name ) ) {
+				foreach ( (array) ( $block['attrs'] ?? [] ) as $attribute => $value ) {
+					$this->pattern_forms[ $name ][ (string) $attribute ][ self::value_type( $value ) ] = true;
+				}
+			}
+
+			$this->collect_forms( (array) ( $block['innerBlocks'] ?? [] ) );
+		}
+	}
+
+	/**
+	 * A value's JSON type.
+	 *
+	 * @param mixed $value The value.
+	 */
+	private static function value_type( mixed $value ): string {
+		return match ( true ) {
+			is_string( $value ) => 'string',
+			is_int( $value )    => 'integer',
+			is_float( $value )  => 'number',
+			is_bool( $value )   => 'boolean',
+			null === $value     => 'null',
+			is_array( $value ) && array_is_list( $value ) => 'array',
+			default             => 'object',
+		};
+	}
+
+	/**
 	 * Check blocks at one level, then their inner blocks.
 	 *
 	 * @param array<int, array<string, mixed>>                 $blocks    The blocks.
@@ -253,7 +317,7 @@ final class Block_Validator {
 					$problems[] = Errors::problem( 'malformed_html', $path, sprintf( __( 'The HTML of %1$s isn\'t well formed: %2$s', 'publishio' ), $name, $html ) );
 				}
 
-				array_push( $problems, ...self::attribute_problems( $type, $attrs, $path ) );
+				array_push( $problems, ...$this->attribute_problems( $type, $attrs, $path ) );
 			}
 
 			$stripped = current_user_can( 'unfiltered_html' ) ? [] : array_values( array_unique( [ ...self::stripped( Block_Tree::own_html( $block ) ), ...self::stripped_from_attributes( $attrs ) ] ) );
@@ -337,13 +401,17 @@ final class Block_Validator {
 	 *
 	 * @return list<Problem>
 	 */
-	private static function attribute_problems( \WP_Block_Type $type, array $attrs, string $path ): array {
+	private function attribute_problems( \WP_Block_Type $type, array $attrs, string $path ): array {
 		$definitions = self::attributes_of( $type );
 		$problems    = [];
 
 		foreach ( $attrs as $attribute => $value ) {
 			$attribute  = (string) $attribute;
 			$definition = $definitions[ $attribute ] ?? null;
+
+			if ( $this->used_in_patterns( $type->name, $attribute, $value ) ) {
+				continue;
+			}
 
 			if ( ! is_array( $definition ) ) {
 				$suggestion = self::suggestion( $attribute, array_keys( $definitions ) );

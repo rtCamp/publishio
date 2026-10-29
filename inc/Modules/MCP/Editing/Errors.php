@@ -147,6 +147,13 @@ final class Errors {
 	}
 
 	/**
+	 * Markup with no blocks.
+	 */
+	public static function missing_markup(): \WP_Error {
+		return self::make( 'missing_markup', __( 'The markup has no blocks. Send serialized block markup, such as <!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->.', 'publishio' ) );
+	}
+
+	/**
 	 * A placement that doesn't fit the target.
 	 *
 	 * @param string $message Why the placement doesn't fit.

@@ -49,6 +49,18 @@ final class Block_Tree {
 	}
 
 	/**
+	 * Build a tree from parsed blocks, with blank lines between them as the editor saves them.
+	 *
+	 * @param array<int, array<string, mixed>> $blocks Parsed blocks.
+	 */
+	public static function of( array $blocks ): self {
+		$tree = new self( self::container( [] ) );
+		self::add_children( $tree->root, 0, array_values( $blocks ) );
+
+		return $tree;
+	}
+
+	/**
 	 * Parse new markup into blocks, leaving out whitespace between them.
 	 *
 	 * HTML outside any block is kept as a block with no name, so the validator can refuse it.

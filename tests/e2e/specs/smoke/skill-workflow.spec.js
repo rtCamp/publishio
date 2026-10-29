@@ -56,6 +56,35 @@ async function draft( mcp, title, postType = 'post' ) {
 	return res.data.post_id;
 }
 
+/**
+ * Replace the text of a block's first heading, paragraph or link.
+ *
+ * @param {string} markup The block's markup.
+ * @param {string} text   The new text.
+ * @return {string} The markup with the new text.
+ */
+const withText = ( markup, text ) =>
+	markup.replace(
+		/(<(h[1-6]|p|a)\b[^>]*>)[\s\S]*?(<\/\2>)/,
+		`$1${ text }$3`
+	);
+
+/**
+ * The first outline row inside the inserted blocks whose path ends with a block name.
+ *
+ * @param {{changed: string[], outline: Object}} result An insert result.
+ * @param {string}                               name   The block's short name.
+ * @return {string} The row's path.
+ */
+const pathIn = ( result, name ) =>
+	result.outline.rows.find(
+		( row ) =>
+			result.changed.some(
+				( root ) =>
+					row.path === root || row.path.startsWith( `${ root } > ` )
+			) && row.path.endsWith( `:${ name }` )
+	)?.path;
+
 test.describe(
 	'Skill workflow (SKILL.md)',
 	{ tag: [ '@smoke', '@plugin-update' ] },
@@ -176,61 +205,44 @@ test.describe(
 		);
 
 		test(
-			'SKILL-03 preview before insert: render-pattern shows the filled pattern; preview-pattern leaves the page unchanged',
+			'SKILL-03 dry run: render-blocks checks and renders edited pattern markup without saving',
 			{ tag: '@wp-update' },
 			async ( { mcp, page } ) => {
 				requiresTwentyTwentyFive();
-				const name = 'twentytwentyfive/cta-centered-heading';
-				const schema = (
-					await mcp.callTool( 'publishio/get-pattern-schema', {
-						name,
+				const { markup } = (
+					await mcp.callTool( 'publishio/get-pattern', {
+						name: 'twentytwentyfive/cta-centered-heading',
 					} )
 				).data;
-				const filled = schema.map( ( entry ) =>
-					entry.block === 'core/heading'
-						? {
-								block: entry.block,
-								fields: { content: 'Preview headline' },
-						  }
-						: { block: entry.block, fields: {} }
-				);
+				const pageId = await draft( mcp, 'SKILL-03 page', 'page' );
 
 				const rendered = await mcp.callTool(
-					'publishio/render-pattern',
+					'publishio/render-blocks',
 					{
-						pattern_name: name,
-						schema: filled,
+						markup: withText( markup, 'Preview headline' ),
+						post_id: pageId,
 					}
 				);
 				expect( rendered.isError, rendered.text ).toBe( false );
-				expect( rendered.data.preview_html ).toMatch(
-					/^<!DOCTYPE html>/i
-				);
-				expect( rendered.data.preview_html ).toContain(
-					'Preview headline'
-				);
-				await page.setContent( rendered.data.preview_html );
+				expect(
+					rendered.data.valid,
+					JSON.stringify( rendered.data.errors )
+				).toBe( true );
+				await page.setContent( rendered.data.html );
 				await expect(
 					page.getByRole( 'heading', { name: 'Preview headline' } )
 				).toBeVisible();
-				await evidence( page, 'SKILL-03 render-pattern preview' );
+				await evidence( page, 'SKILL-03 render-blocks preview' );
 
-				const pageId = await draft( mcp, 'SKILL-03 page', 'page' );
-				const preview = await mcp.callTool(
-					'publishio/preview-pattern',
-					{
-						page_id: pageId,
-						position: 0,
-						pattern_name: name,
-						schema: filled,
-					}
-				);
-				expect( preview.isError, preview.text ).toBe( false );
-				expect( preview.data ).toMatchObject( {
-					page_id: pageId,
-					position: 0,
-					pattern_name: name,
+				const invalid = await mcp.callTool( 'publishio/render-blocks', {
+					markup: '<!-- wp:column --><div class="wp-block-column"></div><!-- /wp:column -->',
+					post_id: pageId,
 				} );
+				expect( invalid.data.valid ).toBe( false );
+				expect( invalid.data.errors.map( ( e ) => e.code ) ).toContain(
+					'invalid_parent'
+				);
+
 				expect(
 					(
 						await mcp.callTool( 'publishio/get-post-content', {
@@ -241,7 +253,7 @@ test.describe(
 			}
 		);
 
-		test( 'SKILL-04 landing pages: each approved section is appended at the end; the token cannot write pages over the REST API', async ( {
+		test( 'SKILL-04 landing pages: each section is added at the end, one per call; the token cannot write pages over the REST API', async ( {
 			mcp,
 			anonApi,
 			connection,
@@ -249,21 +261,28 @@ test.describe(
 			requiresTwentyTwentyFive();
 			const pageId = await draft( mcp, 'SKILL-04 page', 'page' );
 			for ( const headline of [ 'First section', 'Second section' ] ) {
-				const res = await mcp.callTool(
-					'publishio/insert-pattern-confirmed',
+				const res = await mcp.callTool( 'publishio/insert-pattern', {
+					post_id: pageId,
+					pattern: 'twentytwentyfive/cta-centered-heading',
+				} );
+				expect( res.isError, res.text ).toBe( false );
+
+				const path = pathIn( res.data, 'heading' );
+				const { markup } = (
+					await mcp.callTool( 'publishio/get-post-content', {
+						post_id: pageId,
+						path,
+					} )
+				).data;
+				const replaced = await mcp.callTool(
+					'publishio/replace-block',
 					{
-						page_id: pageId,
-						position: -1,
-						pattern_name: 'twentytwentyfive/cta-centered-heading',
-						schema: [
-							{
-								block: 'core/heading',
-								fields: { content: headline },
-							},
-						],
+						post_id: pageId,
+						path,
+						markup: withText( markup, headline ),
 					}
 				);
-				expect( res.isError, res.text ).toBe( false );
+				expect( replaced.isError, replaced.text ).toBe( false );
 			}
 			const content = (
 				await mcp.callTool( 'publishio/get-post-content', {
@@ -289,57 +308,44 @@ test.describe(
 			expect( rest.status(), await rest.text() ).toBe( 401 );
 		} );
 
-		test( 'SKILL-05 repeating items: a left-out entry keeps its item, with the pattern placeholder content', async ( {
+		test( 'SKILL-05 repeating items: delete-blocks removes an item and duplicate-block adds copies', async ( {
 			mcp,
 		} ) => {
 			requiresTwentyTwentyFive();
-			const name = 'twentytwentyfive/services-3-col';
-			const schema = (
-				await mcp.callTool( 'publishio/get-pattern-schema', { name } )
-			).data;
-			const images = schema.filter(
-				( e ) => e.block === 'core/image'
-			).length;
-			expect( images ).toBe( 3 );
-
-			// Fill every text entry except the third service (the last three entries).
-			const kept = schema.slice( 0, -3 ).map( ( entry, i ) =>
-				'content' in entry.fields
-					? {
-							block: entry.block,
-							fields: { content: `SKILL-05 text ${ i }` },
-					  }
-					: entry
-			);
-			const leftOut = schema
-				.slice( -3 )
-				.filter( ( entry ) => entry.fields.content )
-				.map( ( entry ) => entry.fields.content );
-			expect( leftOut.length ).toBeGreaterThan( 0 );
-
 			const pageId = await draft( mcp, 'SKILL-05 page', 'page' );
-			const res = await mcp.callTool(
-				'publishio/insert-pattern-confirmed',
-				{
-					page_id: pageId,
-					position: -1,
-					pattern_name: name,
-					schema: kept,
-				}
-			);
+			const res = await mcp.callTool( 'publishio/insert-pattern', {
+				post_id: pageId,
+				pattern: 'twentytwentyfive/services-3-col',
+			} );
 			expect( res.isError, res.text ).toBe( false );
+
+			const columns = res.data.outline.rows
+				.map( ( row ) => row.path )
+				.filter( ( path ) => /:column$/.test( path ) );
+			expect( columns ).toHaveLength( 3 );
+
+			const removed = await mcp.callTool( 'publishio/delete-blocks', {
+				post_id: pageId,
+				paths: [ columns[ 2 ] ],
+			} );
+			expect( removed.isError, removed.text ).toBe( false );
+
+			const copied = await mcp.callTool( 'publishio/duplicate-block', {
+				post_id: pageId,
+				path: columns[ 0 ],
+				count: 2,
+			} );
+			expect( copied.isError, copied.text ).toBe( false );
+			expect( copied.data.changed ).toHaveLength( 2 );
+
 			const content = (
 				await mcp.callTool( 'publishio/get-post-content', {
 					post_id: pageId,
 				} )
 			).data.markup;
-			expect( content.match( /<!-- wp:image/g ) ?? [] ).toHaveLength(
-				images
+			expect( content.match( /<!-- wp:column[ {]/g ) ?? [] ).toHaveLength(
+				4
 			);
-			expect( content ).toContain( 'SKILL-05 text 0' );
-			for ( const placeholder of leftOut ) {
-				expect( content ).toContain( placeholder );
-			}
 		} );
 
 		test(
@@ -440,63 +446,80 @@ test.describe(
 						);
 					} );
 
-					// Fill image fields in schema order: writing url drops the wp-image-<id> class.
-					const fillMedia = async ( name, blockName ) => {
-						const schema = (
-							await mcp.callTool(
-								'publishio/get-pattern-schema',
-								{
-									name,
+					// Point a block at the attachment, as an AI edits the block's markup: comment attributes and the img tag together.
+					const useImage = ( markup ) =>
+						markup
+							.replace(
+								/^(<!-- wp:\S+ )(\{.*?\})( -->)/,
+								( _, open, json, close ) => {
+									const attrs = JSON.parse( json );
+									if ( 'url' in attrs ) {
+										attrs.url = image.url;
+									}
+									if ( 'alt' in attrs ) {
+										attrs.alt = alt;
+									}
+									return `${ open }${ JSON.stringify( {
+										...attrs,
+										id: attachmentId,
+									} ) }${ close }`;
 								}
 							)
-						).data;
-						expect(
-							schema.map( ( e ) => e.block ),
-							`${ name } has a ${ blockName }`
-						).toContain( blockName );
-						return schema.map( ( entry ) =>
-							entry.block === blockName
-								? {
-										block: entry.block,
-										fields: Object.fromEntries(
-											Object.keys( entry.fields ).map(
-												( key ) => [
-													key,
-													{
-														url: image.url,
-														alt,
-														id: String(
-															attachmentId
-														),
-													}[ key ] ??
-														entry.fields[ key ],
-												]
-											)
-										),
-								  }
-								: { block: entry.block, fields: {} }
-						);
-					};
+							.replace( /<img\b[^>]*>/, ( tag ) =>
+								( / class="/.test( tag )
+									? tag.replace(
+											/ class="([^"]*)"/,
+											` class="$1 wp-image-${ attachmentId }"`
+									  )
+									: tag.replace(
+											'<img',
+											`<img class="wp-image-${ attachmentId }"`
+									  )
+								)
+									.replace(
+										/ src="[^"]*"/,
+										` src="${ image.url }"`
+									)
+									.replace(
+										/ alt="[^"]*"/,
+										` alt="${ alt }"`
+									)
+							);
 
 					const pageId = await draft( mcp, 'SKILL-06 page', 'page' );
 					for ( const [ name, blockName ] of [
-						[ 'twentytwentyfive/banner-intro-image', 'core/image' ],
-						[
-							'twentytwentyfive/hero-full-width-image',
-							'core/cover',
-						],
+						[ 'twentytwentyfive/banner-intro-image', 'image' ],
+						[ 'twentytwentyfive/hero-full-width-image', 'cover' ],
 					] ) {
-						await test.step( `${ blockName } from ${ name } uses it`, async () => {
+						await test.step( `the ${ blockName } in ${ name } uses it`, async () => {
 							const inserted = await mcp.callTool(
-								'publishio/insert-pattern-confirmed',
-								{
-									page_id: pageId,
-									position: -1,
-									pattern_name: name,
-									schema: await fillMedia( name, blockName ),
-								}
+								'publishio/insert-pattern',
+								{ post_id: pageId, pattern: name }
 							);
 							expect( inserted.isError, inserted.text ).toBe(
+								false
+							);
+
+							const path = pathIn( inserted.data, blockName );
+							expect(
+								path,
+								`${ name } has a ${ blockName }`
+							).toBeTruthy();
+							const { markup } = (
+								await mcp.callTool(
+									'publishio/get-post-content',
+									{ post_id: pageId, path }
+								)
+							).data;
+							const replaced = await mcp.callTool(
+								'publishio/replace-block',
+								{
+									post_id: pageId,
+									path,
+									markup: useImage( markup ),
+								}
+							);
+							expect( replaced.isError, replaced.text ).toBe(
 								false
 							);
 						} );
@@ -867,10 +890,6 @@ test.describe(
 		test( 'SKILL-12 every tool the skill tells the AI to call is listed by the MCP server', async ( {
 			mcp,
 		} ) => {
-			const appOnly = [
-				'publishio-render-pattern',
-				'publishio-insert-pattern-confirmed',
-			];
 			const guide = await mcp.rpc( 'resources/read', {
 				uri: 'wordpress://publishio/content-generation-guide',
 			} );
@@ -878,7 +897,7 @@ test.describe(
 				...new Set(
 					guide.contents[ 0 ].text.match( /publishio-[a-z-]+[a-z]/g )
 				),
-			].filter( ( name ) => ! appOnly.includes( name ) );
+			];
 			expect( named.length ).toBeGreaterThan( 10 );
 
 			const listed = ( await mcp.listTools() ).map( ( t ) => t.name );

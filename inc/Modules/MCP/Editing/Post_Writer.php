@@ -12,7 +12,7 @@ namespace rtCamp\Publishio\Modules\MCP\Editing;
 /**
  * Class - Post_Writer
  *
- * The only code that saves post content. It refuses posts the user can't edit, post types without the block editor, posts open in the editor, and changes to live posts without the user's approval.
+ * The only code that saves post and pattern content. It refuses posts the user can't edit, post types without the block editor, posts open in the editor, and changes to live posts without the user's approval.
  */
 final class Post_Writer {
 	private const LOCK_WINDOW = 150;
@@ -109,10 +109,10 @@ final class Post_Writer {
 	 * @return true|\WP_Error
 	 */
 	public static function guard( \WP_Post $post, string $approval_token = '' ): bool|\WP_Error {
-		$holder = self::lock_holder( $post );
+		$lock = self::check_lock( $post );
 
-		if ( null !== $holder ) {
-			return Errors::post_locked( $post, $holder );
+		if ( is_wp_error( $lock ) ) {
+			return $lock;
 		}
 
 		$user_id = get_current_user_id();
@@ -122,6 +122,19 @@ final class Post_Writer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Refuse a change to a post that is open in the editor.
+	 *
+	 * @param \WP_Post $post The post.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function check_lock( \WP_Post $post ): bool|\WP_Error {
+		$holder = self::lock_holder( $post );
+
+		return null === $holder ? true : Errors::post_locked( $post, $holder );
 	}
 
 	/**
@@ -173,6 +186,86 @@ final class Post_Writer {
 		}
 
 		return Block_Tree::from_markup( (string) get_post_field( 'post_content', $post->ID, 'raw' ) );
+	}
+
+	/**
+	 * Save blocks as a new published pattern in the pattern library.
+	 *
+	 * @param string                           $title      The pattern's title.
+	 * @param array<int, array<string, mixed>> $blocks     The pattern's blocks.
+	 * @param bool                             $synced     Whether the pattern is synced.
+	 * @param array<int, string>               $categories Pattern category names, created when missing.
+	 */
+	public static function create_pattern( string $title, array $blocks, bool $synced, array $categories ): \WP_Post|\WP_Error {
+		$type = get_post_type_object( 'wp_block' );
+
+		if ( ! $type || ! current_user_can( $type->cap->create_posts ) || ! current_user_can( $type->cap->publish_posts ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined -- The post type's own capabilities.
+			return Errors::make( 'forbidden', __( 'Your account can\'t save patterns.', 'publishio' ), 403 );
+		}
+
+		$id = wp_insert_post(
+			wp_slash(
+				[
+					'post_type'    => 'wp_block',
+					'post_status'  => 'publish',
+					'post_title'   => $title,
+					'post_content' => Block_Tree::of( $blocks )->to_markup(),
+					'meta_input'   => $synced ? [] : [ Pattern_Library::SYNC_META => 'unsynced' ],
+				]
+			),
+			true
+		);
+
+		if ( is_wp_error( $id ) ) {
+			return Errors::make( 'save_failed', $id->get_error_message(), 500 );
+		}
+
+		if ( [] !== $categories ) {
+			wp_set_object_terms( $id, $categories, Pattern_Library::CATEGORY_TAXONOMY );
+		}
+
+		$pattern = get_post( $id );
+
+		return $pattern instanceof \WP_Post ? $pattern : Errors::make( 'save_failed', __( 'The pattern couldn\'t be saved.', 'publishio' ), 500 );
+	}
+
+	/**
+	 * Save new blocks, and optionally a new title, to a saved pattern.
+	 *
+	 * @param \WP_Post                         $pattern The wp_block post.
+	 * @param array<int, array<string, mixed>> $blocks  The pattern's new blocks.
+	 * @param string                           $title   The new title, or empty to keep it.
+	 */
+	public static function save_pattern( \WP_Post $pattern, array $blocks, string $title = '' ): \WP_Post|\WP_Error {
+		if ( 'wp_block' !== $pattern->post_type || ! current_user_can( 'edit_post', $pattern->ID ) ) {
+			return Errors::forbidden( $pattern );
+		}
+
+		$lock = self::check_lock( $pattern );
+
+		if ( is_wp_error( $lock ) ) {
+			return $lock;
+		}
+
+		$fields = [
+			'ID'           => $pattern->ID,
+			'post_content' => Block_Tree::of( $blocks )->to_markup(),
+		];
+
+		if ( '' !== $title ) {
+			$fields['post_title'] = $title;
+		}
+
+		$result = wp_update_post( wp_slash( $fields ), true );
+
+		if ( is_wp_error( $result ) ) {
+			return Errors::make( 'save_failed', $result->get_error_message(), 500 );
+		}
+
+		clean_post_cache( $pattern->ID );
+		$saved = get_post( $pattern->ID );
+
+		return $saved instanceof \WP_Post ? $saved : Errors::make( 'save_failed', __( 'The pattern couldn\'t be saved.', 'publishio' ), 500 );
 	}
 
 	/**

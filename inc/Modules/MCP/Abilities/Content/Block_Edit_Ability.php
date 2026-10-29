@@ -13,6 +13,7 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Ability;
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
 use rtCamp\Publishio\Modules\MCP\Editing\Block_Path;
 use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
+use rtCamp\Publishio\Modules\MCP\Editing\Block_Validator;
 use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 use rtCamp\Publishio\Modules\MCP\Editing\Outline;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
@@ -130,11 +131,49 @@ abstract class Block_Edit_Ability extends Ability {
 	protected static function blocks( mixed $markup ): array|\WP_Error {
 		$blocks = is_string( $markup ) ? Block_Tree::parse( $markup ) : [];
 
-		if ( [] === $blocks ) {
-			return Errors::make( 'missing_markup', __( 'The markup has no blocks. Send serialized block markup, such as <!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->.', 'publishio' ) );
+		return [] === $blocks ? Errors::missing_markup() : $blocks;
+	}
+
+	/**
+	 * Insert new blocks at the input's target and placement, then save, refusing with every problem at once.
+	 *
+	 * @param array{post: \WP_Post, tree: \rtCamp\Publishio\Modules\MCP\Editing\Block_Tree} $opened  The post and its blocks, from open().
+	 * @param array<string, mixed>                                                          $input   The input.
+	 * @param array<int, array<string, mixed>>                                              $blocks  The new blocks.
+	 * @param bool                                                                          $trusted Whether the blocks are stored editor output, such as a pattern's.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	protected static function insert( array $opened, array $input, array $blocks, bool $trusted = false ): array|\WP_Error {
+		$target = self::target( $input['target'] ?? null );
+
+		if ( is_wp_error( $target ) ) {
+			return $target;
 		}
 
-		return $blocks;
+		$tree = $opened['tree'];
+		$spot = $tree->spot( $target, (string) ( $input['placement'] ?? 'end' ) );
+
+		if ( is_wp_error( $spot ) ) {
+			return $spot;
+		}
+
+		$validator = new Block_Validator( $opened['post'] );
+		$problems  = $validator->check( $blocks, $tree->names_down_to( $spot['container'] ), $trusted );
+		$before    = Block_Tree::from_markup( $opened['post']->post_content );
+		$paths     = $tree->insert_at( $spot['container'], $spot['position'], $blocks );
+
+		if ( is_wp_error( $paths ) ) {
+			return $paths;
+		}
+
+		$problems = [ ...$problems, ...$validator->check_single_use( $tree, $before ) ];
+
+		if ( [] !== $problems ) {
+			return Errors::from_problems( $problems );
+		}
+
+		return self::finish( $opened['post'], $tree, $input, $paths, $spot['container'] );
 	}
 
 	/**

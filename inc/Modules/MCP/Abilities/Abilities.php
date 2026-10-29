@@ -22,13 +22,14 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Content\Duplicate_Block;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Get_Post;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Get_Post_Content;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Insert_Blocks;
+use rtCamp\Publishio\Modules\MCP\Abilities\Content\Insert_Pattern;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Move_Block;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Replace_Block;
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Update_Post;
-use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Apply_Pattern_Schema;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Create_Pattern;
 use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Get_Pattern;
-use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Get_Pattern_Schema;
-use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Get_Patterns;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\List_Patterns;
+use rtCamp\Publishio\Modules\MCP\Abilities\Patterns\Update_Pattern;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Get_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Get_Taxonomy_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Get_Yoast_Meta;
@@ -38,9 +39,6 @@ use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Yoast_Meta;
 use rtCamp\Publishio\Modules\MCP\Abilities\Site\Get_Post_Types;
-use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Insert_Pattern;
-use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Preview_Pattern;
-use rtCamp\Publishio\Modules\MCP\Apps\Pattern_Approval\Render_Pattern;
 
 /**
  * Class - Abilities
@@ -82,13 +80,10 @@ final class Abilities implements Registrable {
 		}
 
 		$abilities = [
-			new Get_Patterns(),
+			new List_Patterns(),
 			new Get_Pattern(),
-			new Get_Pattern_Schema(),
-			new Apply_Pattern_Schema(),
-			new Preview_Pattern(),
-			new Render_Pattern(),
-			new Insert_Pattern(),
+			new Create_Pattern(),
+			new Update_Pattern(),
 			new List_Block_Types(),
 			new Get_Block_Type(),
 			new Render_Blocks(),
@@ -98,6 +93,7 @@ final class Abilities implements Registrable {
 			new Get_Post_Content(),
 			new Update_Post(),
 			new Insert_Blocks(),
+			new Insert_Pattern(),
 			new Replace_Block(),
 			new Move_Block(),
 			new Duplicate_Block(),

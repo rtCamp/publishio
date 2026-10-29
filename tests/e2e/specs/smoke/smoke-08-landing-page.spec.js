@@ -62,28 +62,45 @@ const SECTIONS = [
 ];
 
 // Text only: images are left out so the theme's images and IDs stay intact.
-const TEXT_FIELD = {
-	'core/heading': 'content',
-	'core/paragraph': 'content',
-	'core/button': 'text',
-};
+const TEXT_BLOCK = /(^|> )\d+:(heading|paragraph|button)$/;
 
 /**
- * Fill a pattern schema's text slots in order.
+ * Write copy into an inserted section's text blocks in order, as an AI edits text: read the block, change its text, replace it.
  *
- * @param {Array<{block: string, fields: Object}>} schema Schema from get-pattern-schema.
- * @param {string[]}                               text   Copy for the text slots, in order.
- * @return {Array<{block: string, fields: Object}>} Schema with the same entries, text filled.
+ * @param {import('../../utils/mcp').McpClient}  mcp      Initialized MCP client.
+ * @param {number}                               postId   The page.
+ * @param {{changed: string[], outline: Object}} inserted The insert-pattern result.
+ * @param {string[]}                             text     Copy for the text blocks, in order.
  */
-function fillText( schema, text ) {
+async function fillText( mcp, postId, inserted, text ) {
 	const copy = [ ...text ];
-	return schema.map( ( entry ) => {
-		const field = TEXT_FIELD[ entry.block ];
-		return {
-			block: entry.block,
-			fields: field && copy.length ? { [ field ]: copy.shift() } : {},
-		};
-	} );
+	const rows = inserted.outline.rows.filter(
+		( row ) =>
+			inserted.changed.some(
+				( root ) =>
+					row.path === root || row.path.startsWith( `${ root } > ` )
+			) && TEXT_BLOCK.test( row.path )
+	);
+
+	for ( const row of rows.slice( 0, copy.length ) ) {
+		const { markup } = (
+			await mcp.callTool( 'publishio/get-post-content', {
+				post_id: postId,
+				path: row.path,
+			} )
+		).data;
+		const replaced = await mcp.callTool( 'publishio/replace-block', {
+			post_id: postId,
+			path: row.path,
+			markup: markup.replace(
+				/(<(h[1-6]|p|a)\b[^>]*>)[\s\S]*?(<\/\2>)/,
+				`$1${ copy.shift() }$3`
+			),
+		} );
+		expect( replaced.isError, `${ row.path }: ${ replaced.text }` ).toBe(
+			false
+		);
+	}
 }
 
 test.describe(
@@ -97,8 +114,10 @@ test.describe(
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
 				const available = (
-					await mcp.callTool( 'publishio/get-patterns' )
-				).data.map( ( p ) => p.name );
+					await mcp.callTool( 'publishio/list-patterns', {
+						post_type: 'page',
+					} )
+				).data.patterns.map( ( p ) => p.name );
 				for ( const { pattern } of SECTIONS ) {
 					expect(
 						available,
@@ -114,24 +133,18 @@ test.describe(
 				const pageId = created.data.post_id;
 
 				for ( const { pattern, text } of SECTIONS ) {
-					const schema = (
-						await mcp.callTool( 'publishio/get-pattern-schema', {
-							name: pattern,
-						} )
-					).data;
 					const inserted = await mcp.callTool(
-						'publishio/insert-pattern-confirmed',
+						'publishio/insert-pattern',
 						{
-							page_id: pageId,
-							position: -1,
-							pattern_name: pattern,
-							schema: fillText( schema, text ),
+							post_id: pageId,
+							pattern,
 						}
 					);
 					expect(
 						inserted.isError,
 						`${ pattern }: ${ inserted.text }`
 					).toBe( false );
+					await fillText( mcp, pageId, inserted.data, text );
 				}
 
 				const updated = await mcp.callTool( 'publishio/update-post', {

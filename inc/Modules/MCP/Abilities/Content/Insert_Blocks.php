@@ -10,9 +10,6 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Content;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
-use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
-use rtCamp\Publishio\Modules\MCP\Editing\Block_Validator;
-use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 
 /**
  * Class - Insert_Blocks
@@ -67,39 +64,12 @@ final class Insert_Blocks extends Block_Edit_Ability {
 			return $opened;
 		}
 
-		$target = self::target( $input['target'] ?? null );
 		$blocks = self::blocks( $input['markup'] ?? '' );
-
-		if ( is_wp_error( $target ) ) {
-			return $target;
-		}
 
 		if ( is_wp_error( $blocks ) ) {
 			return $blocks;
 		}
 
-		$tree = $opened['tree'];
-		$spot = $tree->spot( $target, (string) ( $input['placement'] ?? 'end' ) );
-
-		if ( is_wp_error( $spot ) ) {
-			return $spot;
-		}
-
-		$validator = new Block_Validator( $opened['post'] );
-		$problems  = $validator->check( $blocks, $tree->names_down_to( $spot['container'] ) );
-		$before    = Block_Tree::from_markup( $opened['post']->post_content );
-		$paths     = $tree->insert_at( $spot['container'], $spot['position'], $blocks );
-
-		if ( is_wp_error( $paths ) ) {
-			return $paths;
-		}
-
-		$problems = [ ...$problems, ...$validator->check_single_use( $tree, $before ) ];
-
-		if ( [] !== $problems ) {
-			return Errors::from_problems( $problems );
-		}
-
-		return self::finish( $opened['post'], $tree, $input, $paths, $spot['container'] );
+		return self::insert( $opened, $input, $blocks );
 	}
 }

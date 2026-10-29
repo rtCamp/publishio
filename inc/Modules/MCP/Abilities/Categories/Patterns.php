@@ -23,7 +23,7 @@ class Patterns {
 			self::SLUG,
 			[
 				'label'       => __( 'Patterns', 'publishio' ),
-				'description' => __( 'Abilities to discover and inspect registered block patterns.', 'publishio' ),
+				'description' => __( 'Abilities to find, insert and save block patterns.', 'publishio' ),
 			]
 		);
 	}

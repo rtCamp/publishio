@@ -76,7 +76,7 @@ test.describe(
 			}
 		);
 
-		test( 'SMOKE-06.4 pages take block markup; posts refuse patterns', async ( {
+		test( 'SMOKE-06.4 posts and pages take block markup and patterns', async ( {
 			mcp,
 		} ) => {
 			const page = await mcp.callTool( 'publishio/create-post', {
@@ -92,21 +92,24 @@ test.describe(
 			const post = await mcp.callTool( 'publishio/create-post', {
 				title: 'E2E post',
 			} );
-			const pattern = await mcp.callTool(
-				'publishio/insert-pattern-confirmed',
-				{
-					page_id: post.data.post_id,
-					position: -1,
-					pattern_name: 'twentytwentyfive/text-faqs',
-					schema: [
-						{ block: 'core/paragraph', fields: { content: 'x' } },
-					],
-				}
-			);
-			expect( pattern.isError ).toBe( true );
-			expect( pattern.text ).toContain(
-				'Patterns can be inserted here only into pages'
-			);
+			const name = (
+				await mcp.callTool( 'publishio/list-patterns', {
+					source: 'theme',
+					post_type: 'post',
+				} )
+			).data.patterns[ 0 ].name;
+			const pattern = await mcp.callTool( 'publishio/insert-pattern', {
+				post_id: post.data.post_id,
+				pattern: name,
+			} );
+			expect( pattern.isError, pattern.text ).toBe( false );
+			expect( pattern.data.changed.length ).toBeGreaterThan( 0 );
+
+			const unknown = await mcp.callTool( 'publishio/insert-pattern', {
+				post_id: post.data.post_id,
+				pattern: 'nope/does-not-exist',
+			} );
+			expect( unknown.text ).toMatch( /^unknown_pattern: / );
 		} );
 
 		test( 'SMOKE-06.5 invalid input returns tool errors', async ( {

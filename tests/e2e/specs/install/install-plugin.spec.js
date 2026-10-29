@@ -20,7 +20,6 @@ import {
 } from '../../utils/plugin-zip';
 import { ALREADY, wpCli, wpCliQuietly } from '../../utils/wp-cli';
 import { expectLocalStatus, STATUS_PAGE } from '../../utils/status';
-import { settings } from '../../config/env';
 import {
 	adminMain,
 	adminMenu,
@@ -595,34 +594,20 @@ test.describe(
 				} );
 				expect( pageDraft.isError, pageDraft.text ).toBe( false );
 				const pattern = (
-					await mcp.callTool( 'publishio/get-patterns' )
-				).data.find(
-					( p ) =>
-						p.name.startsWith( `${ settings.theme }/` ) &&
-						p.block_types.length === 0 &&
-						p.template_types.length === 0 &&
-						( p.post_types.length === 0 ||
-							p.post_types.includes( 'page' ) )
-				);
+					await mcp.callTool( 'publishio/list-patterns', {
+						source: 'theme',
+						post_type: 'page',
+					} )
+				).data.patterns[ 0 ];
 				expect(
 					pattern,
 					'a page pattern in the active theme'
 				).toBeTruthy();
-				const schema = (
-					await mcp.callTool( 'publishio/get-pattern-schema', {
-						name: pattern.name,
-					} )
-				).data;
 				const inserted = await mcp.callTool(
-					'publishio/insert-pattern-confirmed',
+					'publishio/insert-pattern',
 					{
-						page_id: pageDraft.data.post_id,
-						position: -1,
-						pattern_name: pattern.name,
-						schema: schema.map( ( e ) => ( {
-							block: e.block,
-							fields: {},
-						} ) ),
+						post_id: pageDraft.data.post_id,
+						pattern: pattern.name,
 					}
 				);
 				expect( inserted.isError, inserted.text ).toBe( false );

@@ -79,6 +79,20 @@ final class Schema {
 	}
 
 	/**
+	 * A pattern name from list-patterns.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function pattern_name(): array {
+		return [
+			'type'        => 'string',
+			'minLength'   => 1,
+			'maxLength'   => 200,
+			'description' => 'The pattern\'s name from list-patterns, such as "twentytwentyfive/hero" or "core/block/12" for a pattern saved in the pattern library.',
+		];
+	}
+
+	/**
 	 * The token a live_post_needs_approval refusal gives.
 	 *
 	 * @return array<string, mixed>

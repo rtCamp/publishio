@@ -14,7 +14,7 @@ const CORE_TOOLS = [
 	'publishio/get-pattern-schema',
 	'publishio/create-post',
 	'publishio/get-post',
-	'publishio/append-blocks',
+	'publishio/insert-blocks',
 	'publishio/insert-pattern-confirmed',
 ].map( tool );
 

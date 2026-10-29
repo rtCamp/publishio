@@ -88,38 +88,36 @@ test.describe(
 				await mcp.callTool( 'publishio/get-post', { post_id: id } )
 			).data;
 			expect( saved.status ).toBe( 'draft' );
-			expect( saved.content ).toBe( '' );
+			expect( saved.outline.rows ).toEqual( [] );
 		} );
 
 		test(
-			'SKILL-02 posts take block markup by position; pages refuse it; delete-block-at works on both',
+			'SKILL-02 any post type takes block markup at a path; delete-blocks removes by path',
 			{ tag: '@wp-update' },
 			async ( { mcp } ) => {
-				requiresTwentyTwentyFive();
 				const postId = await draft( mcp, 'SKILL-02 post' );
-				const appended = await mcp.callTool(
-					'publishio/append-blocks',
-					{
-						post_id: postId,
-						markup: PARAGRAPH( 'First' ) + PARAGRAPH( 'Third' ),
-					}
-				);
-				expect( appended.isError, appended.text ).toBe( false );
+				const added = await mcp.callTool( 'publishio/insert-blocks', {
+					post_id: postId,
+					markup: PARAGRAPH( 'First' ) + PARAGRAPH( 'Third' ),
+				} );
+				expect( added.isError, added.text ).toBe( false );
 
 				const inserted = await mcp.callTool(
-					'publishio/insert-blocks-at',
+					'publishio/insert-blocks',
 					{
 						post_id: postId,
-						position: 1,
+						target: '1:paragraph',
+						placement: 'before',
 						markup: PARAGRAPH( 'Second' ),
 					}
 				);
 				expect( inserted.isError, inserted.text ).toBe( false );
+				expect( inserted.data.changed ).toEqual( [ '1:paragraph' ] );
 				let content = (
-					await mcp.callTool( 'publishio/get-post', {
+					await mcp.callTool( 'publishio/get-post-content', {
 						post_id: postId,
 					} )
-				).data.content;
+				).data.markup;
 				expect( content.indexOf( 'First' ) ).toBeLessThan(
 					content.indexOf( 'Second' )
 				);
@@ -127,80 +125,53 @@ test.describe(
 					content.indexOf( 'Third' )
 				);
 
-				const deleted = await mcp.callTool(
-					'publishio/delete-block-at',
-					{
-						post_id: postId,
-						position: 0,
-					}
-				);
+				const deleted = await mcp.callTool( 'publishio/delete-blocks', {
+					post_id: postId,
+					paths: [ '0:paragraph' ],
+				} );
 				expect( deleted.isError, deleted.text ).toBe( false );
 				content = (
-					await mcp.callTool( 'publishio/get-post', {
+					await mcp.callTool( 'publishio/get-post-content', {
 						post_id: postId,
 					} )
-				).data.content;
+				).data.markup;
 				expect( content ).not.toContain( 'First' );
 				expect( content ).toContain( 'Second' );
 
 				const outOfRange = await mcp.callTool(
-					'publishio/delete-block-at',
+					'publishio/delete-blocks',
 					{
 						post_id: postId,
-						position: 9,
+						paths: [ '9:paragraph' ],
 					}
 				);
 				expect( outOfRange.isError ).toBe( true );
-				expect( outOfRange.text ).toMatch(
-					/^Position 9 is out of range \(0–\d+\)\.$/
-				);
+				expect( outOfRange.text ).toContain( 'path_not_found' );
 
 				const pageId = await draft( mcp, 'SKILL-02 page', 'page' );
 				const pageInsert = await mcp.callTool(
-					'publishio/insert-blocks-at',
+					'publishio/insert-blocks',
 					{
 						post_id: pageId,
-						position: 0,
-						markup: PARAGRAPH( 'Not on pages' ),
+						markup: PARAGRAPH( 'Also on pages' ),
 					}
 				);
-				expect( pageInsert.isError ).toBe( true );
-				expect( pageInsert.text ).toContain(
-					'Raw block markup is not allowed for pages'
-				);
-
-				const patternInserted = await mcp.callTool(
-					'publishio/insert-pattern-confirmed',
-					{
-						page_id: pageId,
-						position: -1,
-						pattern_name: 'twentytwentyfive/cta-centered-heading',
-						schema: [
-							{
-								block: 'core/heading',
-								fields: { content: 'Remove me' },
-							},
-						],
-					}
-				);
-				expect( patternInserted.isError, patternInserted.text ).toBe(
-					false
-				);
+				expect( pageInsert.isError, pageInsert.text ).toBe( false );
 				const pageDelete = await mcp.callTool(
-					'publishio/delete-block-at',
+					'publishio/delete-blocks',
 					{
 						post_id: pageId,
-						position: 0,
+						paths: [ '0:paragraph' ],
 					}
 				);
 				expect( pageDelete.isError, pageDelete.text ).toBe( false );
 				expect(
 					(
-						await mcp.callTool( 'publishio/get-post', {
+						await mcp.callTool( 'publishio/get-post-content', {
 							post_id: pageId,
 						} )
-					).data.content
-				).not.toContain( 'Remove me' );
+					).data.markup
+				).toBe( '' );
 			}
 		);
 
@@ -262,10 +233,10 @@ test.describe(
 				} );
 				expect(
 					(
-						await mcp.callTool( 'publishio/get-post', {
+						await mcp.callTool( 'publishio/get-post-content', {
 							post_id: pageId,
 						} )
-					).data.content
+					).data.markup
 				).toBe( '' );
 			}
 		);
@@ -295,8 +266,10 @@ test.describe(
 				expect( res.isError, res.text ).toBe( false );
 			}
 			const content = (
-				await mcp.callTool( 'publishio/get-post', { post_id: pageId } )
-			).data.content;
+				await mcp.callTool( 'publishio/get-post-content', {
+					post_id: pageId,
+				} )
+			).data.markup;
 			expect( content.indexOf( 'First section' ) ).toBeGreaterThan( -1 );
 			expect( content.indexOf( 'Second section' ) ).toBeGreaterThan(
 				content.indexOf( 'First section' )
@@ -356,8 +329,10 @@ test.describe(
 			);
 			expect( res.isError, res.text ).toBe( false );
 			const content = (
-				await mcp.callTool( 'publishio/get-post', { post_id: pageId } )
-			).data.content;
+				await mcp.callTool( 'publishio/get-post-content', {
+					post_id: pageId,
+				} )
+			).data.markup;
 			expect( content.match( /<!-- wp:image/g ) ?? [] ).toHaveLength(
 				images
 			);
@@ -442,7 +417,7 @@ test.describe(
 
 					await test.step( 'an image block in a post uses it', async () => {
 						const appended = await mcp.callTool(
-							'publishio/append-blocks',
+							'publishio/insert-blocks',
 							{
 								post_id: postId,
 								markup: `<!-- wp:image {"id":${ attachmentId },"sizeSlug":"full","linkDestination":"none"} --><figure class="wp-block-image size-full"><img src="${ image.url }" alt="${ alt }" class="wp-image-${ attachmentId }"/></figure><!-- /wp:image -->`,
@@ -529,10 +504,10 @@ test.describe(
 
 					await test.step( 'the page holds both blocks and opens cleanly', async () => {
 						const content = (
-							await mcp.callTool( 'publishio/get-post', {
+							await mcp.callTool( 'publishio/get-post-content', {
 								post_id: pageId,
 							} )
-						).data.content;
+						).data.markup;
 						expect( content ).toMatch(
 							new RegExp(
 								`<!-- wp:image \\{[^\\n]*?"id":${ attachmentId }[,}]`

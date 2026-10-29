@@ -189,6 +189,20 @@ final class Errors {
 	}
 
 	/**
+	 * A saved pattern, template or other site content, which the post tools don't change.
+	 *
+	 * @param \WP_Post $post The post.
+	 */
+	public static function unsupported_type( \WP_Post $post ): \WP_Error {
+		$hint = 'wp_block' === $post->post_type
+			? __( 'It\'s a saved pattern: use update-pattern to change it.', 'publishio' )
+			: __( 'Change it in the Site Editor.', 'publishio' );
+
+		/* translators: 1: post title, 2: what to use instead */
+		return self::make( 'unsupported_type', sprintf( __( '"%1$s" isn\'t a post or page, so these tools don\'t change it. %2$s', 'publishio' ), self::title( $post ), $hint ) );
+	}
+
+	/**
 	 * A post that is open in the block editor.
 	 *
 	 * @param \WP_Post $post    The post.

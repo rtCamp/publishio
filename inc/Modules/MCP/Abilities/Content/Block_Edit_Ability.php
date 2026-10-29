@@ -1,0 +1,173 @@
+<?php
+/**
+ * Base class for the tools that change a post's blocks.
+ *
+ * @package rtCamp\Publishio\Modules\MCP\Abilities\Content
+ */
+
+declare( strict_types = 1 );
+
+namespace rtCamp\Publishio\Modules\MCP\Abilities\Content;
+
+use rtCamp\Publishio\Modules\MCP\Abilities\Ability;
+use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Block_Path;
+use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+use rtCamp\Publishio\Modules\MCP\Editing\Outline;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
+
+/**
+ * Class - Block_Edit_Ability
+ *
+ * Each block-edit tool loads the post, refuses early when it is locked or live without approval, changes the block tree, and saves through Post_Writer. The result lists the changed blocks' paths and the outline of the part of the post that changed, read from what was saved.
+ */
+abstract class Block_Edit_Ability extends Ability {
+	/**
+	 * {@inheritDoc}
+	 */
+	protected function output_schema(): array {
+		return [
+			'type'       => 'object',
+			'required'   => [ 'post_id', 'changed', 'outline' ],
+			'properties' => [
+				'post_id' => [ 'type' => 'integer' ],
+				'changed' => [
+					'type'        => 'array',
+					'description' => 'Paths of the blocks this call added or changed, as they are now.',
+					'items'       => [ 'type' => 'string' ],
+				],
+				'outline' => Schema::outline(),
+			],
+		];
+	}
+
+	/**
+	 * Load the post and its blocks, refusing early when it is locked or live without approval.
+	 *
+	 * @param array<string, mixed> $input The input.
+	 *
+	 * @return array{post: \WP_Post, tree: \rtCamp\Publishio\Modules\MCP\Editing\Block_Tree}|\WP_Error
+	 */
+	protected static function open( array $input ): array|\WP_Error {
+		$post = Post_Writer::load( (int) ( $input['post_id'] ?? 0 ) );
+
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$guard = Post_Writer::guard( $post, (string) ( $input['approval_token'] ?? '' ) );
+
+		if ( is_wp_error( $guard ) ) {
+			return $guard;
+		}
+
+		return [
+			'post' => $post,
+			'tree' => Block_Tree::from_markup( $post->post_content ),
+		];
+	}
+
+	/**
+	 * Save the changed tree and build the result.
+	 *
+	 * @param \WP_Post                                                     $post    The post.
+	 * @param \rtCamp\Publishio\Modules\MCP\Editing\Block_Tree             $tree    The changed blocks.
+	 * @param array<string, mixed>                                         $input   The input.
+	 * @param array<int, \rtCamp\Publishio\Modules\MCP\Editing\Block_Path> $changed The blocks added or changed.
+	 * @param \rtCamp\Publishio\Modules\MCP\Editing\Block_Path             $scope   The part of the post to outline.
+	 *
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	protected static function finish( \WP_Post $post, Block_Tree $tree, array $input, array $changed, Block_Path $scope ): array|\WP_Error {
+		$saved = Post_Writer::save( $post, $tree, (string) ( $input['approval_token'] ?? '' ) );
+
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+
+		$outline = Outline::of( $saved, $scope );
+
+		if ( is_wp_error( $outline ) ) {
+			$outline = Outline::of( $saved, Block_Path::root() );
+		}
+
+		return [
+			'post_id' => $post->ID,
+			'changed' => array_map( static fn ( Block_Path $path ): string => $path->to_string(), array_values( $changed ) ),
+			'outline' => is_wp_error( $outline ) ? [
+				'rows'      => [],
+				'truncated' => false,
+			] : $outline,
+		];
+	}
+
+	/**
+	 * Parse a required path.
+	 *
+	 * @param mixed $value The input value.
+	 */
+	protected static function path( mixed $value ): Block_Path|\WP_Error {
+		return is_string( $value ) ? Block_Path::parse( $value ) : Errors::invalid_path( '', __( 'A path is required.', 'publishio' ) );
+	}
+
+	/**
+	 * Parse an optional target path. A missing target means the post itself.
+	 *
+	 * @param mixed $value The input value.
+	 */
+	protected static function target( mixed $value ): Block_Path|\WP_Error {
+		return is_string( $value ) && '' !== trim( $value ) ? Block_Path::parse( $value ) : Block_Path::root();
+	}
+
+	/**
+	 * Parse new markup, refusing markup with no blocks.
+	 *
+	 * @param mixed $markup The input value.
+	 *
+	 * @return array<int, array<string, mixed>>|\WP_Error
+	 */
+	protected static function blocks( mixed $markup ): array|\WP_Error {
+		$blocks = is_string( $markup ) ? Block_Tree::parse( $markup ) : [];
+
+		if ( [] === $blocks ) {
+			return Errors::make( 'missing_markup', __( 'The markup has no blocks. Send serialized block markup, such as <!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->.', 'publishio' ) );
+		}
+
+		return $blocks;
+	}
+
+	/**
+	 * The deepest block that contains every given path.
+	 *
+	 * @param array<int, \rtCamp\Publishio\Modules\MCP\Editing\Block_Path> $paths The paths.
+	 */
+	protected static function scope( array $paths ): Block_Path {
+		$paths = array_values( $paths );
+
+		if ( [] === $paths ) {
+			return Block_Path::root();
+		}
+
+		$common = $paths[0]->steps();
+
+		foreach ( array_slice( $paths, 1 ) as $path ) {
+			$steps = $path->steps();
+			$depth = 0;
+
+			while ( isset( $common[ $depth ], $steps[ $depth ] ) && $common[ $depth ]['index'] === $steps[ $depth ]['index'] ) {
+				++$depth;
+			}
+
+			$common = array_slice( $common, 0, $depth );
+		}
+
+		$scope = Block_Path::root();
+
+		foreach ( $common as $step ) {
+			$scope = $scope->child( $step['index'], $step['name'] );
+		}
+
+		return $scope;
+	}
+}

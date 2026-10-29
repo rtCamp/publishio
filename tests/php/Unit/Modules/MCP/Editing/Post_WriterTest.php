@@ -74,7 +74,7 @@ class Post_WriterTest extends TestCase {
 		$pattern = self::factory()->post->create( [ 'post_type' => 'wp_block' ] );
 
 		$this->assertSame( 'no_block_editor', $this->code( Post_Writer::load( $classic ) ) );
-		$this->assertSame( 'no_block_editor', $this->code( Post_Writer::load( $pattern ) ) );
+		$this->assertSame( 'unsupported_type', $this->code( Post_Writer::load( $pattern ) ) );
 		$this->assertFalse( Post_Writer::is_editable_type( 'wp_template' ) );
 		$this->assertTrue( Post_Writer::is_editable_type( 'page' ) );
 

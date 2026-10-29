@@ -97,7 +97,7 @@ test.describe(
 					title: 'E2E round-trip post',
 				} );
 				const appended = await mcp.callTool(
-					'publishio/append-blocks',
+					'publishio/insert-blocks',
 					{
 						post_id: data.post_id,
 						markup: [

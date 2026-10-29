@@ -33,9 +33,8 @@ Every interactive question goes through `ask_user_input` as buttons. Never use p
 | `publishio-create-post`        | Create a draft (pass `post_type: "page"` for pages). Returns `post_id` and `edit_url`                                                          |
 | `publishio-get-post`           | Read a post/page — returns `content` (block markup), `blocks` (top-level block list), `status`, `slug`, `excerpt`, `url`, `edit_url`, and more |
 | `publishio-update-post`        | Update metadata only: `title`, `slug`, `excerpt`, `parent_id`, `template`. Does **not** accept `content`                                       |
-| `publishio-append-blocks`      | Append block markup to a **post** (returns error for pages)                                                                                    |
-| `publishio-insert-blocks-at`   | Insert block markup at a position in a **post** (returns error for pages)                                                                      |
-| `publishio-delete-block-at`    | Delete a top-level block at a position (works on all post types)                                                                               |
+| `publishio-insert-blocks`      | Insert block markup at a path in any post type, before or after a block or at the start or end inside it                                       |
+| `publishio-delete-blocks`      | Delete blocks by path (works on all post types)                                                                                                |
 | `publishio-render-block`       | Render block markup to HTML. `is_valid` is false when no block parses or a block type isn't registered                                         |
 | `publishio-set-featured-image` | Set the featured image by attachment ID                                                                                                        |
 | `publishio-search-posts`       | Search existing posts/pages                                                                                                                    |
@@ -93,7 +92,7 @@ Build the page one section at a time. Create an empty draft, then add each secti
 
 | Post type                      | Append mechanism                                                                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Post** (`post_type: "post"`) | `publishio-append-blocks` — one call, appends block markup to the end: prose you write, or the `markup` from `publishio-apply-pattern-schema`                      |
+| **Post** (`post_type: "post"`) | `publishio-insert-blocks` — one call, appends block markup to the end: prose you write, or the `markup` from `publishio-apply-pattern-schema`                      |
 | **Page** (`post_type: "page"`) | `publishio-preview-pattern` with `position: -1` — the section is appended when the user clicks Insert on the approval screen. No other tool adds content to a page |
 
 ### 3. Approval before insert
@@ -125,7 +124,7 @@ The only acceptable way to place a pattern. Applies to posts and landing pages a
 4. **Fill the schema** — edit the field values, not rendered markup. Keep every entry, its `block` and the order. A left-out entry doesn't remove its block: the block keeps the pattern's placeholder content, and later entries of the same block type can shift onto the wrong item.
 5. **Get approval and insert:**
    - **Page:** call `publishio-preview-pattern` with `page_id`, `position: -1` (append), `pattern_name` and the filled `schema`. Stop and wait for the user. When they click Insert, the approval screen adds the section and tells you to continue. If the user says no approval screen appeared, their app can't show it, and no other tool adds content to a page: tell them the page can't be built in this app.
-   - **Post:** call `publishio-apply-pattern-schema` with the filled schema, show the section's content in chat and wait for approval, then append the returned `markup` unchanged with `publishio-append-blocks`.
+   - **Post:** call `publishio-apply-pattern-schema` with the filled schema, show the section's content in chat and wait for approval, then append the returned `markup` unchanged with `publishio-insert-blocks`.
 6. **Changes requested:** revise the schema and repeat step 5. Never insert the old version.
 
 ---
@@ -141,8 +140,8 @@ Prose body (paragraphs, headings, lists, quotes, inline images) uses direct bloc
 5. **Draft section content** in chat (prose, headings, excerpt, proposed categories/tags, SEO fields). For pattern sections, fetch the schema first and size content to its default content. Get approval.
 6. **Create an empty draft** via `publishio-create-post`.
 7. **For each section in order:**
-   - Prose section: write block markup directly, check it with `publishio-render-block`, append via `publishio-append-blocks`
-   - Pattern section: fetch schema → fill → `publishio-apply-pattern-schema` → **show the content in chat, wait for approval** → append the returned `markup` via `publishio-append-blocks`
+   - Prose section: write block markup directly, check it with `publishio-render-block`, append via `publishio-insert-blocks`
+   - Pattern section: fetch schema → fill → `publishio-apply-pattern-schema` → **show the content in chat, wait for approval** → append the returned `markup` via `publishio-insert-blocks`
 8. **Set the featured image** if the user wanted one: `publishio-set-featured-image` with the attachment ID found in step 3.
 9. **Assign categories and tags** using `publishio-set-post-terms` (taxonomy `"category"` then `"post_tag"`).
 10. **SEO (mandatory):**
@@ -202,7 +201,7 @@ These are failure modes seen in practice. They are not a restatement of the rule
 - **Using a custom block because it "would be perfect here."** Banned everywhere. Patterns only (plus prose markup in posts).
 - **Adding a pattern section without approval.** On pages, only the approval screen's Insert adds it. On posts, show the filled content and wait for approval before appending.
 - **Adding a page section again after the user clicked Insert.** The approval screen already added it. Move on to the next section.
-- **Previewing a post section on the approval screen.** Its Insert fails on posts. Use `publishio-apply-pattern-schema` and `publishio-append-blocks`.
+- **Previewing a post section on the approval screen.** Its Insert fails on posts. Use `publishio-apply-pattern-schema` and `publishio-insert-blocks`.
 - **Silently dropping content the user provided.** When reference material is given, list what's being cut and why. Get acknowledgement. The user needs to know what was considered.
 - **Skipping SEO because Yoast isn't installed.** Slug and excerpt via `publishio-update-post` work regardless. Always set them. Probe Yoast, skip if inactive — but never skip slug/excerpt.
 - **Assigning categories/tags from memory.** Always call `publishio-get-taxonomy-terms` first. Made-up terms don't match the site's actual taxonomy.

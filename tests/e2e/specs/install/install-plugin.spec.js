@@ -581,7 +581,7 @@ test.describe(
 				} );
 				expect( post.isError, post.text ).toBe( false );
 				const appended = await mcp.callTool(
-					'publishio/append-blocks',
+					'publishio/insert-blocks',
 					{
 						post_id: post.data.post_id,
 						markup: '<!-- wp:paragraph --><p>Written through Publishio.</p><!-- /wp:paragraph -->',

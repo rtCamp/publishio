@@ -145,12 +145,15 @@ test.describe(
 				const saved = await mcp.callTool( 'publishio/get-post', {
 					post_id: pageId,
 				} );
+				const markup = (
+					await mcp.callTool( 'publishio/get-post-content', {
+						post_id: pageId,
+					} )
+				).data.markup;
 				expect( saved.data.status ).toBe( 'draft' );
 				expect( saved.data.slug ).toBe( 'publishio-ai-pages' );
 				for ( const { text } of SECTIONS ) {
-					expect( saved.data.content ).toContain(
-						text[ 0 ].slice( 0, 20 )
-					);
+					expect( markup ).toContain( text[ 0 ].slice( 0, 20 ) );
 				}
 				test.info().annotations.push(
 					{ type: 'page', description: saved.data.url },

@@ -42,7 +42,41 @@ final class Post_Writer {
 	 * @param string $post_type The post type.
 	 */
 	public static function is_editable_type( string $post_type ): bool {
-		return post_type_exists( $post_type ) && ! in_array( $post_type, self::EXCLUDED_TYPES, true ) && use_block_editor_for_post_type( $post_type );
+		return self::is_supported_type( $post_type ) && use_block_editor_for_post_type( $post_type );
+	}
+
+	/**
+	 * Whether the post tools work on a post type at all, with or without the block editor.
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public static function is_supported_type( string $post_type ): bool {
+		return post_type_exists( $post_type ) && ! in_array( $post_type, self::EXCLUDED_TYPES, true );
+	}
+
+	/**
+	 * Find a post the current user can edit, whatever editor its type uses.
+	 *
+	 * A post the user can't read is reported as not found, so its title isn't revealed.
+	 *
+	 * @param int $post_id The post ID.
+	 */
+	public static function find( int $post_id ): \WP_Post|\WP_Error {
+		$post = get_post( $post_id );
+
+		if ( ! $post instanceof \WP_Post || in_array( $post->post_status, [ 'trash', 'auto-draft' ], true ) || ! current_user_can( 'read_post', $post->ID ) ) {
+			return Errors::post_not_found( $post_id );
+		}
+
+		if ( ! self::is_supported_type( $post->post_type ) ) {
+			return Errors::unsupported_type( $post );
+		}
+
+		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
+			return Errors::forbidden( $post );
+		}
+
+		return $post;
 	}
 
 	/**
@@ -51,21 +85,13 @@ final class Post_Writer {
 	 * @param int $post_id The post ID.
 	 */
 	public static function load( int $post_id ): \WP_Post|\WP_Error {
-		$post = get_post( $post_id );
+		$post = self::find( $post_id );
 
-		if ( ! $post instanceof \WP_Post || in_array( $post->post_status, [ 'trash', 'auto-draft' ], true ) ) {
-			return Errors::post_not_found( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
 		}
 
-		if ( ! current_user_can( 'read_post', $post->ID ) ) {
-			return Errors::post_not_found( $post_id );
-		}
-
-		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
-			return Errors::forbidden( $post );
-		}
-
-		if ( ! self::is_editable_type( $post->post_type ) || ! use_block_editor_for_post( $post ) ) {
+		if ( ! use_block_editor_for_post_type( $post->post_type ) || ! use_block_editor_for_post( $post ) ) {
 			return Errors::no_block_editor( $post );
 		}
 

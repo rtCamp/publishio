@@ -2,18 +2,14 @@
  * SKILL: skills/publishio/SKILL.md checked against the plugin.
  */
 /**
- * External dependencies
- */
-import fs from 'node:fs';
-/**
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';
 import { BLOCK_WARNING } from '../../utils/editor';
 import { ALREADY, wpCli, wpCliQuietly } from '../../utils/wp-cli';
 import { collectErrors, evidence } from '../install/helpers';
-import { currentSite } from '../../config/env';
 import { markDebugLog } from '../../utils/debug-log';
+import { compareVersions } from '../../utils/plugin-zip';
 import { STATUS_PAGE } from '../../utils/status';
 import { requiresTwentyTwentyFive } from '../../utils/theme';
 
@@ -22,6 +18,26 @@ const PARAGRAPH = ( text ) =>
 
 // The plugin inside the wp-env containers (mounted sites only).
 const PLUGIN_DIR = 'wp-content/plugins/publishio';
+
+/** Yoast SEO 28.7: the last release that supports WordPress 6.9 (28.8 needs 7.0). */
+const YOAST_FOR_WP69 = {
+	version: '28.7',
+	zip: 'https://downloads.wordpress.org/plugin/wordpress-seo.28.7.zip',
+};
+
+/**
+ * Yoast SEO to install for SKILL-11: the latest release on WordPress 7.0 and later, so new Yoast
+ * releases are covered, and 28.7 below that. Installed by zip URL because
+ * `wp plugin install wordpress-seo --version=…` checks the latest release's requirements and
+ * refuses on 6.9.
+ *
+ * @return {{ source: string, version?: string }} What to pass to `wp plugin install`, and the
+ *                                                 version it must install, when pinned.
+ */
+const yoastToInstall = () =>
+	compareVersions( wpCli( 'core version' ), '7.0' ) < 0
+		? { source: YOAST_FOR_WP69.zip, version: YOAST_FOR_WP69.version }
+		: { source: 'wordpress-seo' };
 
 /**
  * Create a draft through Publishio and return its ID.
@@ -684,25 +700,16 @@ test.describe(
 			'SKILL-10 SEO without Yoast: the plugin works without errors, slug and excerpt are set, the Yoast tools fail cleanly',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
-				// Yoast mapped in wp-env config can't be deleted; inactive is enough there.
 				wpCliQuietly(
 					'plugin deactivate wordpress-seo',
 					ALREADY.pluginMissing
 				);
-				const mapped = fs
-					.readFileSync( currentSite().wpEnvConfig, 'utf8' )
-					.includes( 'wordpress-seo' );
-				if ( ! mapped ) {
-					wpCli( 'plugin delete wordpress-seo' );
-				}
-				test.info().annotations.push( {
-					type: 'Yoast SEO',
-					description: mapped
-						? 'installed (mapped by wp-env), inactive'
-						: 'not installed',
-				} );
+				wpCliQuietly(
+					'plugin delete wordpress-seo',
+					ALREADY.pluginMissing
+				);
 				expect(
-					wpCli( 'plugin list --status=active --field=name' )
+					wpCli( 'plugin list --field=name' ).split( '\n' )
 				).not.toContain( 'wordpress-seo' );
 				const newLogProblems = markDebugLog();
 				const errors = collectErrors( page );
@@ -811,7 +818,19 @@ test.describe(
 
 		test.describe( 'with Yoast SEO active', () => {
 			test.beforeAll( () => {
-				wpCli( 'plugin install wordpress-seo --activate' );
+				// --force: replace a copy left by an earlier run with the version chosen here.
+				const yoast = yoastToInstall();
+				wpCli( `plugin install ${ yoast.source } --force --activate` );
+				expect(
+					wpCli( 'plugin list --status=active --field=name' ).split(
+						'\n'
+					)
+				).toContain( 'wordpress-seo' );
+				if ( yoast.version ) {
+					expect(
+						wpCli( 'plugin get wordpress-seo --field=version' )
+					).toBe( yoast.version );
+				}
 			} );
 			test.afterAll( () => {
 				wpCliQuietly(
@@ -824,6 +843,12 @@ test.describe(
 				'SKILL-11 SEO with Yoast: set-yoast-meta saves every field the skill lists',
 				{ tag: '@wp-update' },
 				async ( { mcp } ) => {
+					test.info().annotations.push( {
+						type: 'Yoast SEO',
+						description: wpCli(
+							'plugin get wordpress-seo --field=version'
+						),
+					} );
 					const pageId = await draft( mcp, 'SKILL-11 page', 'page' );
 					const probe = await mcp.callTool(
 						'publishio/get-yoast-meta',

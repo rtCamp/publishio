@@ -64,6 +64,11 @@ screenshots, errors and traces.
 | `smoke-multisite` | Same as `smoke`, on a multisite network                        | latest                      |
 | `install-wp68`    | INSTALL-09 only: install is refused below the 6.9 minimum      | 6.8 (local only, not in CI) |
 
+SKILL-11 (Yoast SEO) installs the latest Yoast release on WordPress 7.0 and later, so new Yoast releases
+are covered, and Yoast 28.7 (the last release that supports 6.9) on `smoke-wp69`. A new Yoast release
+can therefore make SKILL-11 fail on a PR; check the Yoast version in the test's report annotation.
+The latest-WordPress E2E site uses `.wp-env.e2e.json`; `.wp-env.test.json` is the PHP unit tests' site.
+
 ## In CI (GitHub Actions)
 
 | When                                  | What runs                                                               | Workflow               |

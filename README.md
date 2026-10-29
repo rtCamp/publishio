@@ -8,7 +8,7 @@
 
 ---
 
-**Publishio is AI publishing that follows your design system.** Connect ChatGPT, Claude, or any Model Context Protocol (MCP) client directly to WordPress, then build pages and posts just by chatting. Landing pages and structured sections are assembled from _your site's own block patterns_; post prose (paragraphs, headings, lists, quotes) uses native WordPress blocks styled by your theme — so the result matches your brand either way.
+**Publishio is AI publishing that follows your design system.** Connect ChatGPT, Claude, or any Model Context Protocol (MCP) client directly to WordPress, then build pages and posts just by chatting. The AI builds from _your site's own block patterns_ first, and writes native WordPress blocks styled by your theme for everything else — so the result matches your brand either way.
 
 Publishio is not another AI writer, and it is not a page builder that reinvents your layout. It is a native **MCP server for WordPress** — the bridge between the AI you already use and your site. Because the AI works from the patterns your designers already approved and your theme's own block styles, your layout, spacing, colours, and typography stay exactly as intended. That's the difference between generic AI output and **on-brand AI content that matches your design**.
 
@@ -23,12 +23,13 @@ Everything runs on your own site. There's no third-party service in the middle: 
 
 ## ✨ Features
 
-- **Follows your design system:** Structured layouts are built from your site's own block patterns, and prose uses native blocks styled by your theme — so content inherits your existing layout, spacing, and brand instead of generic markup.
+- **Follows your design system:** The AI starts from your site's own block patterns and uses native blocks styled by your theme — so content inherits your existing layout, spacing, and brand instead of generic markup.
 - **Connect ChatGPT, Claude, and other MCP clients:** A standard MCP server for WordPress that works with ChatGPT, Claude, Claude Code, and other MCP clients that support Client ID Metadata Documents (CIMD).
-- **Pattern auto-discovery:** Automatically discovers every pattern registered on your site — from your theme, plugins, and core.
-- **Structured content generation:** The AI builds pages with proper, Block Editor-compatible block structures — no messy HTML insertion.
-- **In-chat approval:** Approve each section in the AI chat before it's added to the draft — page sections in a visual preview, blog post sections as text.
-- **SEO & metadata:** Automatically adds metadata and SEO details (compatible with Yoast).
+- **All your patterns:** Uses every pattern on your site — from your theme, plugins and core, and the synced and unsynced patterns saved in your pattern library. The AI can save new sections as patterns when you ask.
+- **Edits any block:** The AI adds, changes, moves, copies and removes blocks one section at a time. Every change is checked before it's saved, so content opens cleanly in the Block Editor.
+- **Plan first, then previews:** The AI proposes the whole plan and waits for your yes before it writes anything. In apps that show previews, you see each section as it's added, every pattern it saves, and the finished page with how it looks in search results and as a shared link.
+- **Live pages are safe:** A change to a published, scheduled or private page needs your OK in the chat first, and the AI can't publish.
+- **SEO & metadata:** Adds the slug, excerpt, featured image, categories and tags, and Yoast SEO fields, on posts, pages and custom post types.
 - **Runs on your own site:** A self-hosted MCP endpoint with OAuth — no third-party service in the middle.
 - **Theme agnostic:** Works with any block-based / FSE theme.<sup>see: [compatible themes](#themes)</sup>
 
@@ -36,9 +37,9 @@ Everything runs on your own site. There's no third-party service in the middle: 
 
 [<img src="https://img.shields.io/badge/Download-Skill-blue?style=for-the-badge&logo=markdown" alt="Download Skill" height="40">](https://raw.githubusercontent.com/rtCamp/publishio/main/skills/publishio/SKILL.md)
 
-This plugin includes a skill file that teaches AI assistants how to generate WordPress content correctly — using your site's existing patterns, building pages incrementally, and following your design system rather than inventing markup.
+This plugin includes a skill file, the Publishio content guide, that teaches AI assistants how to build WordPress content well — planning first, using your site's existing patterns, building one section at a time, and following your design system rather than inventing markup.
 
-The skill is served automatically to any connected AI assistant via MCP. Editors and content creators don't need to configure anything — just connect your AI platform and start prompting.
+Connected AI assistants read the guide automatically through MCP, so editors and content creators don't need to configure anything. To install it as a skill too, use **Download SKILL.md** on the Publishio page in your dashboard; it always matches the installed version.
 
 **To use the skill in Claude (claude.ai):**
 
@@ -64,11 +65,11 @@ The skill is served automatically to any connected AI assistant via MCP. Editors
 
 This plugin acts as a bridge between your WordPress theme and AI assistants. Here's how it works:
 
-1. **Pattern discovery** — the plugin scans all patterns registered by your active theme via `WP_Block_Patterns_Registry`.
-2. **Metadata sent to AI** — each pattern's `title`, `description`, `categories`, and `keywords` are sent to the AI as structured data. The actual block markup is fetched separately, on demand.
-3. **AI selects a pattern** — the AI reads the pattern metadata and decides which pattern best fits the user's request.
-4. **Content is filled** — the AI hydrates the selected pattern with new content (headings, paragraphs, images, buttons).
-5. **Preview and approve** — each section is shown in the AI chat for your approval before it's added: on pages in a visual preview, in blog posts as text.
+1. **Pattern discovery** — the plugin lists the patterns registered on your site via `WP_Block_Patterns_Registry`, and the patterns saved in your pattern library.
+2. **Metadata sent to AI** — each pattern's `title`, `description` and `categories` are sent to the AI as structured data. The actual block markup is fetched separately, on demand.
+3. **AI selects a pattern** — the AI reads the pattern metadata, picks the pattern that best fits each section, and names it in the plan you approve.
+4. **Content is added** — the AI inserts the pattern as it is, then changes its text, links and images block by block.
+5. **Preview** — in apps that show previews, each section appears in the chat as it's added.
 
 **When a pattern has no description (or a generic one), the AI has only the `title` to work with for matching.** A title like "Hero Section" doesn't tell the AI whether it's a full-width hero, a split hero with an image, a centered hero with a CTA, or a hero with a background video. The AI must then fetch the full content of every pattern that matches a keyword — adding expensive round trips — just to understand what each one looks like.
 
@@ -89,7 +90,7 @@ This plugin acts as a bridge between your WordPress theme and AI assistants. Her
 ## ❓ FAQ
 
 **Q: Will it change my design?**
-A: No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You approve every section in the chat before it's added to the draft, and nothing goes live until you publish it in WordPress.
+A: No. Publishio builds pages from your site's own block patterns and your active theme's styles, so new content inherits your existing layout, spacing, colours, and typography. It doesn't restyle your site, edit your theme, or invent CSS — the AI assembles content from the building blocks your designers already approved. You approve the plan in the chat before anything is written, and nothing goes live until you publish it in WordPress.
 
 **Q: How do I connect ChatGPT to WordPress?**
 A: Publishio exposes a standard MCP server on your own site at `https://your-site.com/wp-json/mcp/publishio` (your exact URL is shown on the Publishio dashboard page). In ChatGPT, add that URL as a custom MCP connector and authorize it — Publishio handles authentication with OAuth. The Publishio dashboard includes a step-by-step ChatGPT setup guide alongside the Claude guide.
@@ -104,7 +105,7 @@ A: Open **Publishio → Status** in your dashboard. It checks your site the way 
 A: Yes — Publishio adds no third-party service. It runs entirely on your own WordPress site as a self-hosted MCP server, and your site connects directly to the AI you choose; nothing is routed through rtCamp or any Publishio-operated cloud. The pages and posts you create live in your own database, exactly like any other WordPress content. The only data that leaves your site is what you send to your chosen AI assistant (ChatGPT or Claude) during a chat — the same as using that assistant anywhere else — governed by that provider's terms.
 
 **Q: Does it support custom post types?**
-A: Yes. Publishio works with any registered post type — pages, posts, and custom post types (e.g. portfolio, product, event). Just tell the AI which post type to create.
+A: Yes. Publishio works with any post type that uses the Block Editor — pages, posts, and custom post types (e.g. portfolio, product, event). Featured images, categories, tags and Yoast fields work on every type that has them. Just tell the AI which post type to create.
 
 **Q: Does it work with AI platforms other than ChatGPT and Claude?**
 A: Yes, if the app supports Client ID Metadata Documents (CIMD), the OAuth sign-in method the MCP specification recommends. Claude (web, desktop, and Claude Code) and ChatGPT support it. Cursor, Gemini CLI, and Windsurf only support the older dynamic client registration, so they can't connect until they add CIMD support.
@@ -113,7 +114,10 @@ A: Yes, if the app supports Client ID Metadata Documents (CIMD), the OAuth sign-
 A: No, it works with any block-based / FSE theme. Themes with well-described patterns (like Twenty Twenty-Five) yield the best results, because the AI matches patterns from their names and descriptions.
 
 **Q: Does the AI publish directly, or can I review content first?**
-A: You're always in control. The AI shows you each section in the chat before adding it: page sections in a visual preview with Insert and Show alternative buttons, blog post sections as text. You can approve, request changes, or ask for a different pattern. The AI can't publish: everything stays a draft until you publish it in WordPress. Building pages needs an AI app that can show the visual preview; in an app that can't, the AI tells you.
+A: You're always in control. The AI proposes the whole plan, with the pattern for each section, and waits for your yes before it writes anything. In apps that show previews, you see each section as it's added and the finished page with its search and social details; in other apps, the AI shares the preview and editor links. A change to a published page needs your OK in the chat first. The AI can't publish: everything stays a draft until you publish it in WordPress.
+
+**Q: Can the AI change my saved patterns?**
+A: Only when you ask, and only unsynced patterns from your pattern library. Pages that already use an unsynced pattern keep their own copy, so they don't change. Synced patterns and your theme's and plugins' patterns are never changed; on a page, the AI can only change a synced pattern's override values for that page.
 
 **Q: Does it work with classic (non-block) themes?**
 A: Publishio is designed for block-based and Full Site Editing (FSE) themes. Classic themes without block editor support are not recommended — the AI generates Block Editor content that requires block-aware themes to render correctly.

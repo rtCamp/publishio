@@ -277,15 +277,10 @@ final class Create_Pattern extends Block_Edit_Ability {
 			return $saved;
 		}
 
-		$outline = Outline::of( $saved, $parent );
-
 		return [
 			'post_id' => $opened['post']->ID,
 			'changed' => array_map( static fn ( Block_Path $path ): string => $path->to_string(), $inserted ),
-			'outline' => is_wp_error( $outline ) ? [
-				'rows'      => [],
-				'truncated' => false,
-			] : $outline,
+			'outline' => Outline::after_change( $saved, $parent, $inserted ),
 		];
 	}
 

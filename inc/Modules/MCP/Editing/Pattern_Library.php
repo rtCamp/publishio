@@ -114,7 +114,7 @@ final class Pattern_Library {
 
 			if ( ! isset( $labels[ $slug ] ) ) {
 				$term            = get_term_by( 'slug', $slug, self::CATEGORY_TAXONOMY );
-				$labels[ $slug ] = $term instanceof \WP_Term ? $term->name : $slug;
+				$labels[ $slug ] = $term instanceof \WP_Term ? $term->name : ucfirst( str_replace( [ '-', '_' ], ' ', $slug ) );
 			}
 
 			$categories[] = [

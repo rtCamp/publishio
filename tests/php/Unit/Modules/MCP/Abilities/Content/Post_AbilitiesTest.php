@@ -124,7 +124,7 @@ class Post_AbilitiesTest extends TestCase {
 	}
 
 	/**
-	 * The get-post tool refuses posts the user can't read, and lists a post's outline without its markup.
+	 * The get-post tool refuses posts the user can't read, lists a post's outline without its markup, and can outline just one block.
 	 */
 	public function test_get_post(): void {
 		$private = self::factory()->post->create(
@@ -157,6 +157,35 @@ class Post_AbilitiesTest extends TestCase {
 				],
 			],
 			$result['outline']['rows']
+		);
+
+		$nested = self::factory()->post->create(
+			[
+				'post_status'  => 'draft',
+				'post_content' => '<!-- wp:paragraph --><p>Intro</p><!-- /wp:paragraph --><!-- wp:group --><div class="wp-block-group"><!-- wp:paragraph --><p>Inside</p><!-- /wp:paragraph --></div><!-- /wp:group -->',
+			]
+		);
+		$under  = $this->run_ability(
+			'get-post',
+			[
+				'post_id' => $nested,
+				'path'    => '1:group',
+			]
+		);
+
+		$this->assertIsArray( $under );
+		$this->assertSame( [ '1:group', '1:group > 0:paragraph' ], array_column( $under['outline']['rows'], 'path' ) );
+		$this->assertSame(
+			'path_not_found',
+			$this->code(
+				$this->run_ability(
+					'get-post',
+					[
+						'post_id' => $nested,
+						'path'    => '5:group',
+					]
+				)
+			)
 		);
 	}
 

@@ -51,6 +51,7 @@ final class Get_Post extends Ability {
 			'required'             => [ 'post_id' ],
 			'properties'           => [
 				'post_id' => Schema::post_id(),
+				'path'    => Schema::path( 'Outline only this block and what\'s inside it, such as for a long post whose outline was truncated.' ),
 			],
 			'additionalProperties' => false,
 		];
@@ -117,7 +118,17 @@ final class Get_Post extends Ability {
 			return $post;
 		}
 
-		$outline = Outline::of( Block_Tree::from_markup( $post->post_content ), Block_Path::root() );
+		$under = isset( $input['path'] ) ? Block_Path::parse( (string) $input['path'] ) : Block_Path::root();
+
+		if ( is_wp_error( $under ) ) {
+			return $under;
+		}
+
+		$outline = Outline::of( Block_Tree::from_markup( $post->post_content ), $under );
+
+		if ( is_wp_error( $outline ) ) {
+			return $outline;
+		}
 
 		return [
 			'post_id'        => $post->ID,
@@ -135,10 +146,7 @@ final class Get_Post extends Ability {
 			'url'            => (string) get_permalink( $post ),
 			'edit_url'       => (string) get_edit_post_link( $post, 'raw' ),
 			'featured_image' => self::featured_image( $post ),
-			'outline'        => is_wp_error( $outline ) ? [
-				'rows'      => [],
-				'truncated' => false,
-			] : $outline,
+			'outline'        => $outline,
 		];
 	}
 

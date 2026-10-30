@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
@@ -56,7 +57,7 @@ class Set_Yoast_Meta {
 				},
 				'execute_callback'    => static function ( array $input ) {
 					if ( ! defined( 'WPSEO_VERSION' ) ) {
-						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
+						return Errors::make( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
@@ -75,7 +76,7 @@ class Set_Yoast_Meta {
 					$hidden = array_diff( $fields, array_keys( $visible ) );
 
 					if ( [] !== $hidden ) {
-						return new \WP_Error(
+						return Errors::make(
 							'yoast_fields_unavailable',
 							sprintf(
 								/* translators: %s: comma-separated field names. */

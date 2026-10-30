@@ -62,17 +62,39 @@ class OutlineTest extends TestCase {
 
 		$this->assertIsArray( $outline );
 		$this->assertSame( 'Synced pattern "Footer CTA"', $outline['rows'][0]['text'] );
-		$this->assertSame(
+		$this->assertEquals(
 			[
 				[
 					'name'       => 'CTA heading',
 					'block'      => 'core/heading',
 					'attributes' => [ 'content' ],
-					'values'     => [ 'content' => 'Start now' ],
+					'values'     => (object) [ 'content' => 'Start now' ],
 				],
 			],
 			$outline['rows'][0]['overrides'] ?? null
 		);
+
+		$unset = Outline::of( Block_Tree::from_markup( '<!-- wp:block {"ref":' . $ref . '} /-->' ), Block_Path::root() );
+
+		$this->assertIsArray( $unset );
+		$this->assertStringContainsString( '"values":{}', (string) wp_json_encode( $unset['rows'][0] ) );
+	}
+
+	/**
+	 * After a change at the top of the post, the outline lists every top-level block but only opens the changed ones.
+	 */
+	public function test_outline_after_a_change(): void {
+		$group = '<!-- wp:group --><div class="wp-block-group"><!-- wp:paragraph --><p>%s</p><!-- /wp:paragraph --></div><!-- /wp:group -->';
+		$tree  = Block_Tree::from_markup( sprintf( $group, 'A' ) . sprintf( $group, 'B' ) . sprintf( $group, 'C' ) );
+		$path  = Block_Path::parse( '1:group' );
+
+		$this->assertInstanceOf( Block_Path::class, $path );
+		$this->assertSame(
+			[ '0:group', '1:group', '1:group > 0:paragraph', '2:group' ],
+			array_column( Outline::after_change( $tree, Block_Path::root(), [ $path ] )['rows'], 'path' )
+		);
+		$this->assertSame( [ '0:group', '1:group', '2:group' ], array_column( Outline::after_change( $tree, Block_Path::root(), [] )['rows'], 'path' ) );
+		$this->assertSame( [ '1:group', '1:group > 0:paragraph' ], array_column( Outline::after_change( $tree, $path, [] )['rows'], 'path' ) );
 	}
 
 	/**

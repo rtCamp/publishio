@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+
 /**
  * Class - Yoast_Fields
  */
@@ -192,7 +194,7 @@ final class Yoast_Fields {
 			return $value;
 		}
 
-		return new \WP_Error(
+		return Errors::make(
 			'invalid_yoast_choice',
 			sprintf(
 				/* translators: 1: field name, 2: comma-separated allowed values. */
@@ -218,7 +220,7 @@ final class Yoast_Fields {
 		$clean  = in_array( $scheme, [ 'http', 'https' ], true ) && wp_parse_url( $url, PHP_URL_HOST ) ? esc_url_raw( $url, [ 'http', 'https' ] ) : '';
 
 		return '' === $clean
-			? new \WP_Error( 'invalid_canonical', __( 'The canonical URL must be an absolute http or https URL. Nothing was saved.', 'publishio' ) )
+			? Errors::make( 'invalid_canonical', __( 'The canonical URL must be an absolute http or https URL. Nothing was saved.', 'publishio' ) )
 			: $clean;
 	}
 
@@ -233,11 +235,11 @@ final class Yoast_Fields {
 	 */
 	public static function visible( \WP_Post $post ): array|\WP_Error {
 		if ( ! class_exists( 'WPSEO_Meta' ) || ! class_exists( 'WPSEO_Utils' ) || ! class_exists( 'WPSEO_Metabox_Analysis_SEO' ) ) {
-			return new \WP_Error( 'yoast_unsupported', __( 'This version of Yoast SEO is not supported.', 'publishio' ) );
+			return Errors::make( 'yoast_unsupported', __( 'This version of Yoast SEO is not supported.', 'publishio' ) );
 		}
 
 		if ( ! \WPSEO_Utils::is_metabox_active( $post->post_type, 'post_type' ) ) {
-			return new \WP_Error( 'yoast_disabled_for_post_type', __( 'Yoast SEO settings are turned off for this post type.', 'publishio' ) );
+			return Errors::make( 'yoast_disabled_for_post_type', __( 'Yoast SEO settings are turned off for this post type.', 'publishio' ) );
 		}
 
 		$tabs = [];

@@ -14,7 +14,7 @@ namespace rtCamp\Publishio\Modules\MCP\Editing;
  *
  * Each row is a block's path and a short text that identifies it. A synced pattern's row also lists its override fields and the values this post sets.
  *
- * @phpstan-type Override array{name: string, block: string, attributes: list<string>, values: array<string, mixed>}
+ * @phpstan-type Override array{name: string, block: string, attributes: list<string>, values: object}
  * @phpstan-type Row array{path: string, text: string, overrides?: list<Override>}
  */
 final class Outline {
@@ -45,6 +45,52 @@ final class Outline {
 		}
 
 		self::collect( (array) $start['innerBlocks'], $under, $rows, $truncated );
+
+		return [
+			'rows'      => array_values( $rows ),
+			'truncated' => $truncated,
+		];
+	}
+
+	/**
+	 * The rows to return after a change: the block the change was in and everything inside it, or after a change at the top of the post, the post's top-level blocks with everything inside the ones that changed.
+	 *
+	 * Listing every top-level block keeps each path that moved, while long pages stay short and the changed blocks are never cut off.
+	 *
+	 * @param \rtCamp\Publishio\Modules\MCP\Editing\Block_Tree             $tree    The post's blocks, as saved.
+	 * @param \rtCamp\Publishio\Modules\MCP\Editing\Block_Path             $scope   The block the change was in. The root path means the post itself.
+	 * @param array<int, \rtCamp\Publishio\Modules\MCP\Editing\Block_Path> $changed The blocks the change added or changed.
+	 *
+	 * @return array{rows: list<Row>, truncated: bool}
+	 */
+	public static function after_change( Block_Tree $tree, Block_Path $scope, array $changed ): array {
+		$outline = $scope->is_root() ? null : self::of( $tree, $scope );
+
+		if ( is_array( $outline ) ) {
+			return $outline;
+		}
+
+		$expand = [];
+
+		foreach ( $changed as $path ) {
+			$steps = $path->steps();
+
+			if ( [] !== $steps ) {
+				$expand[ $steps[0]['index'] ] = true;
+			}
+		}
+
+		$rows      = [];
+		$truncated = false;
+
+		foreach ( $tree->blocks() as $i => $block ) {
+			$path   = Block_Path::root()->child( $i, Block_Tree::name_of( $block ) );
+			$rows[] = self::row( $block, $path );
+
+			if ( isset( $expand[ $i ] ) && 'core/block' !== Block_Tree::name_of( $block ) ) {
+				self::collect( (array) ( $block['innerBlocks'] ?? [] ), $path, $rows, $truncated );
+			}
+		}
 
 		return [
 			'rows'      => array_values( $rows ),
@@ -111,7 +157,7 @@ final class Outline {
 					'name'       => (string) $name,
 					'block'      => $field['block'],
 					'attributes' => $field['attributes'],
-					'values'     => $values[ $name ] ?? [],
+					'values'     => (object) ( $values[ $name ] ?? [] ),
 				];
 			}
 		}

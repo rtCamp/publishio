@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
@@ -91,11 +92,11 @@ class Set_Post_Terms {
 					}
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
+						return Errors::make( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
 					}
 
 					if ( ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
-						return new \WP_Error(
+						return Errors::make(
 							'taxonomy_not_registered',
 							sprintf(
 								/* translators: 1: taxonomy slug, 2: post type slug */
@@ -108,11 +109,11 @@ class Set_Post_Terms {
 
 					$taxonomy_obj = get_taxonomy( $taxonomy );
 					if ( ! $taxonomy_obj || ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publishio' ) );
+						return Errors::make( 'forbidden', __( 'You do not have permission to assign terms in this taxonomy.', 'publishio' ) );
 					}
 
 					if ( ! is_array( $terms ) ) {
-						return new \WP_Error( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publishio' ) );
+						return Errors::make( 'invalid_terms', __( 'Terms must be an array of slugs or IDs.', 'publishio' ) );
 					}
 
 					// Resolve slugs to term IDs.
@@ -123,7 +124,7 @@ class Set_Post_Terms {
 						} else {
 							$term_obj = get_term_by( 'slug', sanitize_title( $term ), $taxonomy );
 							if ( ! $term_obj ) {
-								return new \WP_Error(
+								return Errors::make(
 									'invalid_term',
 									sprintf(
 										/* translators: 1: term slug, 2: taxonomy slug */
@@ -151,7 +152,7 @@ class Set_Post_Terms {
 					}
 
 					if ( ! empty( $forbidden ) ) {
-						return new \WP_Error(
+						return Errors::make(
 							'forbidden',
 							sprintf(
 								/* translators: %s: comma-separated list of term slugs/IDs the user cannot assign or remove. */

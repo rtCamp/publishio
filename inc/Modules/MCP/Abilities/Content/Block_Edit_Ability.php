@@ -21,7 +21,7 @@ use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 /**
  * Class - Block_Edit_Ability
  *
- * Each block-edit tool loads the post, refuses early when it is locked or live without approval, changes the block tree, and saves through Post_Writer. The result lists the changed blocks' paths and the outline of the part of the post that changed, read from what was saved.
+ * Each block-edit tool loads the post, refuses early when it is locked or live without approval, changes the block tree, and saves through Post_Writer. The result lists the changed blocks' paths and an outline of the part of the post that changed, read from what was saved.
  */
 abstract class Block_Edit_Ability extends Ability {
 	/**
@@ -87,19 +87,10 @@ abstract class Block_Edit_Ability extends Ability {
 			return $saved;
 		}
 
-		$outline = Outline::of( $saved, $scope );
-
-		if ( is_wp_error( $outline ) ) {
-			$outline = Outline::of( $saved, Block_Path::root() );
-		}
-
 		return [
 			'post_id' => $post->ID,
 			'changed' => array_map( static fn ( Block_Path $path ): string => $path->to_string(), array_values( $changed ) ),
-			'outline' => is_wp_error( $outline ) ? [
-				'rows'      => [],
-				'truncated' => false,
-			] : $outline,
+			'outline' => Outline::after_change( $saved, $scope, $changed ),
 		];
 	}
 

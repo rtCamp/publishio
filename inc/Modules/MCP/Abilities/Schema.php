@@ -113,7 +113,7 @@ final class Schema {
 	public static function outline(): array {
 		return [
 			'type'        => 'object',
-			'description' => 'Each block with its path and a short text. Use these paths in the next call.',
+			'description' => 'Each block with its path and a short text. Use these paths in the next call. After a change at the top level of the post, it lists the post\'s top-level blocks and every block inside the ones that changed.',
 			'required'    => [ 'rows', 'truncated' ],
 			'properties'  => [
 				'rows'      => [
@@ -146,7 +146,7 @@ final class Schema {
 				],
 				'truncated' => [
 					'type'        => 'boolean',
-					'description' => 'Whether rows were left out. Get the outline under a specific block to see the rest.',
+					'description' => 'Whether rows were left out. Call get-post with path to see the rows inside one block.',
 				],
 			],
 		];

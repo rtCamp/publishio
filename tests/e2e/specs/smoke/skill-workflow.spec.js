@@ -641,7 +641,7 @@ test.describe(
 				);
 				expect( unknown.isError ).toBe( true );
 				expect( unknown.text ).toBe(
-					'Term "skill-made-up" not found in taxonomy "post_tag".'
+					'invalid_term: Term "skill-made-up" not found in taxonomy "post_tag".'
 				);
 			}
 		);

@@ -66,11 +66,11 @@ export function Card( { kind, card, body, onRetry, onOpen }: Props ) {
 				</div>
 			) }
 
-			{ ready && ( ! tabs || tab === 'Page' ) && (
+			{ ready && (
 				<PreviewFrame
 					html={ ready.html }
 					title={ `Preview of ${ card.title }` }
-					desktop={ kind === 'page' }
+					hidden={ tabs && tab !== 'Page' }
 				/>
 			) }
 

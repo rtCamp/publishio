@@ -12,11 +12,9 @@ namespace rtCamp\Publishio\Modules\MCP\Editing;
 /**
  * Class - Post_Writer
  *
- * The only code that saves post and pattern content. It refuses posts the user can't edit, post types without the block editor, posts open in the editor, and changes to live posts without the user's approval.
+ * The only code that saves post and pattern content. It refuses posts the user can't edit, post types without the block editor, and changes to live posts without the user's approval.
  */
 final class Post_Writer {
-	private const LOCK_WINDOW = 150;
-
 	private const EXCLUDED_TYPES = [
 		'attachment',
 		'custom_css',
@@ -99,9 +97,9 @@ final class Post_Writer {
 	}
 
 	/**
-	 * Refuse a change to a post that is open in the editor, or that is live without the user's approval.
+	 * Refuse a change to a post that is live without the user's approval.
 	 *
-	 * Tools call this before working out a change, so the AI learns about the lock or the approval first.
+	 * Tools call this before working out a change, so the AI asks for the approval first.
 	 *
 	 * @param \WP_Post $post           The post.
 	 * @param string   $approval_token The token from a live_post_needs_approval refusal, if any.
@@ -109,12 +107,6 @@ final class Post_Writer {
 	 * @return true|\WP_Error
 	 */
 	public static function guard( \WP_Post $post, string $approval_token = '' ): bool|\WP_Error {
-		$lock = self::check_lock( $post );
-
-		if ( is_wp_error( $lock ) ) {
-			return $lock;
-		}
-
 		$user_id = get_current_user_id();
 
 		if ( Live_Approval::is_live( $post ) && ! Live_Approval::verify( $approval_token, $post->ID, $user_id ) ) {
@@ -140,19 +132,6 @@ final class Post_Writer {
 		$guard = self::guard( $post, $approval_token );
 
 		return is_wp_error( $guard ) ? $guard : $post;
-	}
-
-	/**
-	 * Refuse a change to a post that is open in the editor.
-	 *
-	 * @param \WP_Post $post The post.
-	 *
-	 * @return true|\WP_Error
-	 */
-	public static function check_lock( \WP_Post $post ): bool|\WP_Error {
-		$holder = self::lock_holder( $post );
-
-		return null === $holder ? true : Errors::post_locked( $post, $holder );
 	}
 
 	/**
@@ -259,12 +238,6 @@ final class Post_Writer {
 			return Errors::forbidden( $pattern );
 		}
 
-		$lock = self::check_lock( $pattern );
-
-		if ( is_wp_error( $lock ) ) {
-			return $lock;
-		}
-
 		$fields = [
 			'ID'           => $pattern->ID,
 			'post_content' => Block_Tree::of( $blocks )->to_markup(),
@@ -284,26 +257,5 @@ final class Post_Writer {
 		$saved = get_post( $pattern->ID );
 
 		return $saved instanceof \WP_Post ? $saved : Errors::make( 'save_failed', __( 'The pattern couldn\'t be saved.', 'publishio' ), 500 );
-	}
-
-	/**
-	 * The user who has the post open in the editor, including the current user.
-	 *
-	 * WordPress's wp_check_post_lock() ignores the current user's own lock, but the editor in another tab would still overwrite the change when it saves.
-	 *
-	 * @param \WP_Post $post The post.
-	 */
-	private static function lock_holder( \WP_Post $post ): ?int {
-		$lock = (string) get_post_meta( $post->ID, '_edit_lock', true );
-
-		if ( '' === $lock ) {
-			return null;
-		}
-
-		[ $time, $user ] = array_pad( explode( ':', $lock, 2 ), 2, '' );
-		$user_id         = '' !== $user ? (int) $user : (int) get_post_meta( $post->ID, '_edit_last', true );
-		$window          = (int) apply_filters( 'wp_check_post_lock_window', self::LOCK_WINDOW ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter, applied as wp_check_post_lock() applies it.
-
-		return $user_id > 0 && (int) $time > time() - $window ? $user_id : null;
 	}
 }

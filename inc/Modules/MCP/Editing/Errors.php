@@ -210,20 +210,6 @@ final class Errors {
 	}
 
 	/**
-	 * A post that is open in the block editor.
-	 *
-	 * @param \WP_Post $post    The post.
-	 * @param int      $user_id The user who has it open.
-	 */
-	public static function post_locked( \WP_Post $post, int $user_id ): \WP_Error {
-		$user = get_userdata( $user_id );
-		$who  = get_current_user_id() === $user_id || ! $user ? __( 'you, in another tab or window', 'publishio' ) : $user->display_name;
-
-		/* translators: 1: post title, 2: who has it open */
-		return self::make( 'post_locked', sprintf( __( '"%1$s" is open in the block editor by %2$s. A change made now would be lost when the editor saves. Ask the user to save and close it there, then try again.', 'publishio' ), self::title( $post ), $who ), 409 );
-	}
-
-	/**
 	 * A post that changed after the call read it, such as by another call made at the same time.
 	 *
 	 * @param \WP_Post $post The post.

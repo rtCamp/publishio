@@ -82,20 +82,6 @@ class Post_WriterTest extends TestCase {
 	}
 
 	/**
-	 * A post open in the editor is refused, including by the current user in another tab.
-	 */
-	public function test_refuses_a_post_open_in_the_editor(): void {
-		$post = $this->post( 'draft' );
-		$tree = Block_Tree::from_markup( '<!-- wp:paragraph --><p>New</p><!-- /wp:paragraph -->' );
-
-		update_post_meta( $post->ID, '_edit_lock', time() . ':' . $this->editor );
-		$this->assertSame( 'post_locked', $this->code( Post_Writer::save( $post, $tree ) ) );
-
-		update_post_meta( $post->ID, '_edit_lock', ( time() - 600 ) . ':' . $this->editor );
-		$this->assertInstanceOf( Block_Tree::class, Post_Writer::save( $post, $tree ) );
-	}
-
-	/**
 	 * A live post needs a token, which the refusal provides.
 	 */
 	public function test_live_post_needs_a_valid_token(): void {

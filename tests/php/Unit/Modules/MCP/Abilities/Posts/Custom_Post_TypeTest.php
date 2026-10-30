@@ -152,7 +152,7 @@ class Custom_Post_TypeTest extends TestCase {
 	}
 
 	/**
-	 * Changing a live post's details needs the user's approval, a post open in the editor is refused, and an unreadable post is reported as not found.
+	 * Changing a live post's details needs the user's approval, a post open in the editor can still change, and an unreadable post is reported as not found.
 	 */
 	public function test_details_follow_the_post_guards(): void {
 		$live   = $this->post( self::BOOK, 'publish' );
@@ -181,16 +181,16 @@ class Custom_Post_TypeTest extends TestCase {
 			)
 		);
 
-		$locked = $this->post( self::BOOK, 'draft' );
-		update_post_meta( $locked, '_edit_lock', time() . ':' . self::factory()->user->create( [ 'role' => 'editor' ] ) );
+		$open = $this->post( self::BOOK, 'draft' );
+		update_post_meta( $open, '_edit_lock', time() . ':' . self::factory()->user->create( [ 'role' => 'editor' ] ) );
 
 		$this->assertSame(
-			'post_locked',
+			'ok',
 			$this->code(
 				$this->run_ability(
 					'set-featured-image',
 					[
-						'post_id'       => $locked,
+						'post_id'       => $open,
 						'attachment_id' => 0,
 					]
 				)

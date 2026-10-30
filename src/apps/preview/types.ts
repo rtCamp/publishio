@@ -21,7 +21,7 @@ export interface PreviewRequest {
 export interface CardText {
 	title: string;
 	status: { word: string; tone: Tone } | null;
-	line: string;
+	subtitle: string;
 	editUrl: string | null;
 	error: string;
 }

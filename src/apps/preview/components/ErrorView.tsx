@@ -14,7 +14,7 @@ export function ErrorView( { message, canOpen, onRetry, onOpen }: Props ) {
 			<span className="er-ico">
 				<LeafIcon />
 			</span>
-			<p className="er-t">Couldn’t show the preview</p>
+			<p className="er-t">Couldn&apos;t show the preview</p>
 			<p className="er-d">{ message }</p>
 			<div className="er-b">
 				<button type="button" className="btn btn-p" onClick={ onRetry }>

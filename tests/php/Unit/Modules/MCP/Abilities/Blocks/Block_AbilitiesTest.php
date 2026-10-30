@@ -102,6 +102,25 @@ class Block_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * A block is the theme's only when its assets are inside the active theme's folder, not a folder whose name starts the same.
+	 */
+	public function test_source_of_needs_the_whole_theme_folder(): void {
+		$theme = get_stylesheet_directory_uri();
+
+		wp_register_script( 'publishio-test-theme-block', $theme . '/blocks/a.js', [], '1', true );
+		wp_register_script( 'publishio-test-sibling-block', $theme . '-pro/blocks/a.js', [], '1', true );
+
+		$in_theme = Block_Catalog::source_of( new \WP_Block_Type( 'publishio-test/in-theme', [ 'editor_script_handles' => [ 'publishio-test-theme-block' ] ] ) );
+		$sibling  = Block_Catalog::source_of( new \WP_Block_Type( 'publishio-test/sibling', [ 'editor_script_handles' => [ 'publishio-test-sibling-block' ] ] ) );
+
+		wp_deregister_script( 'publishio-test-theme-block' );
+		wp_deregister_script( 'publishio-test-sibling-block' );
+
+		$this->assertSame( 'theme', $in_theme );
+		$this->assertSame( 'plugin', $sibling );
+	}
+
+	/**
 	 * A dry run reports what a write would refuse, renders anyway, and saves nothing.
 	 */
 	public function test_render_blocks_reports_problems_and_renders(): void {

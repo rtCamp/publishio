@@ -129,7 +129,7 @@ export function fallbackCard(
 							: 'ok',
 			  }
 			: null,
-		line: '',
+		subtitle: '',
 		editUrl,
 		error: fallbackError( request ),
 	};
@@ -147,14 +147,14 @@ function fallbackError( request: PreviewRequest ): string {
 	switch ( request.view ) {
 		case 'blocks':
 			return ( request.paths?.length ?? 0 ) === 1
-				? 'The block was added. Only the preview didn’t load.'
-				: 'The blocks were added. Only the preview didn’t load.';
+				? "The block was added. Only the preview didn't load."
+				: "The blocks were added. Only the preview didn't load.";
 		case 'pattern':
 			return request.updated
-				? 'The pattern was updated. Only the preview didn’t load.'
-				: 'The pattern was saved. Only the preview didn’t load.';
+				? "The pattern was updated. Only the preview didn't load."
+				: "The pattern was saved. Only the preview didn't load.";
 		default:
-			return 'The page is unchanged. Only the preview didn’t load.';
+			return "The page is unchanged. Only the preview didn't load.";
 	}
 }
 
@@ -189,7 +189,7 @@ export async function fetchCard(
 		status: text( status[ 'word' ] )
 			? { word: text( status[ 'word' ] ), tone }
 			: null,
-		line: text( card[ 'line' ] ),
+		subtitle: text( card[ 'subtitle' ] ),
 		editUrl: text( card[ 'edit_url' ] ) || null,
 		error: text( card[ 'error' ] ),
 	};

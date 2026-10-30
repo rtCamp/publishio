@@ -17,10 +17,10 @@ use rtCamp\Publishio\Modules\MCP\Editing\Pattern_Library;
 /**
  * Class - Preview_Card
  *
- * Each card has a title, a status word with its color, one line under the title, and the message shown when only the preview fails.
+ * Each card has a title, a status word with its color, a subtitle, and the message shown when only the preview fails.
  *
  * @phpstan-import-type Pattern from Pattern_Library
- * @phpstan-type Card array{title: string, status: array{word: string, tone: string}, line: string, edit_url: ?string, error: string}
+ * @phpstan-type Card array{title: string, status: array{word: string, tone: string}, subtitle: string, edit_url: ?string, error: string}
  */
 final class Preview_Card {
 	/**
@@ -45,13 +45,13 @@ final class Preview_Card {
 				'tone' => 'ok',
 			],
 			/* translators: 1: page title, 2: where the blocks went, such as "after Our story" */
-			'line'     => sprintf( __( '%1$s, %2$s', 'publishio' ), $page, self::where( $tree, $paths, $placement, $targeted ) ),
+			'subtitle' => sprintf( __( '%1$s, %2$s', 'publishio' ), $page, self::where( $tree, $paths, $placement, $targeted ) ),
 			'edit_url' => self::edit_url( $post->ID ),
 			'error'    => 1 === count( $paths )
 				/* translators: %s: page title */
-				? sprintf( __( 'The block was added to %s. Only the preview didn’t load.', 'publishio' ), $page )
+				? sprintf( __( 'The block was added to %s. Only the preview didn\'t load.', 'publishio' ), $page )
 				/* translators: %s: page title */
-				: sprintf( __( 'The blocks were added to %s. Only the preview didn’t load.', 'publishio' ), $page ),
+				: sprintf( __( 'The blocks were added to %s. Only the preview didn\'t load.', 'publishio' ), $page ),
 		];
 	}
 
@@ -78,11 +78,11 @@ final class Preview_Card {
 				'word' => $updated ? __( 'Updated', 'publishio' ) : __( 'Saved', 'publishio' ),
 				'tone' => $updated ? 'info' : 'ok',
 			],
-			'line'     => implode( ' · ', $parts ),
+			'subtitle' => implode( ' · ', $parts ),
 			'edit_url' => $pattern['id'] > 0 ? self::edit_url( $pattern['id'] ) : null,
 			'error'    => $updated
-				? __( 'The pattern was updated. Only the preview didn’t load.', 'publishio' )
-				: __( 'The pattern was saved. Only the preview didn’t load.', 'publishio' ),
+				? __( 'The pattern was updated. Only the preview didn\'t load.', 'publishio' )
+				: __( 'The pattern was saved. Only the preview didn\'t load.', 'publishio' ),
 		];
 	}
 
@@ -99,10 +99,10 @@ final class Preview_Card {
 		return [
 			'title'    => $title,
 			'status'   => self::post_status( $post ),
-			'line'     => (string) preg_replace( '#^https?://#', '', untrailingslashit( Page_Details::address( $post ) ) ),
+			'subtitle' => (string) preg_replace( '#^https?://#', '', untrailingslashit( Page_Details::address( $post ) ) ),
 			'edit_url' => self::edit_url( $post->ID ),
 			/* translators: %s: page title */
-			'error'    => sprintf( __( '%s is unchanged. Only the preview didn’t load.', 'publishio' ), $title ),
+			'error'    => sprintf( __( '%s is unchanged. Only the preview didn\'t load.', 'publishio' ), $title ),
 		];
 	}
 

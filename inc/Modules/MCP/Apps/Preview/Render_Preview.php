@@ -102,7 +102,7 @@ final class Render_Preview extends Ability {
 						'tone' => $string,
 					],
 				],
-				'line'     => $string,
+				'subtitle' => $string,
 				'edit_url' => $optional,
 				'error'    => $string,
 				'html'     => $string,

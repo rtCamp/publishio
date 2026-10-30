@@ -11,7 +11,6 @@ namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\Apps\Preview;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use rtCamp\Publishio\Modules\MCP\Apps\Preview\Preview_Asset_Path;
 use rtCamp\Publishio\Modules\MCP\Apps\Preview\Preview_Styles;
 use rtCamp\Publishio\Tests\Abstracts\Preview_Fixtures;
 use rtCamp\Publishio\Tests\TestCase;
@@ -20,7 +19,6 @@ use rtCamp\Publishio\Tests\TestCase;
  * Class - Preview_StylesTest
  */
 #[CoversClass( Preview_Styles::class )]
-#[CoversClass( Preview_Asset_Path::class )]
 class Preview_StylesTest extends TestCase {
 	use Preview_Fixtures;
 
@@ -46,8 +44,6 @@ class Preview_StylesTest extends TestCase {
 
 	/**
 	 * A stylesheet this install can read is replaced by its own contents.
-	 *
-	 * The preview document is mounted with iframe srcdoc, where every linked stylesheet is a fetch the MCP host may refuse.
 	 */
 	public function test_local_stylesheet_is_inlined(): void {
 		$href = $this->fixture( 'local.css', '.pattern{color:red}' );

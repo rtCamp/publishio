@@ -199,7 +199,7 @@ final class Block_Catalog {
 		}
 
 		$handles = array_merge( $type->editor_script_handles, $type->script_handles, $type->view_script_handles, $type->editor_style_handles, $type->style_handles );
-		$themes  = array_unique( [ get_stylesheet_directory_uri(), get_template_directory_uri() ] );
+		$themes  = array_unique( [ trailingslashit( get_stylesheet_directory_uri() ), trailingslashit( get_template_directory_uri() ) ] );
 
 		foreach ( $handles as $handle ) {
 			$asset = wp_scripts()->query( $handle ) ?: wp_styles()->query( $handle );

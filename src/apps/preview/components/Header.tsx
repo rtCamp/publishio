@@ -32,19 +32,19 @@ export function Header( { kind, card, button, onOpen }: Props ) {
 					<span className="kind-tag">{ KIND_LABEL[ kind ] }</span>
 					{ card.title }
 				</p>
-				{ ( card.status || card.line ) && (
+				{ ( card.status || card.subtitle ) && (
 					<p className="pc-sub">
 						{ card.status && (
 							<span
 								className={ `sub-st tone-${ card.status.tone }` }
 							>
 								{ card.status.word }
-								{ card.line && (
+								{ card.subtitle && (
 									<span className="sub-sep"> · </span>
 								) }
 							</span>
 						) }
-						{ card.line }
+						{ card.subtitle }
 					</p>
 				) }
 			</div>

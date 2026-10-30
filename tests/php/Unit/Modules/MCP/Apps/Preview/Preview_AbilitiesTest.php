@@ -95,8 +95,8 @@ class Preview_AbilitiesTest extends TestCase {
 		$this->assertIsArray( $after );
 		$this->assertSame( 'Open 7 days a week', $after['title'] );
 		$this->assertSame( 'Added', $after['status']['word'] );
-		$this->assertSame( 'About us, after Our story', $after['line'] );
-		$this->assertSame( 'The block was added to About us. Only the preview didn’t load.', $after['error'] );
+		$this->assertSame( 'About us, after Our story', $after['subtitle'] );
+		$this->assertSame( 'The block was added to About us. Only the preview didn\'t load.', $after['error'] );
 
 		$before = $this->card(
 			'blocks',
@@ -110,7 +110,7 @@ class Preview_AbilitiesTest extends TestCase {
 
 		$this->assertIsArray( $before );
 		$this->assertSame( 'Our story', $before['title'] );
-		$this->assertSame( 'About us, before Inside', $before['line'] );
+		$this->assertSame( 'About us, before Inside', $before['subtitle'] );
 		$this->assertStringStartsWith( 'The blocks were added', $before['error'] );
 
 		$inside = $this->card(
@@ -124,7 +124,7 @@ class Preview_AbilitiesTest extends TestCase {
 		);
 
 		$this->assertIsArray( $inside );
-		$this->assertSame( 'About us, inside Inside', $inside['line'] );
+		$this->assertSame( 'About us, inside Inside', $inside['subtitle'] );
 
 		$end = $this->card(
 			'blocks',
@@ -136,7 +136,7 @@ class Preview_AbilitiesTest extends TestCase {
 
 		$this->assertIsArray( $end );
 		$this->assertSame( 'Spacer', $end['title'] );
-		$this->assertSame( 'About us, at the end', $end['line'] );
+		$this->assertSame( 'About us, at the end', $end['subtitle'] );
 
 		$top = $this->card(
 			'blocks',
@@ -148,7 +148,7 @@ class Preview_AbilitiesTest extends TestCase {
 		);
 
 		$this->assertIsArray( $top );
-		$this->assertSame( 'About us, at the top', $top['line'] );
+		$this->assertSame( 'About us, at the top', $top['subtitle'] );
 	}
 
 	/**
@@ -167,8 +167,8 @@ class Preview_AbilitiesTest extends TestCase {
 			],
 			$card['status']
 		);
-		$this->assertStringEndsWith( 'about-us', $card['line'] );
-		$this->assertStringNotContainsString( 'http', $card['line'] );
+		$this->assertStringEndsWith( 'about-us', $card['subtitle'] );
+		$this->assertStringNotContainsString( 'http', $card['subtitle'] );
 
 		$words = [];
 
@@ -212,7 +212,7 @@ class Preview_AbilitiesTest extends TestCase {
 
 		$this->assertIsArray( $saved );
 		$this->assertSame( 'Footer CTA', $saved['title'] );
-		$this->assertSame( 'Synced pattern · Calls to action', $saved['line'] );
+		$this->assertSame( 'Synced pattern · Calls to action', $saved['subtitle'] );
 		$this->assertSame( 'ok', $saved['status']['tone'] );
 		$this->assertNotNull( $saved['edit_url'] );
 
@@ -232,7 +232,7 @@ class Preview_AbilitiesTest extends TestCase {
 			],
 			$updated['status']
 		);
-		$this->assertSame( 'The pattern was updated. Only the preview didn’t load.', $updated['error'] );
+		$this->assertSame( 'The pattern was updated. Only the preview didn\'t load.', $updated['error'] );
 
 		$body = $this->body( 'pattern', [ 'pattern' => 'core/block/' . $id ] );
 

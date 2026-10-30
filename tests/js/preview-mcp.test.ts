@@ -93,11 +93,11 @@ describe( 'fallbackCard', () => {
 		expect( card.title ).toBe( 'Open 7 days a week' );
 		expect( card.status ).toEqual( { word: 'Added', tone: 'ok' } );
 		expect( card.error ).toBe(
-			'The block was added. Only the preview didn’t load.'
+			"The block was added. Only the preview didn't load."
 		);
 	} );
 
-	it( 'uses the result’s title and editor link for patterns and pages', () => {
+	it( "uses the result's title and editor link for patterns and pages", () => {
 		const pattern = fallbackCard(
 			{ view: 'pattern', pattern: 'core/block/3', updated: true },
 			{ title: 'Footer CTA', edit_url: 'https://example.com/edit' }

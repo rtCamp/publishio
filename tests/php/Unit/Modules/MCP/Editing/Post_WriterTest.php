@@ -148,6 +148,71 @@ class Post_WriterTest extends TestCase {
 	}
 
 	/**
+	 * A refusal names a post only when it's public or the user can edit it, even when read_post passes.
+	 */
+	public function test_refusals_name_only_posts_the_user_may_see(): void {
+		register_post_type( 'publishio_hidden', [ 'public' => false ] );
+
+		$published = self::factory()->post->create(
+			[
+				'post_status' => 'publish',
+				'post_author' => $this->editor,
+				'post_title'  => 'Launch',
+			]
+		);
+		$autosave  = self::factory()->post->create(
+			[
+				'post_type'   => 'revision',
+				'post_status' => 'inherit',
+				'post_parent' => $published,
+				'post_author' => $this->editor,
+				'post_title'  => 'Unannounced title',
+			]
+		);
+		$hidden    = self::factory()->post->create(
+			[
+				'post_type'   => 'publishio_hidden',
+				'post_status' => 'publish',
+				'post_author' => $this->editor,
+				'post_title'  => 'COUPON-50',
+			]
+		);
+		$request   = wp_create_user_request( 'requester@example.test', 'export_personal_data' );
+
+		$this->assertIsInt( $request );
+		$this->assertTrue( current_user_can( 'read_post', $request ) );
+
+		$request_error = Post_Writer::load( $request );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'contributor' ] ) );
+
+		$this->assertTrue( current_user_can( 'read_post', $autosave ) );
+		$this->assertTrue( current_user_can( 'read_post', $hidden ) );
+
+		$revision_error = Post_Writer::load( $autosave );
+		$hidden_error   = Post_Writer::load( $hidden );
+		$public_error   = Post_Writer::load( $published );
+
+		unregister_post_type( 'publishio_hidden' );
+
+		$this->assertWPError( $request_error );
+		$this->assertSame( 'unsupported_type', $request_error->get_error_code() );
+		$this->assertStringNotContainsString( 'requester@example.test', $request_error->get_error_message() );
+
+		$this->assertWPError( $revision_error );
+		$this->assertSame( 'unsupported_type', $revision_error->get_error_code() );
+		$this->assertStringNotContainsString( 'Unannounced title', $revision_error->get_error_message() );
+
+		$this->assertWPError( $hidden_error );
+		$this->assertSame( 'post_not_found', $hidden_error->get_error_code() );
+		$this->assertStringNotContainsString( 'COUPON-50', $hidden_error->get_error_message() );
+
+		$this->assertWPError( $public_error );
+		$this->assertSame( 'forbidden', $public_error->get_error_code() );
+		$this->assertStringContainsString( 'Launch', $public_error->get_error_message() );
+	}
+
+	/**
 	 * Saving checks the capability itself, whoever loaded the post.
 	 */
 	public function test_save_checks_the_capability(): void {

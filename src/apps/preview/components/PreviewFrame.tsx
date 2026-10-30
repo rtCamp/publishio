@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 import { pinViewportUnits } from '../viewport-units';
 
@@ -52,7 +52,8 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 	const innerRef = useRef< HTMLDivElement >( null );
 	const frameRef = useRef< HTMLIFrameElement >( null );
 
-	useEffect( () => {
+	// A layout effect runs in the same task as the commit that sets srcDoc, so the frame can't finish loading before the listener is attached.
+	useLayoutEffect( () => {
 		const box = boxRef.current;
 		const inner = innerRef.current;
 		const frame = frameRef.current;
@@ -81,10 +82,15 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 				( full - scrollbarWidth( box ) ) / DESKTOP_WIDTH
 			);
 			const scrolls = Math.ceil( height * narrow ) > MAX_HEIGHT;
+
+			// Content that fits at the narrow scale but not the full one shrinks a little to keep the box within the maximum.
 			const scale = scrolls
 				? narrow
-				: Math.min( 1, full / DESKTOP_WIDTH );
-			const shown = Math.ceil( height * scale );
+				: Math.min( 1, full / DESKTOP_WIDTH, MAX_HEIGHT / height );
+			const shown = Math.min(
+				Math.ceil( height * scale ),
+				scrolls ? Infinity : MAX_HEIGHT
+			);
 
 			box.style.overflowY = scrolls ? 'scroll' : 'hidden';
 			box.style.height = `${

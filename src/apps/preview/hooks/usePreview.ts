@@ -9,16 +9,11 @@ import {
 	fallbackCard,
 	fetchBody,
 	fetchCard,
+	isRecord,
 	previewRequest,
 	toolName,
 } from '../mcp';
 import type { Args, BodyState, CardText, PreviewRequest } from '../types';
-
-function isRecord( value: unknown ): value is Args {
-	return (
-		typeof value === 'object' && value !== null && ! Array.isArray( value )
-	);
-}
 
 /**
  * Follows the tool call that opened the app. Once the tool succeeds, it asks

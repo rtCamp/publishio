@@ -128,11 +128,20 @@ class Pattern_AbilitiesTest extends TestCase {
 	}
 
 	/**
-	 * Unknown names are refused; a synced pattern lists its override fields, and not_allowed lists blocks the post type can't use.
+	 * Unknown and unpublished patterns are refused; a synced pattern lists its override fields, nested patterns are resolved as insert-pattern resolves them, and not_allowed lists blocks the post type can't use.
 	 */
 	public function test_get_pattern(): void {
+		$draft = self::factory()->post->create(
+			[
+				'post_type'    => 'wp_block',
+				'post_status'  => 'draft',
+				'post_content' => sprintf( self::PARAGRAPH, 'Draft' ),
+			]
+		);
+
 		$this->assertSame( 'unknown_pattern', $this->code( $this->run_ability( 'get-pattern', [ 'name' => 'acme/none' ] ) ) );
 		$this->assertSame( 'unknown_pattern', $this->code( $this->run_ability( 'get-pattern', [ 'name' => 'core/block/abc' ] ) ) );
+		$this->assertSame( 'unknown_pattern', $this->code( $this->run_ability( 'get-pattern', [ 'name' => 'core/block/' . $draft ] ) ) );
 
 		$synced = $this->run_ability( 'get-pattern', [ 'name' => 'core/block/' . $this->synced ] );
 
@@ -151,12 +160,24 @@ class Pattern_AbilitiesTest extends TestCase {
 				'post_type' => 'page',
 			]
 		);
+		$nested = $this->run_ability(
+			'get-pattern',
+			[
+				'name'      => 'acme-plugin/nested',
+				'post_type' => 'post',
+			]
+		);
 		remove_filter( 'allowed_block_types_all', $filter );
 
 		$this->assertIsArray( $plugin );
 		$this->assertSame( [ 'core/heading', 'core/paragraph' ], $plugin['blocks_used'] );
 		$this->assertSame( [ 'core/heading' ], $plugin['not_allowed'] );
 		$this->assertCount( 2, $plugin['outline']['rows'] );
+
+		$this->assertIsArray( $nested );
+		$this->assertSame( [ 'core/paragraph', 'core/heading' ], $nested['blocks_used'] );
+		$this->assertSame( [ 'core/heading' ], $nested['not_allowed'] );
+		$this->assertSame( [ '0:paragraph', '1:heading' ], array_column( $nested['outline']['rows'], 'path' ) );
 	}
 
 	/**

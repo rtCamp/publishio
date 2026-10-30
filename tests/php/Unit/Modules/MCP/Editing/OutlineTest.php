@@ -141,7 +141,7 @@ class OutlineTest extends TestCase {
 		$one = Errors::from_problems( [ Errors::problem( 'unknown_block', '0:acme/x', 'acme/x isn\'t registered.' ) ] );
 
 		$this->assertSame( 'unknown_block', $one->get_error_code() );
-		$this->assertSame( 'unknown_block: acme/x isn\'t registered.', $one->get_error_message() );
+		$this->assertSame( 'unknown_block: At 0:acme/x: acme/x isn\'t registered.', $one->get_error_message() );
 
 		$problems = array_map( static fn ( int $i ): array => Errors::problem( 'unknown_block', $i . ':acme/x', 'Not registered.' ), range( 0, Errors::MAX_PROBLEMS + 2 ) );
 		$many     = Errors::from_problems( $problems );

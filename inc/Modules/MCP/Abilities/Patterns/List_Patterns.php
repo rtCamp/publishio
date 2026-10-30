@@ -141,32 +141,30 @@ final class List_Patterns extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function execute( array $input ): array {
-		$filters = array_filter(
-			[
-				'search'    => isset( $input['search'] ) ? sanitize_text_field( (string) $input['search'] ) : null,
-				'category'  => isset( $input['category'] ) ? sanitize_title( (string) $input['category'] ) : null,
-				'source'    => isset( $input['source'] ) ? (string) $input['source'] : null,
-				'synced'    => isset( $input['synced'] ) ? (bool) $input['synced'] : null,
-				'post_type' => isset( $input['post_type'] ) ? sanitize_key( (string) $input['post_type'] ) : null,
-			],
-			static fn ( mixed $value ): bool => null !== $value && '' !== $value
-		);
+		$given   = [
+			'search'    => isset( $input['search'] ) ? sanitize_text_field( (string) $input['search'] ) : null,
+			'category'  => isset( $input['category'] ) ? sanitize_title( (string) $input['category'] ) : null,
+			'source'    => isset( $input['source'] ) ? (string) $input['source'] : null,
+			'synced'    => isset( $input['synced'] ) ? (bool) $input['synced'] : null,
+			'post_type' => isset( $input['post_type'] ) ? sanitize_key( (string) $input['post_type'] ) : null,
+		];
+		$filters = array_filter( $given, static fn ( mixed $value ): bool => null !== $value && '' !== $value );
 
-			$patterns = Pattern_Library::matching( $filters );
+		$patterns = Pattern_Library::matching( $filters );
 
-			return [
-				'patterns'   => array_map(
-					static fn ( array $pattern ): array => [
-						'name'        => $pattern['name'],
-						'title'       => $pattern['title'],
-						'description' => $pattern['description'],
-						'categories'  => $pattern['categories'],
-						'source'      => $pattern['source'],
-						'synced'      => $pattern['synced'],
-					],
-					$patterns
-				),
-				'categories' => Pattern_Library::categories( $patterns ),
-			];
+		return [
+			'patterns'   => array_map(
+				static fn ( array $pattern ): array => [
+					'name'        => $pattern['name'],
+					'title'       => $pattern['title'],
+					'description' => $pattern['description'],
+					'categories'  => $pattern['categories'],
+					'source'      => $pattern['source'],
+					'synced'      => $pattern['synced'],
+				],
+				$patterns
+			),
+			'categories' => Pattern_Library::categories( $patterns ),
+		];
 	}
 }

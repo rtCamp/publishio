@@ -10,7 +10,6 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Content;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
-use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
 use rtCamp\Publishio\Modules\MCP\Editing\Block_Validator;
 use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 
@@ -98,7 +97,7 @@ final class Replace_Block extends Block_Edit_Ability {
 		$validator = new Block_Validator( $opened['post'] );
 		$ancestors = $tree->names_down_to( $path->parent() );
 		$problems  = $validator->check( $blocks, $ancestors, false, $validator->check( [ $original ], $ancestors ) );
-		$before    = Block_Tree::from_markup( $opened['post']->post_content );
+		$before    = clone $tree;
 		$paths     = $tree->replace( $path, $blocks );
 
 		if ( is_wp_error( $paths ) ) {

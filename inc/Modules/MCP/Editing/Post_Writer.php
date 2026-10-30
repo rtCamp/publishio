@@ -71,7 +71,7 @@ final class Post_Writer {
 		}
 
 		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
-			return Errors::forbidden( $post );
+			return is_post_publicly_viewable( $post ) ? Errors::forbidden( $post ) : Errors::post_not_found( $post_id );
 		}
 
 		return $post;

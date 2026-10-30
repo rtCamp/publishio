@@ -12,7 +12,7 @@ import type {
 
 const TONES: Tone[] = [ 'ok', 'info', 'warn', 'muted' ];
 
-function isRecord( value: unknown ): value is Args {
+export function isRecord( value: unknown ): value is Args {
 	return (
 		typeof value === 'object' && value !== null && ! Array.isArray( value )
 	);

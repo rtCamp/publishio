@@ -10,7 +10,6 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Content;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
-use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
 use rtCamp\Publishio\Modules\MCP\Editing\Block_Validator;
 use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 
@@ -80,14 +79,15 @@ final class Duplicate_Block extends Block_Edit_Ability {
 			return $path;
 		}
 
-		$tree  = $opened['tree'];
-		$paths = $tree->duplicate( $path, max( 1, min( self::MAX_COPIES, (int) ( $input['count'] ?? 1 ) ) ) );
+		$tree   = $opened['tree'];
+		$before = clone $tree;
+		$paths  = $tree->duplicate( $path, max( 1, min( self::MAX_COPIES, (int) ( $input['count'] ?? 1 ) ) ) );
 
 		if ( is_wp_error( $paths ) ) {
 			return $paths;
 		}
 
-		$problems = ( new Block_Validator( $opened['post'] ) )->check_single_use( $tree, Block_Tree::from_markup( $opened['post']->post_content ) );
+		$problems = ( new Block_Validator( $opened['post'] ) )->check_single_use( $tree, $before );
 
 		if ( [] !== $problems ) {
 			return Errors::from_problems( $problems );

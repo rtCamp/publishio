@@ -94,6 +94,7 @@ final class Block_Validator {
 	 */
 	public function check( array $blocks, array $ancestors = [], bool $trusted = false, array $baseline = [] ): array {
 		$problems = [];
+
 		$this->visit( $blocks, $ancestors, Block_Path::root(), $trusted, $problems );
 
 		if ( [] === $baseline ) {
@@ -460,42 +461,58 @@ final class Block_Validator {
 		$problems    = [];
 
 		foreach ( $attrs as $attribute => $value ) {
-			$attribute  = (string) $attribute;
-			$definition = $definitions[ $attribute ] ?? null;
+			$attribute = (string) $attribute;
+			$problem   = self::attribute_problem( $type, $definitions, $attribute, $value );
 
-			if ( $this->used_in_patterns( $type->name, $attribute, $value ) ) {
-				continue;
-			}
-
-			if ( ! is_array( $definition ) ) {
-				$suggestion = self::suggestion( $attribute, array_keys( $definitions ) );
-				$problems[] = Errors::problem(
-					'invalid_attribute',
-					$path,
-					null === $suggestion
-						/* translators: 1: block name, 2: attribute name */
-						? sprintf( __( '%1$s has no attribute "%2$s". Call get-block-type with name: %1$s for its attributes.', 'publishio' ), $type->name, $attribute )
-						/* translators: 1: block name, 2: attribute name, 3: suggested attribute */
-						: sprintf( __( '%1$s has no attribute "%2$s". Did you mean "%3$s"?', 'publishio' ), $type->name, $attribute, $suggestion )
-				);
-				continue;
-			}
-
-			if ( is_string( $definition['source'] ?? null ) && 'meta' !== $definition['source'] ) {
-				/* translators: 1: attribute name, 2: block name, 3: where in the HTML it belongs */
-				$problems[] = Errors::problem( 'attribute_in_html', $path, sprintf( __( '"%1$s" on %2$s belongs in the block\'s HTML (%3$s), not in the block comment. Remove it from the comment.', 'publishio' ), $attribute, $type->name, self::source_hint( $definition ) ) );
-				continue;
-			}
-
-			$invalid = self::invalid_value( $type, $attribute, $value );
-
-			if ( null !== $invalid ) {
-				/* translators: 1: block name, 2: the reason */
-				$problems[] = Errors::problem( 'invalid_attribute', $path, sprintf( __( '%1$s: %2$s', 'publishio' ), $type->name, $invalid ) );
+			if ( null !== $problem && ! $this->used_in_patterns( $type->name, $attribute, $value ) ) {
+				$problems[] = Errors::problem( $problem['code'], $path, $problem['message'] );
 			}
 		}
 
 		return $problems;
+	}
+
+	/**
+	 * What's wrong with one comment attribute, or null if nothing is.
+	 *
+	 * @param \WP_Block_Type       $type        The block type.
+	 * @param array<string, mixed> $definitions The block type's attributes.
+	 * @param string               $attribute   The attribute name.
+	 * @param mixed                $value       The attribute value.
+	 *
+	 * @return array{code: string, message: string}|null
+	 */
+	private static function attribute_problem( \WP_Block_Type $type, array $definitions, string $attribute, mixed $value ): ?array {
+		$definition = $definitions[ $attribute ] ?? null;
+
+		if ( ! is_array( $definition ) ) {
+			$suggestion = self::suggestion( $attribute, array_keys( $definitions ) );
+
+			return [
+				'code'    => 'invalid_attribute',
+				'message' => null === $suggestion
+					/* translators: 1: block name, 2: attribute name */
+					? sprintf( __( '%1$s has no attribute "%2$s". Call get-block-type with name: %1$s for its attributes.', 'publishio' ), $type->name, $attribute )
+					/* translators: 1: block name, 2: attribute name, 3: suggested attribute */
+					: sprintf( __( '%1$s has no attribute "%2$s". Did you mean "%3$s"?', 'publishio' ), $type->name, $attribute, $suggestion ),
+			];
+		}
+
+		if ( is_string( $definition['source'] ?? null ) && 'meta' !== $definition['source'] ) {
+			return [
+				'code'    => 'attribute_in_html',
+				/* translators: 1: attribute name, 2: block name, 3: where in the HTML it belongs */
+				'message' => sprintf( __( '"%1$s" on %2$s belongs in the block\'s HTML (%3$s), not in the block comment. Remove it from the comment.', 'publishio' ), $attribute, $type->name, self::source_hint( $definition ) ),
+			];
+		}
+
+		$invalid = self::invalid_value( $type, $attribute, $value );
+
+		return null === $invalid ? null : [
+			'code'    => 'invalid_attribute',
+			/* translators: 1: block name, 2: the reason */
+			'message' => sprintf( __( '%1$s: %2$s', 'publishio' ), $type->name, $invalid ),
+		];
 	}
 
 	/**

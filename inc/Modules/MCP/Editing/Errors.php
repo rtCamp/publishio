@@ -57,7 +57,9 @@ final class Errors {
 		$problems = array_slice( $problems, 0, self::MAX_PROBLEMS );
 
 		if ( 1 === $total ) {
-			$error = self::make( $problems[0]['code'], $problems[0]['message'] );
+			$problem = $problems[0];
+			$error   = self::make( $problem['code'], '' === $problem['path'] ? $problem['message'] : sprintf( 'At %s: %s', $problem['path'], $problem['message'] ) );
+
 			$error->add_data(
 				[
 					'status'   => 400,
@@ -201,12 +203,14 @@ final class Errors {
 	 * @param \WP_Post $post The post.
 	 */
 	public static function unsupported_type( \WP_Post $post ): \WP_Error {
-		$hint = 'wp_block' === $post->post_type
+		$type  = get_post_type_object( $post->post_type );
+		$label = $type ? $type->labels->singular_name : $post->post_type;
+		$hint  = 'wp_block' === $post->post_type
 			? __( 'It\'s a saved pattern: use update-pattern to change it.', 'publishio' )
 			: __( 'Change it in the Site Editor.', 'publishio' );
 
-		/* translators: 1: post title, 2: what to use instead */
-		return self::make( 'unsupported_type', sprintf( __( '"%1$s" isn\'t a post or page, so these tools don\'t change it. %2$s', 'publishio' ), self::title( $post ), $hint ) );
+		/* translators: 1: post ID, 2: post type name, such as "Template", 3: what to use instead */
+		return self::make( 'unsupported_type', sprintf( __( 'ID %1$d isn\'t a post or page (%2$s), so these tools don\'t change it. %3$s', 'publishio' ), $post->ID, $label, $hint ) );
 	}
 
 	/**

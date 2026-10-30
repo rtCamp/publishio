@@ -55,6 +55,7 @@ final class Block_Tree {
 	 */
 	public static function of( array $blocks ): self {
 		$tree = new self( self::container( [] ) );
+
 		self::add_children( $tree->root, 0, array_values( $blocks ) );
 
 		return $tree;
@@ -199,6 +200,7 @@ final class Block_Tree {
 		}
 
 		$node = &$this->node( $found['chain'] );
+
 		self::add_children( $node, $position, $blocks );
 
 		return self::paths_of( $container, $position, $blocks );
@@ -304,6 +306,7 @@ final class Block_Tree {
 		foreach ( array_reverse( $kept ) as $chain ) {
 			$position = (int) array_pop( $chain );
 			$parent   = &$this->node( $chain );
+
 			self::remove_child( $parent, $position );
 			unset( $parent );
 		}
@@ -507,6 +510,7 @@ final class Block_Tree {
 			}
 
 			$at = 0 === $count ? count( $node['innerContent'] ) : $slots[ $count - 1 ] + 1;
+
 			array_splice( $node['innerContent'], $at, 0, $chunk );
 		}
 

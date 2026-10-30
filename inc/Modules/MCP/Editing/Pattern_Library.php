@@ -77,7 +77,7 @@ final class Pattern_Library {
 			$id   = substr( $name, strlen( self::USER_PREFIX ) );
 			$post = ctype_digit( $id ) ? get_post( (int) $id ) : null;
 
-			if ( $post instanceof \WP_Post && 'wp_block' === $post->post_type && ! in_array( $post->post_status, [ 'trash', 'auto-draft' ], true ) && current_user_can( 'read_post', $post->ID ) ) {
+			if ( $post instanceof \WP_Post && 'wp_block' === $post->post_type && 'publish' === $post->post_status && current_user_can( 'read_post', $post->ID ) ) {
 				return self::from_post( $post );
 			}
 		} else {

@@ -133,7 +133,7 @@ final class Get_Pattern extends Ability {
 			return $pattern;
 		}
 
-		$tree    = Block_Tree::from_markup( $pattern['markup'] );
+		$tree    = Block_Tree::of( Pattern_Library::blocks( $pattern ) );
 		$outline = Outline::of( $tree, Block_Path::root() );
 		$used    = self::names( $tree->blocks() );
 

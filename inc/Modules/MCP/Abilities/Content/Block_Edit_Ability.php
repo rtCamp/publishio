@@ -151,7 +151,7 @@ abstract class Block_Edit_Ability extends Ability {
 
 		$validator = new Block_Validator( $opened['post'] );
 		$problems  = $validator->check( $blocks, $tree->names_down_to( $spot['container'] ), $trusted );
-		$before    = Block_Tree::from_markup( $opened['post']->post_content );
+		$before    = clone $tree;
 		$paths     = $tree->insert_at( $spot['container'], $spot['position'], $blocks );
 
 		if ( is_wp_error( $paths ) ) {

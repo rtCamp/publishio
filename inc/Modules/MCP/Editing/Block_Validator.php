@@ -409,25 +409,33 @@ final class Block_Validator {
 	 * @param array<int, string> $ancestors Full names of the blocks around it, outermost first.
 	 */
 	private function placement_problem( \WP_Block_Type $type, array $ancestors ): ?string {
-		$parent = [] === $ancestors ? null : $ancestors[ count( $ancestors ) - 1 ];
+		$parent  = [] === $ancestors ? null : $ancestors[ count( $ancestors ) - 1 ];
+		$problem = $this->placement_rule_problem( $type, $parent, $ancestors );
 
-		if ( null !== $parent && $this->nested_in_patterns( $parent, $type->name ) ) {
-			return null;
-		}
+		return null !== $problem && null !== $parent && $this->nested_in_patterns( $parent, $type->name ) ? null : $problem;
+	}
 
-		$parent_type    = null === $parent ? null : \WP_Block_Type_Registry::get_instance()->get_registered( $parent );
-		$parent_takes   = $parent_type && is_array( $parent_type->allowed_blocks ) ? in_array( $type->name, $parent_type->allowed_blocks, true ) : null;
-		$parent_listed  = is_array( $type->parent ) && [] !== $type->parent ? in_array( $parent, $type->parent, true ) : null;
-		$parent_allowed = null === $parent_takes || null === $parent_listed ? ( $parent_takes ?? $parent_listed ?? true ) : ( $parent_takes || $parent_listed );
+	/**
+	 * Why a block's own placement rules don't allow it where it is, or null if they do.
+	 *
+	 * @param \WP_Block_Type     $type      The block type.
+	 * @param ?string            $container The full name of the block it's directly in, or null at the top.
+	 * @param array<int, string> $ancestors Full names of the blocks around it, outermost first.
+	 */
+	private function placement_rule_problem( \WP_Block_Type $type, ?string $container, array $ancestors ): ?string {
+		$container_type    = null === $container ? null : \WP_Block_Type_Registry::get_instance()->get_registered( $container );
+		$container_takes   = $container_type && is_array( $container_type->allowed_blocks ) ? in_array( $type->name, $container_type->allowed_blocks, true ) : null;
+		$container_listed  = is_array( $type->parent ) && [] !== $type->parent ? in_array( $container, $type->parent, true ) : null;
+		$container_allowed = null === $container_takes || null === $container_listed ? ( $container_takes ?? $container_listed ?? true ) : ( $container_takes || $container_listed );
 
-		if ( ! $parent_allowed && false === $parent_listed ) {
+		if ( ! $container_allowed && false === $container_listed ) {
 			/* translators: 1: block name, 2: allowed parents, 3: short name of the first allowed parent */
 			return sprintf( __( '%1$s must be directly inside %2$s. Wrap it in a %3$s block.', 'publishio' ), $type->name, wp_sprintf( '%l', (array) $type->parent ), Block_Path::short_name( (string) ( (array) $type->parent )[0] ) );
 		}
 
-		if ( ! $parent_allowed && $parent_type ) {
+		if ( ! $container_allowed && $container_type ) {
 			/* translators: 1: block name, 2: parent block name, 3: the blocks the parent takes */
-			return sprintf( __( '%1$s can\'t go inside %2$s, which takes only %3$s.', 'publishio' ), $type->name, $parent_type->name, wp_sprintf( '%l', (array) $parent_type->allowed_blocks ) );
+			return sprintf( __( '%1$s can\'t go inside %2$s, which takes only %3$s.', 'publishio' ), $type->name, $container_type->name, wp_sprintf( '%l', (array) $container_type->allowed_blocks ) );
 		}
 
 		if ( is_array( $type->ancestor ) && [] !== $type->ancestor && [] === array_intersect( $type->ancestor, $ancestors ) ) {

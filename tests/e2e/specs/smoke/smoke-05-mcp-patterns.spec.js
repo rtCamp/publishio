@@ -9,13 +9,13 @@ import { McpClient, tool } from '../../utils/mcp';
 import { settings } from '../../config/env';
 
 const CORE_TOOLS = [
-	'publishio/get-patterns',
+	'publishio/list-patterns',
 	'publishio/get-pattern',
-	'publishio/get-pattern-schema',
 	'publishio/create-post',
 	'publishio/get-post',
-	'publishio/append-blocks',
-	'publishio/insert-pattern-confirmed',
+	'publishio/insert-blocks',
+	'publishio/insert-pattern',
+	'publishio/preview-post',
 ].map( tool );
 
 test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
@@ -48,36 +48,42 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 	);
 
 	test(
-		'SMOKE-05.3 get-patterns returns the active theme patterns with metadata',
+		'SMOKE-05.3 list-patterns returns the active theme patterns with metadata',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
 			const { isError, data } = await mcp.callTool(
-				'publishio/get-patterns'
+				'publishio/list-patterns'
 			);
 			expect( isError ).toBe( false );
-			expect( Array.isArray( data ) ).toBe( true );
+			expect( Array.isArray( data.patterns ) ).toBe( true );
+			expect( Array.isArray( data.categories ) ).toBe( true );
 
-			const themePatterns = data.filter( ( p ) =>
+			const themePatterns = data.patterns.filter( ( p ) =>
 				p.name.startsWith( `${ settings.theme }/` )
 			);
 			expect( themePatterns.length ).toBeGreaterThan( 0 );
-			for ( const p of data ) {
+			expect( themePatterns.every( ( p ) => p.source === 'theme' ) ).toBe(
+				true
+			);
+			for ( const p of data.patterns ) {
 				expect( p.name, JSON.stringify( p ) ).toMatch( /^[^/]+\/.+/ );
 				expect( p.title, p.name ).toBeTruthy();
 				expect( Array.isArray( p.categories ) ).toBe( true );
+				expect( typeof p.synced ).toBe( 'boolean' );
 				expect(
 					p,
-					'pattern content must not be sent in the list'
-				).not.toHaveProperty( 'content' );
+					'pattern markup must not be sent in the list'
+				).not.toHaveProperty( 'markup' );
 			}
 		}
 	);
 
 	test(
-		'SMOKE-05.4 get-patterns filters by keyword and category',
+		'SMOKE-05.4 list-patterns filters by search and category',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
-			const all = ( await mcp.callTool( 'publishio/get-patterns' ) ).data;
+			const all = ( await mcp.callTool( 'publishio/list-patterns' ) ).data
+				.patterns;
 			const withCategory = all.find( ( p ) => p.categories.length > 0 );
 			test.skip(
 				! withCategory,
@@ -86,56 +92,54 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 
 			const category = withCategory.categories[ 0 ];
 			const byCategory = (
-				await mcp.callTool( 'publishio/get-patterns', {
+				await mcp.callTool( 'publishio/list-patterns', {
 					category,
 				} )
-			).data;
+			).data.patterns;
 			expect( byCategory.length ).toBeGreaterThan( 0 );
 			expect(
 				byCategory.every( ( p ) => p.categories.includes( category ) )
 			).toBe( true );
 
-			const keyword = withCategory.title.split( ' ' )[ 0 ].toLowerCase();
-			const byKeyword = (
-				await mcp.callTool( 'publishio/get-patterns', { keyword } )
-			).data;
-			expect( byKeyword.map( ( p ) => p.name ) ).toContain(
+			const search = withCategory.title.split( ' ' )[ 0 ].toLowerCase();
+			const bySearch = (
+				await mcp.callTool( 'publishio/list-patterns', { search } )
+			).data.patterns;
+			expect( bySearch.map( ( p ) => p.name ) ).toContain(
 				withCategory.name
 			);
 		}
 	);
 
 	test(
-		'SMOKE-05.5 get-pattern and get-pattern-schema return content for a known pattern',
+		'SMOKE-05.5 get-pattern returns markup and an outline for a known pattern',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
-			const all = ( await mcp.callTool( 'publishio/get-patterns' ) ).data;
+			const all = ( await mcp.callTool( 'publishio/list-patterns' ) ).data
+				.patterns;
 			const name = all.find( ( p ) =>
 				p.name.startsWith( `${ settings.theme }/` )
 			).name;
 
 			const pattern = await mcp.callTool( 'publishio/get-pattern', {
 				name,
+				post_type: 'page',
 			} );
 			expect( pattern.isError ).toBe( false );
-			expect( pattern.data.content ).toContain( '<!-- wp:' );
-
-			const schema = await mcp.callTool( 'publishio/get-pattern-schema', {
-				name,
-			} );
-			expect( schema.isError ).toBe( false );
-			expect( Array.isArray( schema.data ) ).toBe( true );
+			expect( pattern.data.markup ).toContain( '<!-- wp:' );
+			expect( pattern.data.outline.rows.length ).toBeGreaterThan( 0 );
+			expect( pattern.data.blocks_used.length ).toBeGreaterThan( 0 );
 		}
 	);
 
 	test( 'SMOKE-05.6 unknown pattern returns a tool error, not a crash', async ( {
 		mcp,
 	} ) => {
-		const res = await mcp.callTool( 'publishio/get-pattern-schema', {
+		const res = await mcp.callTool( 'publishio/get-pattern', {
 			name: 'nope/does-not-exist',
 		} );
 		expect( res.isError ).toBe( true );
-		expect( res.text ).toMatch( /No pattern found/ );
+		expect( res.text ).toMatch( /^unknown_pattern: / );
 	} );
 
 	test( 'SMOKE-05.7 requests without a session are rejected', async ( {

@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+
 /**
  * Class - Get_Post_Terms
  */
@@ -69,11 +71,11 @@ class Get_Post_Terms {
 					$post    = get_post( $post_id );
 
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
+						return Errors::make( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+						return Errors::make( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					if ( ! empty( $input['taxonomy'] ) ) {

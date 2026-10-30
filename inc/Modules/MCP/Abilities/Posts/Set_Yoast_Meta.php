@@ -9,6 +9,10 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
+
 /**
  * Class - Set_Yoast_Meta
  */
@@ -27,11 +31,12 @@ class Set_Yoast_Meta {
 					'type'                 => 'object',
 					'required'             => [ 'post_id' ],
 					'properties'           => [
-						'post_id' => [
+						'post_id'        => [
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'description' => 'ID of the post or page.',
 						],
+						'approval_token' => Schema::approval_token(),
 					] + Yoast_Fields::schemas(),
 					'additionalProperties' => false,
 				],
@@ -52,17 +57,14 @@ class Set_Yoast_Meta {
 				},
 				'execute_callback'    => static function ( array $input ) {
 					if ( ! defined( 'WPSEO_VERSION' ) ) {
-						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
+						return Errors::make( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
-					$post    = get_post( $post_id );
-					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
-					}
+					$post    = Post_Writer::writable( $post_id, (string) ( $input['approval_token'] ?? '' ) );
 
-					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+					if ( is_wp_error( $post ) ) {
+						return $post;
 					}
 
 					$visible = Yoast_Fields::visible( $post );
@@ -74,7 +76,7 @@ class Set_Yoast_Meta {
 					$hidden = array_diff( $fields, array_keys( $visible ) );
 
 					if ( [] !== $hidden ) {
-						return new \WP_Error(
+						return Errors::make(
 							'yoast_fields_unavailable',
 							sprintf(
 								/* translators: %s: comma-separated field names. */
@@ -95,7 +97,7 @@ class Set_Yoast_Meta {
 					}
 
 					foreach ( $values as $field => $value ) {
-						update_post_meta( $post_id, Yoast_Fields::meta_key( $field ), $value );
+						update_post_meta( $post_id, Yoast_Fields::meta_key( $field ), wp_slash( $value ) );
 					}
 
 					return [

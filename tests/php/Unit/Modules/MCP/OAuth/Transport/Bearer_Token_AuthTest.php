@@ -28,7 +28,7 @@ use rtCamp\Publishio\Tests\TestCase;
 class Bearer_Token_AuthTest extends TestCase {
 	private const READ_ABILITY   = 'publishio/get-post';
 	private const WRITE_ABILITY  = 'publishio/create-post';
-	private const DELETE_ABILITY = 'publishio/delete-block-at';
+	private const DELETE_ABILITY = 'publishio/delete-blocks';
 	private const TEST_ABILITY   = 'publishio-test/ability';
 
 	/**
@@ -83,7 +83,7 @@ class Bearer_Token_AuthTest extends TestCase {
 	public function test_read_token_cannot_call_delete_ability(): void {
 		$auth = $this->authenticate( 'mcp:read' );
 
-		$this->assertWPError( $auth->enforce_token_scope( [], 'delete-block-at', $this->tool( self::DELETE_ABILITY ), $this->publishio_server() ) );
+		$this->assertWPError( $auth->enforce_token_scope( [], 'delete-blocks', $this->tool( self::DELETE_ABILITY ), $this->publishio_server() ) );
 	}
 
 	/**

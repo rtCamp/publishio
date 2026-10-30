@@ -63,7 +63,7 @@ class Set_Post_TermsTest extends Ability_TestCase {
 		);
 
 		$editor  = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		wp_set_current_user( $editor );
 
 		$result = $this->execute(
@@ -83,7 +83,7 @@ class Set_Post_TermsTest extends Ability_TestCase {
 	 */
 	public function test_denies_assigning_a_term_the_user_cannot_assign(): void {
 		$editor  = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$term_id = self::factory()->category->create( [ 'name' => 'Restricted' ] );
 		wp_set_current_user( $editor );
 
@@ -108,7 +108,7 @@ class Set_Post_TermsTest extends Ability_TestCase {
 	 */
 	public function test_denies_removing_a_term_the_user_cannot_assign(): void {
 		$editor  = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$term_id = self::factory()->category->create( [ 'name' => 'Locked' ] );
 		wp_set_object_terms( $post_id, [ $term_id ], 'category' );
 
@@ -133,7 +133,7 @@ class Set_Post_TermsTest extends Ability_TestCase {
 	 */
 	public function test_assigns_terms_when_user_has_permission(): void {
 		$editor  = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$term_id = self::factory()->category->create( [ 'name' => 'Allowed' ] );
 		wp_set_current_user( $editor );
 
@@ -156,7 +156,7 @@ class Set_Post_TermsTest extends Ability_TestCase {
 	 */
 	public function test_removes_all_terms_with_empty_array(): void {
 		$editor  = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id = self::factory()->post->create();
+		$post_id = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$term_id = self::factory()->category->create( [ 'name' => 'Temporary' ] );
 		wp_set_object_terms( $post_id, [ $term_id ], 'category' );
 		wp_set_current_user( $editor );

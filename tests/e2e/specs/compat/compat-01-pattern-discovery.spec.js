@@ -22,12 +22,14 @@ test.describe(
 			'COMPAT-01.1 theme-registered patterns are discoverable over MCP',
 			{ tag: '@wp-update' },
 			async ( { mcp, requestUtils } ) => {
-				const editorPatterns = await requestUtils.rest( {
-					path: '/wp/v2/block-patterns/patterns',
-				} );
+				const editorPatterns = (
+					await requestUtils.rest( {
+						path: '/wp/v2/block-patterns/patterns',
+					} )
+				).filter( ( p ) => p.inserter !== false );
 				const mcpNames = (
-					await mcp.callTool( 'publishio/get-patterns' )
-				).data.map( ( p ) => p.name );
+					await mcp.callTool( 'publishio/list-patterns' )
+				).data.patterns.map( ( p ) => p.name );
 
 				const theme = wpCli( 'option get stylesheet' );
 				const themePatterns = editorPatterns
@@ -69,7 +71,7 @@ test.describe(
 		);
 
 		test(
-			'COMPAT-01.2 user-defined patterns (synced and unsynced) are not listed',
+			'COMPAT-01.2 user-defined patterns (synced and unsynced) are listed',
 			{ tag: '@wp-update' },
 			async ( { mcp, requestUtils } ) => {
 				test.info().annotations.push( {
@@ -115,11 +117,21 @@ test.describe(
 						] )
 					);
 
-					const titles = (
-						await mcp.callTool( 'publishio/get-patterns' )
-					).data.map( ( p ) => p.title );
-					expect( titles ).not.toContain( 'E2E Synced Pattern' );
-					expect( titles ).not.toContain( 'E2E Unsynced Pattern' );
+					const listed = (
+						await mcp.callTool( 'publishio/list-patterns', {
+							source: 'user',
+						} )
+					).data.patterns;
+					for ( const [ i, synced ] of [ true, false ].entries() ) {
+						expect( listed ).toContainEqual(
+							expect.objectContaining( {
+								name: `core/block/${ created[ i ].id }`,
+								title: created[ i ].title.raw,
+								source: 'user',
+								synced,
+							} )
+						);
+					}
 				} finally {
 					for ( const { id } of created ) {
 						await requestUtils.rest( {
@@ -147,8 +159,8 @@ test.describe(
 				);
 				try {
 					const data = (
-						await mcp.callTool( 'publishio/get-patterns' )
-					).data;
+						await mcp.callTool( 'publishio/list-patterns' )
+					).data.patterns;
 					const own = data.find( ( p ) => p.name === name );
 					expect( own, `${ name } is listed` ).toBeTruthy();
 					expect( own.description ).toBe( '' );
@@ -163,6 +175,7 @@ test.describe(
 						.filter(
 							( p ) =>
 								! p.description &&
+								p.inserter !== false &&
 								! DIRECTORY.includes( p.source ?? '' )
 						)
 						.map( ( p ) => p.name );

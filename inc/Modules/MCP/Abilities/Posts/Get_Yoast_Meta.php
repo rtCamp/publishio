@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+
 /**
  * Class - Get_Yoast_Meta
  */
@@ -45,17 +47,17 @@ class Get_Yoast_Meta {
 				},
 				'execute_callback'    => static function ( array $input ) {
 					if ( ! defined( 'WPSEO_VERSION' ) ) {
-						return new \WP_Error( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
+						return Errors::make( 'yoast_not_active', __( 'Yoast SEO is not installed or active.', 'publishio' ) );
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
 					$post    = get_post( $post_id );
 					if ( ! $post ) {
-						return new \WP_Error( 'invalid_post', __( 'Post not found.', 'publishio' ) );
+						return Errors::make( 'invalid_post', __( 'Post not found.', 'publishio' ) );
 					}
 
 					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return new \WP_Error( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+						return Errors::make( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
 					}
 
 					$fields = Yoast_Fields::visible( $post );

@@ -51,7 +51,7 @@ test.describe(
 		}
 
 		test(
-			'SMOKE-06.3 append-blocks adds valid block markup to a post',
+			'SMOKE-06.3 insert-blocks adds valid block markup to a post',
 			{ tag: '@wp-update' },
 			async ( { mcp } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {
@@ -61,7 +61,7 @@ test.describe(
 					'<!-- wp:heading --><h2 class="wp-block-heading">Hello</h2><!-- /wp:heading -->' +
 					'<!-- wp:paragraph --><p>World</p><!-- /wp:paragraph -->';
 
-				const append = await mcp.callTool( 'publishio/append-blocks', {
+				const append = await mcp.callTool( 'publishio/insert-blocks', {
 					post_id: data.post_id,
 					markup,
 				} );
@@ -70,46 +70,46 @@ test.describe(
 				const post = await mcp.callTool( 'publishio/get-post', {
 					post_id: data.post_id,
 				} );
-				expect( post.data.blocks.map( ( b ) => b.block_name ) ).toEqual(
-					[ 'core/heading', 'core/paragraph' ]
-				);
+				expect(
+					post.data.outline.rows.map( ( row ) => row.path )
+				).toEqual( [ '0:heading', '1:paragraph' ] );
 			}
 		);
 
-		test( 'SMOKE-06.4 pages refuse raw markup; posts refuse patterns', async ( {
+		test( 'SMOKE-06.4 posts and pages take block markup and patterns', async ( {
 			mcp,
 		} ) => {
 			const page = await mcp.callTool( 'publishio/create-post', {
 				title: 'E2E page',
 				post_type: 'page',
 			} );
-			const raw = await mcp.callTool( 'publishio/append-blocks', {
+			const raw = await mcp.callTool( 'publishio/insert-blocks', {
 				post_id: page.data.post_id,
 				markup: '<!-- wp:paragraph --><p>x</p><!-- /wp:paragraph -->',
 			} );
-			expect( raw.isError ).toBe( true );
-			expect( raw.text ).toContain(
-				'Raw block markup is not allowed for pages'
-			);
+			expect( raw.isError, raw.text ).toBe( false );
 
 			const post = await mcp.callTool( 'publishio/create-post', {
 				title: 'E2E post',
 			} );
-			const pattern = await mcp.callTool(
-				'publishio/insert-pattern-confirmed',
-				{
-					page_id: post.data.post_id,
-					position: -1,
-					pattern_name: 'twentytwentyfive/text-faqs',
-					schema: [
-						{ block: 'core/paragraph', fields: { content: 'x' } },
-					],
-				}
-			);
-			expect( pattern.isError ).toBe( true );
-			expect( pattern.text ).toContain(
-				'Patterns can be inserted here only into pages'
-			);
+			const name = (
+				await mcp.callTool( 'publishio/list-patterns', {
+					source: 'theme',
+					post_type: 'post',
+				} )
+			).data.patterns[ 0 ].name;
+			const pattern = await mcp.callTool( 'publishio/insert-pattern', {
+				post_id: post.data.post_id,
+				pattern: name,
+			} );
+			expect( pattern.isError, pattern.text ).toBe( false );
+			expect( pattern.data.changed.length ).toBeGreaterThan( 0 );
+
+			const unknown = await mcp.callTool( 'publishio/insert-pattern', {
+				post_id: post.data.post_id,
+				pattern: 'nope/does-not-exist',
+			} );
+			expect( unknown.text ).toMatch( /^unknown_pattern: / );
 		} );
 
 		test( 'SMOKE-06.5 invalid input returns tool errors', async ( {
@@ -120,7 +120,9 @@ test.describe(
 				post_type: 'not_a_type',
 			} );
 			expect( badType.isError ).toBe( true );
-			expect( badType.text ).toContain( 'Invalid post type' );
+			expect( badType.text ).toContain(
+				"isn't a post type that uses the block editor"
+			);
 
 			const noTitle = await mcp.callTool( 'publishio/create-post', {} );
 			expect( noTitle.isError ).toBe( true );
@@ -157,7 +159,7 @@ test.describe(
 				} );
 				expect( page.isError ).toBe( true );
 				expect( page.text ).toContain(
-					'You do not have permission to create this post type'
+					"Your account can't create Pages"
 				);
 
 				await contributorApi.dispose();

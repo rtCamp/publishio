@@ -96,12 +96,13 @@ final class Move_Block extends Block_Edit_Ability {
 			return Errors::from_problems( $problems );
 		}
 
+		$scope = self::scope( [ $path->parent(), $spot['container'] ] );
 		$paths = $tree->move( $path, $target, (string) ( $input['placement'] ?? '' ) );
 
 		if ( is_wp_error( $paths ) ) {
 			return $paths;
 		}
 
-		return self::finish( $opened['post'], $tree, $input, $paths, self::scope( [ $path->parent(), ...$paths ] ) );
+		return self::finish( $opened['post'], $tree, $input, $paths, $scope );
 	}
 }

@@ -297,6 +297,10 @@ button {
 		height: 220px;
 	}
 
+	&.frame:focus-visible {
+		outline-offset: -2px;
+	}
+
 	&.pad {
 		padding: 16px;
 		background: var(--card);

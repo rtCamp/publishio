@@ -7,6 +7,9 @@ const LOADING_HEIGHT = 220;
 const DESKTOP_WIDTH = 1300;
 const DESKTOP_HEIGHT = 800;
 
+const LINE_STEP = 80;
+const PAGE_STEP = DESKTOP_HEIGHT - LINE_STEP;
+
 const TRANSPARENT = /^(transparent|rgba\(0, 0, 0, 0\))$/;
 
 interface Props {
@@ -27,6 +30,28 @@ function backgroundOf( doc: Document ): string {
 	}
 
 	return '#fff';
+}
+
+/** How far a key scrolls the page, or null for a key that doesn't scroll it. */
+function scrollStep( event: KeyboardEvent, height: number ): number | null {
+	switch ( event.key ) {
+		case 'ArrowDown':
+			return LINE_STEP;
+		case 'ArrowUp':
+			return -LINE_STEP;
+		case 'PageDown':
+			return PAGE_STEP;
+		case 'PageUp':
+			return -PAGE_STEP;
+		case ' ':
+			return event.shiftKey ? -PAGE_STEP : PAGE_STEP;
+		case 'Home':
+			return -height;
+		case 'End':
+			return height;
+		default:
+			return null;
+	}
 }
 
 /**
@@ -70,6 +95,12 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 			box.style.height = `${ Math.max( shown, MIN_HEIGHT ) }px`;
 			box.style.background = backgroundOf( doc );
 
+			if ( doc.body.scrollHeight > DESKTOP_HEIGHT ) {
+				box.tabIndex = 0;
+			} else {
+				box.removeAttribute( 'tabindex' );
+			}
+
 			inner.style.height = `${ shown }px`;
 			inner.style.visibility = 'visible';
 
@@ -98,12 +129,29 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 			schedule();
 		};
 
+		// The frame stays out of the tab order, so its links can't be reached; the box scrolls it from the keyboard instead.
+		const onKeyDown = ( event: KeyboardEvent ) => {
+			const view = frame.contentWindow;
+			const step = view
+				? scrollStep( event, view.document.body.scrollHeight )
+				: null;
+
+			if ( ! view || null === step || event.target !== box ) {
+				return;
+			}
+
+			event.preventDefault();
+			view.scrollBy( { top: step } );
+		};
+
 		const outer = new ResizeObserver( schedule );
 		outer.observe( box );
 		frame.addEventListener( 'load', onLoad );
+		box.addEventListener( 'keydown', onKeyDown );
 
 		return () => {
 			frame.removeEventListener( 'load', onLoad );
+			box.removeEventListener( 'keydown', onKeyDown );
 			content?.disconnect();
 			outer.disconnect();
 			cancelAnimationFrame( frameId );
@@ -114,6 +162,8 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 		<div
 			ref={ boxRef }
 			className="pc-body frame"
+			role="region"
+			aria-label={ title }
 			hidden={ hidden }
 			style={ { height: LOADING_HEIGHT } }
 		>

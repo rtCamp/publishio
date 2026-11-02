@@ -228,6 +228,34 @@ class Block_Edit_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * After a block moves out of its parent, the outline lists every block whose path changed.
+	 */
+	public function test_move_outlines_both_places(): void {
+		wp_update_post(
+			[
+				'ID'           => $this->post_id,
+				'post_content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:group --><div class="wp-block-group"><!-- wp:paragraph --><p>Inner</p><!-- /wp:paragraph --></div><!-- /wp:group --><!-- wp:paragraph --><p>Outer</p><!-- /wp:paragraph --></div><!-- /wp:group --><!-- wp:paragraph --><p>Last</p><!-- /wp:paragraph -->',
+			]
+		);
+
+		$moved = $this->run_ability(
+			'move-block',
+			[
+				'path'      => '0:group > 0:group',
+				'placement' => 'start',
+			]
+		);
+
+		$this->assertIsArray( $moved );
+		$this->assertSame( [ '0:group' ], $moved['changed'] );
+		$this->assertSame(
+			[ '0:group', '0:group > 0:paragraph', '1:group', '2:paragraph' ],
+			array_column( $moved['outline']['rows'], 'path' )
+		);
+		$this->assertSame( 'Outer', $moved['outline']['rows'][2]['text'] );
+	}
+
+	/**
 	 * The duplicate-block tool refuses a second single-use block, and copies others.
 	 */
 	public function test_duplicate_copies_blocks(): void {

@@ -13,6 +13,7 @@ import { StatusIcon } from '../shared/site-check/components/StatusIcon';
 import type { SiteCheck } from '../shared/site-check/useSiteCheck';
 import type { Verdict } from '../shared/site-check/verdict';
 import { relativeDate } from '../shared/utils';
+import { SkillDownload } from './SkillDownload';
 
 const BACKGROUND: Record< Verdict[ 'tone' ], string > = {
 	running: 'bg-gray-50',
@@ -82,6 +83,7 @@ export function ConnectCard( { siteCheck }: { siteCheck: SiteCheck } ) {
 					label={ __( 'MCP Server URL', 'publishio' ) }
 					value={ window.publishioAdmin?.mcpServerUrl ?? '' }
 				/>
+				<SkillDownload />
 				<div
 					className={ `flex flex-wrap items-center gap-x-3 gap-y-2 rounded px-3 py-2.5 ${
 						BACKGROUND[ idle ? 'running' : verdict.tone ]

@@ -22,7 +22,7 @@ class Search_Attachments {
 			[
 				'label'               => __( 'Search Attachments', 'publishio' ),
 				'category'            => \rtCamp\Publishio\Modules\MCP\Abilities\Categories\Posts::SLUG,
-				'description'         => __( 'Searches the media library for attachments by keyword or MIME type. Returns URLs and metadata.', 'publishio' ),
+				'description'         => __( 'Searches the media library by keyword or MIME type. Returns each file\'s URL, alt text, caption and size, so you can pick the best match for the page yourself.', 'publishio' ),
 				'input_schema'        => [
 					'type'                 => 'object',
 					'properties'           => [
@@ -61,6 +61,9 @@ class Search_Attachments {
 							],
 							'mime_type' => [ 'type' => 'string' ],
 							'alt'       => [ 'type' => 'string' ],
+							'caption'   => [ 'type' => 'string' ],
+							'width'     => [ 'type' => [ 'integer', 'null' ] ],
+							'height'    => [ 'type' => [ 'integer', 'null' ] ],
 							'date'      => [
 								'type' => 'string',
 							],
@@ -94,12 +97,17 @@ class Search_Attachments {
 						if ( ! ( $post instanceof \WP_Post ) ) {
 							continue;
 						}
+						$meta = wp_get_attachment_metadata( $post->ID );
+
 						$results[] = [
 							'id'        => $post->ID,
 							'title'     => $post->post_title,
 							'url'       => wp_get_attachment_url( $post->ID ),
 							'mime_type' => $post->post_mime_type,
 							'alt'       => get_post_meta( $post->ID, '_wp_attachment_image_alt', true ) ?: '',
+							'caption'   => wp_strip_all_tags( $post->post_excerpt ),
+							'width'     => is_array( $meta ) && isset( $meta['width'] ) ? (int) $meta['width'] : null,
+							'height'    => is_array( $meta ) && isset( $meta['height'] ) ? (int) $meta['height'] : null,
 							'date'      => $post->post_date,
 						];
 					}

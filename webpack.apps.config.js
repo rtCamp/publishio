@@ -16,7 +16,7 @@ const isDev = process.env.NODE_ENV === 'development';
  * src/apps/ and will become the output directory name under build-apps/.
  */
 const mcpApps = {
-	'pattern-approval': 'src/apps/pattern-approval/index.tsx',
+	preview: 'src/apps/preview/index.tsx',
 };
 
 const mcpAppEntries = Object.fromEntries(

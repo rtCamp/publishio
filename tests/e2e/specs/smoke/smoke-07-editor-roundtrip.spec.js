@@ -24,60 +24,58 @@ async function invalidBlocks( page ) {
 }
 
 /**
- * Pick a theme pattern for page content and fill its schema.
+ * Insert a theme pattern into a page, then rewrite its first heading with replace-block.
+ *
+ * Patterns for template parts, queries or post content are skipped, since they don't belong in page content.
  *
  * @param {import('./utils/mcp').McpClient} mcp    Initialized MCP client.
  * @param {number}                          pageId ID of the page to build.
  */
 async function buildPageFromPattern( mcp, pageId ) {
 	const patterns = (
-		await mcp.callTool( 'publishio/get-patterns' )
-	).data.filter(
-		( p ) =>
-			p.name.startsWith( `${ settings.theme }/` ) &&
-			p.block_types.length === 0 &&
-			p.template_types.length === 0 &&
-			( p.post_types.length === 0 || p.post_types.includes( 'page' ) )
+		await mcp.callTool( 'publishio/list-patterns', { post_type: 'page' } )
+	).data.patterns.filter( ( p ) =>
+		p.name.startsWith( `${ settings.theme }/` )
 	);
 
 	for ( const p of patterns ) {
-		// Skip nested wp:pattern blocks: the editor expands them, so markup never round-trips.
 		const full = (
 			await mcp.callTool( 'publishio/get-pattern', { name: p.name } )
 		).data;
-		if ( ! full?.content || full.content.includes( '<!-- wp:pattern ' ) ) {
+		const skip = [
+			'core/template-part',
+			'core/post-content',
+			'core/query',
+		].some( ( name ) => full?.blocks_used.includes( name ) );
+		const heading = full?.outline.rows.find( ( row ) =>
+			/(^|> )\d+:heading$/.test( row.path )
+		);
+		if ( ! full || skip || ! heading ) {
 			continue;
 		}
-		const schema = (
-			await mcp.callTool( 'publishio/get-pattern-schema', {
-				name: p.name,
-			} )
-		).data;
-		if (
-			! Array.isArray( schema ) ||
-			! schema.some( ( e ) => 'content' in e.fields )
-		) {
-			continue;
-		}
-		const filled = schema.map( ( entry, i ) => ( {
-			...entry,
-			fields: Object.fromEntries(
-				Object.entries( entry.fields ).map( ( [ k, v ] ) => [
-					k,
-					k === 'content' ? `E2E text ${ i }` : v,
-				] )
-			),
-		} ) );
-		const res = await mcp.callTool( 'publishio/insert-pattern-confirmed', {
-			page_id: pageId,
-			position: -1,
-			pattern_name: p.name,
-			schema: filled,
+
+		const inserted = await mcp.callTool( 'publishio/insert-pattern', {
+			post_id: pageId,
+			pattern: p.name,
 		} );
-		expect( res.isError, `${ p.name }: ${ res.text }` ).toBe( false );
+		expect( inserted.isError, `${ p.name }: ${ inserted.text }` ).toBe(
+			false
+		);
+
+		const path = inserted.data.outline.rows.find( ( row ) =>
+			/(^|> )\d+:heading$/.test( row.path )
+		).path;
+		const replaced = await mcp.callTool( 'publishio/replace-block', {
+			post_id: pageId,
+			path,
+			markup: '<!-- wp:heading --><h2 class="wp-block-heading">E2E heading</h2><!-- /wp:heading -->',
+		} );
+		expect( replaced.isError, replaced.text ).toBe( false );
 		return p.name;
 	}
-	throw new Error( `No fillable ${ settings.theme } pattern found.` );
+	throw new Error(
+		`No ${ settings.theme } page pattern with a heading found.`
+	);
 }
 
 test.describe(
@@ -90,14 +88,14 @@ test.describe(
 		} );
 
 		test(
-			'SMOKE-07.1 MCP-built post opens without block warnings and round-trips',
+			'SMOKE-07.1 a post written by every block-edit tool opens without block warnings and round-trips',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {
 					title: 'E2E round-trip post',
 				} );
 				const appended = await mcp.callTool(
-					'publishio/append-blocks',
+					'publishio/insert-blocks',
 					{
 						post_id: data.post_id,
 						markup: [
@@ -109,6 +107,46 @@ test.describe(
 					}
 				);
 				expect( appended.isError, appended.text ).toBe( false );
+
+				const edits = [
+					[
+						'publishio/duplicate-block',
+						{ path: '1:paragraph', count: 1 },
+					],
+					[
+						'publishio/move-block',
+						{
+							path: '2:paragraph',
+							target: '0:heading',
+							placement: 'before',
+						},
+					],
+					[
+						'publishio/replace-block',
+						{
+							path: '0:paragraph',
+							markup: '<!-- wp:paragraph --><p>Replaced <em>text</em>.</p><!-- /wp:paragraph -->',
+						},
+					],
+					[
+						'publishio/insert-blocks',
+						{
+							target: '4:quote',
+							placement: 'end',
+							markup: '<!-- wp:paragraph --><p>Cited</p><!-- /wp:paragraph -->',
+						},
+					],
+					[ 'publishio/delete-blocks', { paths: [ '3:list' ] } ],
+				];
+				for ( const [ name, args ] of edits ) {
+					const res = await mcp.callTool( name, {
+						post_id: data.post_id,
+						...args,
+					} );
+					expect( res.isError, `${ name }: ${ res.text }` ).toBe(
+						false
+					);
+				}
 
 				await assertRoundTrip( {
 					admin,
@@ -122,7 +160,7 @@ test.describe(
 		);
 
 		test(
-			'SMOKE-07.2 MCP-built page from a theme pattern opens without block warnings',
+			'SMOKE-07.2 a page built with insert-pattern and replace-block opens without block warnings',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
 				const { data } = await mcp.callTool( 'publishio/create-post', {
@@ -145,6 +183,71 @@ test.describe(
 					requestUtils,
 					id: data.post_id,
 					type: 'pages',
+				} );
+			}
+		);
+
+		test(
+			'SMOKE-07.3 a synced pattern with override values opens without block warnings',
+			{ tag: '@wp-update' },
+			async ( { mcp, admin, editor, page, requestUtils } ) => {
+				const pattern = await requestUtils.rest( {
+					method: 'POST',
+					path: '/wp/v2/blocks',
+					data: {
+						title: 'E2E footer CTA',
+						status: 'publish',
+						content:
+							'<!-- wp:heading {"metadata":{"name":"CTA heading","bindings":{"__default":{"source":"core/pattern-overrides"}}}} --><h2 class="wp-block-heading">Ready?</h2><!-- /wp:heading -->',
+					},
+				} );
+				const { data } = await mcp.callTool( 'publishio/create-post', {
+					title: 'E2E synced pattern post',
+				} );
+
+				const inserted = await mcp.callTool(
+					'publishio/insert-pattern',
+					{
+						post_id: data.post_id,
+						pattern: `core/block/${ pattern.id }`,
+					}
+				);
+				expect( inserted.isError, inserted.text ).toBe( false );
+				expect( inserted.data.changed ).toEqual( [ '0:block' ] );
+
+				const unknown = await mcp.callTool( 'publishio/replace-block', {
+					post_id: data.post_id,
+					path: '0:block',
+					markup: `<!-- wp:block {"ref":${ pattern.id },"content":{"Nope":{"content":"x"}}} /-->`,
+				} );
+				expect( unknown.text ).toMatch( /^unknown_override: / );
+
+				const replaced = await mcp.callTool(
+					'publishio/replace-block',
+					{
+						post_id: data.post_id,
+						path: '0:block',
+						markup: `<!-- wp:block {"ref":${ pattern.id },"content":{"CTA heading":{"content":"Let's talk"}}} /-->`,
+					}
+				);
+				expect( replaced.isError, replaced.text ).toBe( false );
+
+				await assertRoundTrip( {
+					admin,
+					editor,
+					page,
+					requestUtils,
+					id: data.post_id,
+					type: 'posts',
+				} );
+				await expect(
+					editor.canvas.getByText( "Let's talk" )
+				).toBeVisible();
+
+				await requestUtils.rest( {
+					method: 'DELETE',
+					path: `/wp/v2/blocks/${ pattern.id }`,
+					params: { force: true },
 				} );
 			}
 		);

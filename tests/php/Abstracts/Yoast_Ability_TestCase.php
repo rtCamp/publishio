@@ -49,6 +49,11 @@ abstract class Yoast_Ability_TestCase extends Ability_TestCase {
 		$user_id = self::factory()->user->create( [ 'role' => $role ] );
 		wp_set_current_user( $user_id );
 
-		return self::factory()->post->create( [ 'post_author' => $user_id ] );
+		return self::factory()->post->create(
+			[
+				'post_author' => $user_id,
+				'post_status' => 'draft',
+			]
+		);
 	}
 }

@@ -33,7 +33,7 @@ class Set_Featured_ImageTest extends Ability_TestCase {
 	 */
 	public function test_removes_featured_image_when_attachment_id_is_zero(): void {
 		$editor        = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id       = self::factory()->post->create();
+		$post_id       = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$attachment_id = self::factory()->post->create(
 			[
 				'post_type'      => 'attachment',
@@ -63,7 +63,7 @@ class Set_Featured_ImageTest extends Ability_TestCase {
 	 */
 	public function test_denies_when_user_cannot_read_attachment(): void {
 		$editor        = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id       = self::factory()->post->create();
+		$post_id       = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$attachment_id = self::factory()->post->create(
 			[
 				'post_type'      => 'attachment',
@@ -91,7 +91,7 @@ class Set_Featured_ImageTest extends Ability_TestCase {
 	 */
 	public function test_sets_featured_image_when_user_can_read_attachment(): void {
 		$editor        = self::factory()->user->create( [ 'role' => 'editor' ] );
-		$post_id       = self::factory()->post->create();
+		$post_id       = self::factory()->post->create( [ 'post_status' => 'draft' ] );
 		$attachment_id = self::factory()->post->create(
 			[
 				'post_type'      => 'attachment',

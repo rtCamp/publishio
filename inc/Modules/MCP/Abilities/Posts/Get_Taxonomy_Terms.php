@@ -9,6 +9,8 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+
 /**
  * Class - Get_Taxonomy_Terms
  */
@@ -74,7 +76,7 @@ class Get_Taxonomy_Terms {
 					$taxonomy = sanitize_key( $input['taxonomy'] ?? '' );
 
 					if ( ! taxonomy_exists( $taxonomy ) ) {
-						return new \WP_Error( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
+						return Errors::make( 'invalid_taxonomy', __( 'Taxonomy does not exist.', 'publishio' ) );
 					}
 
 					$args = [

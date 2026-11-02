@@ -4,9 +4,9 @@ Standalone MCP (Model Context Protocol) application pages. Each app renders as i
 
 ## Structure
 
-| Dir                 | Purpose                          |
-| ------------------- | -------------------------------- |
-| `pattern-approval/` | MCP pattern approval review flow |
+| Dir        | Purpose                                                            |
+| ---------- | ------------------------------------------------------------------ |
+| `preview/` | Publishio Preview: inserted blocks, saved patterns and whole pages |
 
 ## App anatomy
 

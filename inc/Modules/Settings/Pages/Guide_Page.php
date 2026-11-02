@@ -13,6 +13,7 @@ use rtCamp\Publishio\Core\Assets;
 use rtCamp\Publishio\Core\Templates;
 use rtCamp\Publishio\Framework\Contracts\Abstracts\Abstract_Admin_Page;
 use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Authorize;
+use rtCamp\Publishio\Modules\MCP\Resources\Content_Guide\Content_Guide;
 
 /**
  * Class - Guide_Page
@@ -49,6 +50,8 @@ class Guide_Page extends Abstract_Admin_Page {
 	 * {@inheritDoc}
 	 */
 	public function enqueue( array $localized_data ): void {
+		$localized_data['skillFile'] = Content_Guide::file();
+
 		wp_localize_script( Assets::ADMIN_HANDLE, 'publishioAdmin', $localized_data );
 		wp_enqueue_script( Assets::ADMIN_HANDLE );
 		wp_enqueue_style( Assets::ADMIN_HANDLE );

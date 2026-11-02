@@ -261,11 +261,36 @@ class Post_AbilitiesTest extends TestCase {
 					'update-post',
 					[
 						'post_id'  => $page,
+						'title'    => 'New title',
 						'template' => 'not-a-template',
 					]
 				)
 			)
 		);
+		$this->assertSame( 'Old title', get_post_field( 'post_title', $page ) );
+
+		$offer   = static fn ( array $templates ): array => $templates + [ 'publishio-wide' => 'Wide' ];
+		add_filter( 'theme_page_templates', $offer );
+		$chosen  = $this->run_ability(
+			'update-post',
+			[
+				'post_id'  => $page,
+				'template' => 'publishio-wide',
+			]
+		);
+		$cleared = $this->run_ability(
+			'update-post',
+			[
+				'post_id'  => $page,
+				'template' => '',
+			]
+		);
+		remove_filter( 'theme_page_templates', $offer );
+
+		$this->assertIsArray( $chosen );
+		$this->assertSame( 'publishio-wide', $chosen['template'] );
+		$this->assertIsArray( $cleared );
+		$this->assertSame( '', $cleared['template'] );
 
 		$result = $this->run_ability(
 			'update-post',

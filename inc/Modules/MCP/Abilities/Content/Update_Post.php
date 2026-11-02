@@ -114,17 +114,21 @@ final class Update_Post extends Ability {
 		}
 
 		if ( isset( $input['template'] ) ) {
-			$fields['page_template'] = '' === $input['template'] ? 'default' : (string) $input['template'];
+			$template = '' === $input['template'] ? 'default' : (string) $input['template'];
+
+			if ( 'default' !== $template && ! isset( wp_get_theme()->get_page_templates( $post )[ $template ] ) ) {
+				/* translators: %s: template name */
+				return Errors::make( 'invalid_template', sprintf( __( '"%s" isn\'t a template the theme offers for this post type. Leave out template to keep the current one.', 'publishio' ), $template ) );
+			}
+
+			$fields['page_template'] = $template;
 		}
 
 		if ( [] !== $fields ) {
 			$result = wp_update_post( wp_slash( [ 'ID' => $post->ID ] + $fields ), true );
 
 			if ( is_wp_error( $result ) ) {
-				return 'invalid_page_template' === $result->get_error_code()
-					/* translators: %s: template name */
-					? Errors::make( 'invalid_template', sprintf( __( '"%s" isn\'t a template the theme offers for this post type. Leave out template to keep the current one.', 'publishio' ), (string) $input['template'] ) )
-					: Errors::make( 'save_failed', $result->get_error_message(), 500 );
+				return Errors::make( 'save_failed', $result->get_error_message(), 500 );
 			}
 		}
 

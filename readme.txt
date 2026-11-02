@@ -154,7 +154,7 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * Let AI apps write and edit blocks directly instead of filling in pattern schemas. The AI builds from your site's patterns first, and adds, changes, moves, copies and removes blocks one section at a time.
 * Let the AI use any block the editor allows for the post type, including blocks from other plugins, on pages as well as posts.
 * Use every pattern on your site, including the synced and unsynced patterns in your pattern library, and let the AI save new patterns and update unsynced ones when you ask.
-* Check every change before it's saved, so content opens in the Block Editor without block errors.
+* Check block structure, attributes and site rules before saving to catch common content errors. The Block Editor still performs its own markup validation.
 * Add previews in the chat for apps that show them: each section as it's added, each saved pattern, and the finished page with how it looks in search results and as a shared link. Other apps share the preview and editor links.
 * Ask for your OK in the chat before the AI changes a published, scheduled or private page.
 * Support custom post types better: featured images, terms and Yoast SEO fields follow the same rules as content edits, types visitors can't view get no public link, and blocks bound to custom fields are checked against the fields the type has.

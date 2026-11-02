@@ -34,6 +34,31 @@ class Block_ValidatorTest extends TestCase {
 	}
 
 	/**
+	 * Remove what the binding tests registered.
+	 */
+	protected function tearDown(): void {
+		remove_filter( 'block_bindings_supported_attributes_core/heading', [ self::class, 'bind_heading_level' ] );
+
+		if ( get_block_bindings_source( 'publishio/test' ) ) {
+			unregister_block_bindings_source( 'publishio/test' );
+		}
+
+		unregister_meta_key( 'post', 'publishio_brand' );
+
+		foreach ( [ 'publishio_price', 'publishio_cost', '_publishio_secret' ] as $key ) {
+			unregister_post_meta( 'publishio_product', $key );
+		}
+
+		foreach ( [ 'publishio_product', 'publishio_note' ] as $type ) {
+			if ( post_type_exists( $type ) ) {
+				unregister_post_type( $type );
+			}
+		}
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Markup that breaks one check, with the code and a phrase the message must contain.
 	 *
 	 * @return array<string, array{string, string, string}>
@@ -305,6 +330,191 @@ class Block_ValidatorTest extends TestCase {
 
 		$this->assertWPError( $fields );
 		$this->assertSame( 'unknown_pattern', $fields->get_error_code() );
+	}
+
+	/**
+	 * Bindings that show a value: by post type, source, block and context.
+	 *
+	 * @return array<string, array{string, string, list<string>}>
+	 */
+	public static function shown_bindings(): array {
+		return [
+			'a field of the post type'                 => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', [] ],
+			'a field registered for every type'        => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_brand"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_note', [] ],
+			'several attributes on one block'          => [ '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button {"metadata":{"bindings":{"text":{"source":"core/post-meta","args":{"key":"publishio_price"}},"url":{"source":"core/post-data","args":{"field":"link"}}}}} --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button"></a></div><!-- /wp:button --></div><!-- /wp:buttons -->', 'publishio_product', [] ],
+			'an image attribute'                       => [ '<!-- wp:image {"metadata":{"bindings":{"alt":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->', 'publishio_product', [] ],
+			'post data by field'                       => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-data","args":{"field":"date"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', [] ],
+			'post data by the older key'               => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-data","args":{"key":"date"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', [] ],
+			'term data'                                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/term-data","args":{"field":"name"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', [] ],
+			'a pattern override'                       => [ '<!-- wp:paragraph {"metadata":{"name":"Intro","bindings":{"__default":{"source":"core/pattern-overrides"}}}} --><p>Hi</p><!-- /wp:paragraph -->', 'page', [] ],
+			'a plugin source, with any arguments'      => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"publishio/test","args":{"anything":1}}}}} --><p></p><!-- /wp:paragraph -->', 'page', [] ],
+			'an attribute a filter makes bindable'     => [ '<!-- wp:heading {"metadata":{"bindings":{"level":{"source":"publishio/test"}}}} --><h2 class="wp-block-heading">Hi</h2><!-- /wp:heading -->', 'page', [] ],
+			'a query loop of another type'             => [ '<!-- wp:query {"queryId":1,"query":{"postType":"publishio_product","perPage":3,"inherit":false}} --><div class="wp-block-query"><!-- wp:post-template --><!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph --><!-- /wp:post-template --></div><!-- /wp:query -->', 'page', [] ],
+			'a query loop that follows the main query' => [ '<!-- wp:query {"queryId":1,"query":{"postType":"post","perPage":3,"inherit":true}} --><div class="wp-block-query"><!-- wp:post-template --><!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"anything"}}}}} --><p></p><!-- /wp:paragraph --><!-- /wp:post-template --></div><!-- /wp:query -->', 'page', [] ],
+			'a saved pattern, used in any type'        => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"anything"}}}}} --><p></p><!-- /wp:paragraph -->', 'wp_block', [] ],
+			'inside an existing post template'         => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"anything"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', [ 'core/query', 'core/post-template' ] ],
+		];
+	}
+
+	/**
+	 * Bindings that show a value are accepted.
+	 *
+	 * @param string             $markup    The markup.
+	 * @param string             $post_type The post type it's for.
+	 * @param array<int, string> $ancestors The blocks it goes inside.
+	 */
+	#[DataProvider( 'shown_bindings' )]
+	public function test_accepts_bindings_that_show_a_value( string $markup, string $post_type, array $ancestors ): void {
+		$this->register_binding_fixtures();
+
+		$this->assertSame( [], Block_Validator::for_post_type( $post_type )->check( Block_Tree::parse( $markup ), $ancestors ) );
+	}
+
+	/**
+	 * Bindings that would show nothing, with the phrase the message must contain and the path it names.
+	 *
+	 * @return array<string, array{string, string, string, string}>
+	 */
+	public static function empty_bindings(): array {
+		return [
+			'a field not shown in REST'                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_cost"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', '"publishio_cost" isn\'t a field Products show to blocks', '0:paragraph' ],
+			'a protected field'                        => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_publishio_secret"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', '"_publishio_secret" isn\'t a field Products show to blocks', '0:paragraph' ],
+			'another type\'s field'                    => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', 'isn\'t a field Pages show to blocks', '0:paragraph' ],
+			'a type with only fields for every type'   => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_note', 'isn\'t a field Notes show to blocks, so this block would show nothing. Use one of publishio_brand.', '0:paragraph' ],
+			'a query loop of a type without the field' => [ '<!-- wp:query {"queryId":1,"query":{"postType":"post","perPage":3,"inherit":false}} --><div class="wp-block-query"><!-- wp:post-template --><!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph --><!-- /wp:post-template --></div><!-- /wp:query -->', 'publishio_product', 'isn\'t a field Posts show to blocks', '0:query > 0:post-template > 0:paragraph' ],
+			'no key'                                   => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'to core/post-meta without args.key', '0:paragraph' ],
+			'an empty key'                             => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":""}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'without args.key', '0:paragraph' ],
+			'arguments that aren\'t an object'         => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":"publishio_price"}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'without args.key', '0:paragraph' ],
+			'no key in a saved pattern'                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p></p><!-- /wp:paragraph -->', 'wp_block', 'without args.key', '0:paragraph' ],
+			'post data without a field'                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-data"}}}} --><p></p><!-- /wp:paragraph -->', 'page', 'to core/post-data without args.field', '0:paragraph' ],
+			'term data without a field'                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/term-data","args":{"key":"name"}}}}} --><p></p><!-- /wp:paragraph -->', 'page', 'to core/term-data without args.field', '0:paragraph' ],
+			'an unknown source'                        => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"acme/none"}}}} --><p></p><!-- /wp:paragraph -->', 'page', 'to "acme/none", which isn\'t a binding source', '0:paragraph' ],
+			'no source'                                => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'binds "content" without a source', '0:paragraph' ],
+			'a binding that isn\'t an object'          => [ '<!-- wp:paragraph {"metadata":{"bindings":{"content":"core/post-meta"}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'binds "content" without a source', '0:paragraph' ],
+			'an attribute the block can\'t bind'       => [ '<!-- wp:paragraph {"metadata":{"bindings":{"dropCap":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'can\'t bind "dropCap". It can bind content', '0:paragraph' ],
+			'the default attribute outside pattern overrides' => [ '<!-- wp:paragraph {"metadata":{"bindings":{"__default":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><p></p><!-- /wp:paragraph -->', 'publishio_product', 'can\'t bind "__default"', '0:paragraph' ],
+			'a block without bindings'                 => [ '<!-- wp:group {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"publishio_price"}}}}} --><div class="wp-block-group"></div><!-- /wp:group -->', 'publishio_product', 'core/group doesn\'t support bindings', '0:group' ],
+			'one bad binding among good ones'          => [ '<!-- wp:group --><div class="wp-block-group"><!-- wp:image {"metadata":{"bindings":{"alt":{"source":"core/post-meta","args":{"key":"publishio_price"}},"url":{"source":"core/post-meta","args":{"key":"publishio_cost"}}}}} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image --></div><!-- /wp:group -->', 'publishio_product', '"publishio_cost" isn\'t a field', '0:group > 0:image' ],
+		];
+	}
+
+	/**
+	 * Each binding that would show nothing is one problem at its path, in written and registered pattern markup.
+	 *
+	 * @param string $markup    The markup.
+	 * @param string $post_type The post type it's for.
+	 * @param string $phrase    A phrase the message must contain.
+	 * @param string $path      The path the problem names.
+	 */
+	#[DataProvider( 'empty_bindings' )]
+	public function test_refuses_bindings_that_show_nothing( string $markup, string $post_type, string $phrase, string $path ): void {
+		$this->register_binding_fixtures();
+
+		foreach ( [ false, true ] as $trusted ) {
+			$problems = Block_Validator::for_post_type( $post_type )->check( Block_Tree::parse( $markup ), [], $trusted );
+
+			$this->assertCount( 1, $problems, (string) wp_json_encode( $problems ) );
+			$this->assertSame( 'invalid_binding', $problems[0]['code'] );
+			$this->assertSame( $path, $problems[0]['path'] );
+			$this->assertStringContainsString( $phrase, $problems[0]['message'] );
+		}
+	}
+
+	/**
+	 * A field binding in a type with no fields says to write the value in the markup.
+	 */
+	public function test_names_a_type_without_fields(): void {
+		register_post_type(
+			'publishio_note',
+			[
+				'labels'       => [ 'name' => 'Notes' ],
+				'public'       => true,
+				'show_in_rest' => true,
+			]
+		);
+
+		$problems = Block_Validator::for_post_type( 'publishio_note' )->check( Block_Tree::parse( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"price"}}}}} --><p></p><!-- /wp:paragraph -->' ) );
+
+		$this->assertStringContainsString( 'Notes have no such fields: write the value in the markup instead.', $this->message_for( $problems, 'invalid_binding' ) );
+	}
+
+	/**
+	 * Post types, fields, a binding source and a filter for the binding tests.
+	 */
+	private function register_binding_fixtures(): void {
+		register_post_type(
+			'publishio_product',
+			[
+				'labels'       => [ 'name' => 'Products' ],
+				'public'       => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor', 'custom-fields' ],
+			]
+		);
+		register_post_type(
+			'publishio_note',
+			[
+				'labels'       => [ 'name' => 'Notes' ],
+				'public'       => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor' ],
+			]
+		);
+		register_post_meta(
+			'publishio_product',
+			'publishio_price',
+			[
+				'type'         => 'number',
+				'single'       => true,
+				'show_in_rest' => [ 'schema' => [ 'minimum' => 0 ] ],
+			]
+		);
+		register_post_meta(
+			'publishio_product',
+			'publishio_cost',
+			[
+				'type'   => 'number',
+				'single' => true,
+			]
+		);
+		register_post_meta(
+			'publishio_product',
+			'_publishio_secret',
+			[
+				'type'          => 'string',
+				'single'        => true,
+				'show_in_rest'  => true,
+				'auth_callback' => '__return_true',
+			]
+		);
+		register_meta(
+			'post',
+			'publishio_brand',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+			]
+		);
+		register_block_bindings_source(
+			'publishio/test',
+			[
+				'label'              => 'Test',
+				'get_value_callback' => static fn (): string => 'Value',
+			]
+		);
+		add_filter( 'block_bindings_supported_attributes_core/heading', [ self::class, 'bind_heading_level' ] );
+	}
+
+	/**
+	 * Make a heading's level bindable.
+	 *
+	 * @param array<int, string> $attributes The bindable attributes.
+	 *
+	 * @return array<int, string>
+	 */
+	public static function bind_heading_level( array $attributes ): array {
+		return [ ...$attributes, 'level' ];
 	}
 
 	/**

@@ -27,7 +27,7 @@ final class Page_Details {
 	public static function of( \WP_Post $post ): array {
 		$yoast       = self::yoast( $post );
 		$host        = (string) wp_parse_url( home_url(), PHP_URL_HOST );
-		$path        = trim( (string) wp_parse_url( self::address( $post ), PHP_URL_PATH ), '/' );
+		$path        = trim( (string) wp_parse_url( (string) self::address( $post ), PHP_URL_PATH ), '/' );
 		$title       = self::text( $yoast['title'] ?? null ) ?? self::default_title( $post );
 		$description = self::text( $yoast['description'] ?? null ) ?? self::text( $post->post_excerpt );
 		$image       = self::text( $yoast['image'] ?? null ) ?? self::featured_image( $post );
@@ -49,11 +49,15 @@ final class Page_Details {
 	}
 
 	/**
-	 * The post's address, or for a post that isn't public yet, the address it gets when published.
+	 * The post's address, or for a post that isn't public yet, the address it gets when published. Null when visitors can't view its type.
 	 *
 	 * @param \WP_Post $post The post.
 	 */
-	public static function address( \WP_Post $post ): string {
+	public static function address( \WP_Post $post ): ?string {
+		if ( ! is_post_type_viewable( $post->post_type ) ) {
+			return null;
+		}
+
 		if ( in_array( $post->post_status, [ 'publish', 'private' ], true ) ) {
 			return (string) get_permalink( $post );
 		}

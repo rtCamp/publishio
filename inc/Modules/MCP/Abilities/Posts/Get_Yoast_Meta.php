@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
  * Class - Get_Yoast_Meta
@@ -51,13 +52,10 @@ class Get_Yoast_Meta {
 					}
 
 					$post_id = (int) ( $input['post_id'] ?? 0 );
-					$post    = get_post( $post_id );
-					if ( ! $post ) {
-						return Errors::make( 'invalid_post', __( 'Post not found.', 'publishio' ) );
-					}
+					$post    = Post_Writer::find( $post_id );
 
-					if ( ! current_user_can( 'edit_post', $post_id ) ) {
-						return Errors::make( 'forbidden', __( 'You do not have permission to edit this post.', 'publishio' ) );
+					if ( is_wp_error( $post ) ) {
+						return $post;
 					}
 
 					$fields = Yoast_Fields::visible( $post );

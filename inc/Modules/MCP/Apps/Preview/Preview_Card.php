@@ -94,12 +94,14 @@ final class Preview_Card {
 	 * @return Card
 	 */
 	public static function page( \WP_Post $post ): array {
-		$title = self::post_title( $post );
+		$title   = self::post_title( $post );
+		$address = Page_Details::address( $post );
+		$type    = get_post_type_object( $post->post_type );
 
 		return [
 			'title'    => $title,
 			'status'   => self::post_status( $post ),
-			'subtitle' => (string) preg_replace( '#^https?://#', '', untrailingslashit( Page_Details::address( $post ) ) ),
+			'subtitle' => null === $address ? ( $type ? $type->labels->singular_name : $post->post_type ) : (string) preg_replace( '#^https?://#', '', untrailingslashit( $address ) ),
 			'edit_url' => self::edit_url( $post->ID ),
 			/* translators: %s: page title */
 			'error'    => sprintf( __( '%s is unchanged. Only the preview didn\'t load.', 'publishio' ), $title ),

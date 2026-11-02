@@ -286,6 +286,51 @@ class Preview_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * A type visitors can't view shows its type's name, and has no search or social details and no links.
+	 */
+	public function test_types_visitors_cant_view(): void {
+		register_post_type(
+			'publishio_ledger',
+			[
+				'labels'       => [
+					'name'          => 'Ledger entries',
+					'singular_name' => 'Ledger entry',
+				],
+				'public'       => false,
+				'show_ui'      => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor' ],
+			]
+		);
+
+		$post_id = self::factory()->post->create(
+			[
+				'post_type'    => 'publishio_ledger',
+				'post_status'  => 'publish',
+				'post_author'  => get_current_user_id(),
+				'post_title'   => 'March payroll',
+				'post_content' => self::CONTENT,
+			]
+		);
+
+		$card    = $this->card( 'page', [ 'post_id' => $post_id ] );
+		$body    = $this->body( 'page', [ 'post_id' => $post_id ] );
+		$preview = wp_get_ability( 'publishio/preview-post' )->execute( [ 'post_id' => $post_id ] ); // @phpstan-ignore method.nonObject
+
+		unregister_post_type( 'publishio_ledger' );
+
+		$this->assertIsArray( $card );
+		$this->assertSame( 'Ledger entry', $card['subtitle'] );
+		$this->assertIsArray( $body );
+		$this->assertStringContainsString( 'Our story', $body['html'] );
+		$this->assertArrayNotHasKey( 'search', $body );
+		$this->assertArrayNotHasKey( 'social', $body );
+		$this->assertIsArray( $preview );
+		$this->assertNull( $preview['url'] );
+		$this->assertSame( '', $preview['preview_url'] );
+	}
+
+	/**
 	 * The preview-post tool returns the links to share, and only the tools that change what the user sees open the app.
 	 */
 	public function test_preview_post_and_app_wiring(): void {

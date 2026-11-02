@@ -10,7 +10,10 @@ declare( strict_types = 1 );
 namespace rtCamp\Publishio\Tests\Unit\Modules\MCP\Abilities\Posts;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use rtCamp\Publishio\Modules\MCP\Abilities\Content\Post_Details;
+use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Get_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Search_Attachments;
+use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Search_Posts;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Featured_Image;
 use rtCamp\Publishio\Modules\MCP\Abilities\Posts\Set_Post_Terms;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
@@ -22,16 +25,21 @@ use rtCamp\Publishio\Tests\TestCase;
 #[CoversClass( Set_Featured_Image::class )]
 #[CoversClass( Set_Post_Terms::class )]
 #[CoversClass( Search_Attachments::class )]
+#[CoversClass( Search_Posts::class )]
+#[CoversClass( Get_Post_Terms::class )]
+#[CoversClass( Post_Details::class )]
 #[CoversClass( Post_Writer::class )]
 class Custom_Post_TypeTest extends TestCase {
 	private const BOOK = 'publishio_book';
 
 	private const NOTE = 'publishio_note';
 
+	private const LEDGER = 'publishio_ledger';
+
 	private const GENRE = 'publishio_genre';
 
 	/**
-	 * Register a book type with a genre taxonomy and featured images, and a note type without them, and run as an editor.
+	 * Register a book type with a genre taxonomy, featured images and excerpts, a note type without them, and a ledger type visitors can't view, and run as an editor.
 	 */
 	protected function setUp(): void {
 		parent::setUp();
@@ -48,6 +56,19 @@ class Custom_Post_TypeTest extends TestCase {
 			'publishio_note',
 			[
 				'public'       => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor' ],
+			]
+		);
+		register_post_type(
+			'publishio_ledger',
+			[
+				'labels'       => [
+					'name'          => 'Ledger entries',
+					'singular_name' => 'Ledger entry',
+				],
+				'public'       => false,
+				'show_ui'      => true,
 				'show_in_rest' => true,
 				'supports'     => [ 'title', 'editor' ],
 			]
@@ -71,6 +92,7 @@ class Custom_Post_TypeTest extends TestCase {
 		unregister_taxonomy( self::GENRE );
 		unregister_post_type( self::BOOK );
 		unregister_post_type( self::NOTE );
+		unregister_post_type( self::LEDGER );
 		wp_set_current_user( 0 );
 
 		parent::tearDown();
@@ -218,6 +240,153 @@ class Custom_Post_TypeTest extends TestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * A type visitors can't view has no address to share, and a published item of any type needs approval to change.
+	 */
+	public function test_types_visitors_cant_view_have_no_address(): void {
+		$entry = $this->post( self::LEDGER, 'publish' );
+		$book  = $this->post( self::BOOK, 'publish' );
+		$found = $this->run_ability(
+			'search-posts',
+			[
+				'post_type' => self::LEDGER,
+				'status'    => [ 'publish' ],
+			]
+		);
+
+		$entry_post   = $this->run_ability( 'get-post', [ 'post_id' => $entry ] );
+		$book_post    = $this->run_ability( 'get-post', [ 'post_id' => $book ] );
+		$entry_review = $this->run_ability( 'preview-post', [ 'post_id' => $entry ] );
+
+		$this->assertIsArray( $entry_post );
+		$this->assertIsArray( $book_post );
+		$this->assertIsArray( $entry_review );
+		$this->assertIsArray( $found );
+		$this->assertArrayHasKey( 'url', $entry_post );
+		$this->assertNull( $entry_post['url'] );
+		$this->assertSame( get_permalink( $book ), $book_post['url'] );
+		$this->assertArrayHasKey( 'url', $found[0] );
+		$this->assertNull( $found[0]['url'] );
+		$this->assertNull( $entry_review['url'] );
+
+		$entry_refusal = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $entry,
+				'title'   => 'Renamed',
+			]
+		);
+		$book_refusal  = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $book,
+				'title'   => 'Renamed',
+			]
+		);
+
+		$this->assertSame( 'live_post_needs_approval', $this->code( $entry_refusal ) );
+		$this->assertStringContainsString( 'is published, so this change takes effect right away.', $entry_refusal->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertStringContainsString( 'is published, so this change takes effect right away.', $book_refusal->get_error_message() ); // @phpstan-ignore method.nonObject
+
+		preg_match( '/approval_token: "([^"]+)"/', $entry_refusal->get_error_message(), $match ); // @phpstan-ignore method.nonObject
+
+		$renamed = $this->run_ability(
+			'update-post',
+			[
+				'post_id'        => $entry,
+				'title'          => 'Renamed',
+				'approval_token' => $match[1],
+			]
+		);
+
+		$this->assertIsArray( $renamed );
+		$this->assertSame( 'Renamed', $renamed['title'] );
+		$this->assertNull( $renamed['url'] );
+	}
+
+	/**
+	 * An excerpt is refused only where it would never show: on a type without excerpts that visitors can't view.
+	 */
+	public function test_excerpt_only_where_it_can_show(): void {
+		$entry   = $this->post( self::LEDGER, 'draft' );
+		$before  = get_post_field( 'post_excerpt', $entry );
+		$created = $this->run_ability(
+			'create-post',
+			[
+				'post_type' => self::LEDGER,
+				'title'     => 'March payroll',
+				'excerpt'   => 'Salaries for March.',
+			]
+		);
+		$updated = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $entry,
+				'excerpt' => 'Salaries for March.',
+			]
+		);
+		$note    = $this->run_ability(
+			'create-post',
+			[
+				'post_type' => self::NOTE,
+				'title'     => 'Shopping list',
+				'excerpt'   => 'Milk and flour.',
+			]
+		);
+		$book    = $this->run_ability(
+			'create-post',
+			[
+				'post_type' => self::BOOK,
+				'title'     => 'The harbor',
+				'excerpt'   => 'A mystery by the sea.',
+			]
+		);
+
+		$this->assertSame( 'no_excerpt', $this->code( $created ) );
+		$this->assertStringContainsString( 'Ledger entries don\'t have an excerpt', $created->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( 'no_excerpt', $this->code( $updated ) );
+		$this->assertSame( $before, get_post_field( 'post_excerpt', $entry ) );
+		$this->assertIsArray( $note );
+		$this->assertSame( 'Milk and flour.', get_post_field( 'post_excerpt', $note['post_id'] ) );
+		$this->assertIsArray( $book );
+		$this->assertSame( 'A mystery by the sea.', get_post_field( 'post_excerpt', $book['post_id'] ) );
+	}
+
+	/**
+	 * The get-post-terms tool finds posts the way the writing tools do.
+	 */
+	public function test_reading_terms_uses_the_shared_lookup(): void {
+		$admin = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$entry = self::factory()->post->create(
+			[
+				'post_type'   => self::LEDGER,
+				'post_status' => 'publish',
+				'post_author' => $admin,
+				'post_title'  => 'Payroll for March',
+			]
+		);
+		$book  = self::factory()->post->create(
+			[
+				'post_type'   => self::BOOK,
+				'post_status' => 'publish',
+				'post_author' => $admin,
+				'post_title'  => 'The harbor',
+			]
+		);
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'contributor' ] ) );
+
+		$hidden = $this->run_ability( 'get-post-terms', [ 'post_id' => $entry ] );
+		$public = $this->run_ability( 'get-post-terms', [ 'post_id' => $book ] );
+
+		$this->assertTrue( current_user_can( 'read_post', $entry ) );
+		$this->assertSame( 'post_not_found', $this->code( $hidden ) );
+		$this->assertStringNotContainsString( 'Payroll', $hidden->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( 'forbidden', $this->code( $public ) );
+		$this->assertStringContainsString( 'The harbor', $public->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( 'post_not_found', $this->code( $this->run_ability( 'get-post-terms', [ 'post_id' => 999999 ] ) ) );
 	}
 
 	/**

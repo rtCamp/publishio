@@ -390,4 +390,35 @@ class Set_Yoast_MetaTest extends Yoast_Ability_TestCase {
 		$this->assertAbilityError( $result, 'yoast_disabled_for_post_type' );
 		$this->assertSame( '', get_post_meta( $post_id, '_yoast_wpseo_title', true ) );
 	}
+
+	/**
+	 * The get-yoast-meta tool finds posts the way the writing tools do.
+	 */
+	public function test_reading_hides_posts_the_user_cannot_edit(): void {
+		register_post_type(
+			'publishio_ledger',
+			[
+				'public'       => false,
+				'show_ui'      => true,
+				'show_in_rest' => true,
+				'supports'     => [ 'title', 'editor' ],
+			]
+		);
+
+		$post_id = self::factory()->post->create(
+			[
+				'post_type'   => 'publishio_ledger',
+				'post_status' => 'publish',
+				'post_author' => self::factory()->user->create( [ 'role' => 'administrator' ] ),
+			]
+		);
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'contributor' ] ) );
+
+		$result = wp_get_ability( 'publishio/get-yoast-meta' )->execute( [ 'post_id' => $post_id ] ); // @phpstan-ignore method.nonObject
+
+		unregister_post_type( 'publishio_ledger' );
+
+		$this->assertAbilityError( $result, 'post_not_found' );
+	}
 }

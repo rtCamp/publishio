@@ -34,6 +34,18 @@ final class Schema {
 	}
 
 	/**
+	 * A post's address.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function post_url(): array {
+		return [
+			'type'        => [ 'string', 'null' ],
+			'description' => 'Null for post types visitors can\'t view: share edit_url instead.',
+		];
+	}
+
+	/**
 	 * A block path.
 	 *
 	 * @param string $description What the path points to.
@@ -124,6 +136,11 @@ final class Schema {
 						'properties' => [
 							'path'      => [ 'type' => 'string' ],
 							'text'      => [ 'type' => 'string' ],
+							'bindings'  => [
+								'type'                 => 'object',
+								'description'          => 'Bound attributes and where their values come from, such as "core/post-meta: price".',
+								'additionalProperties' => [ 'type' => 'string' ],
+							],
 							'overrides' => [
 								'type'        => 'array',
 								'description' => 'A synced pattern\'s override fields and the values this post sets. Change them by replacing the pattern block with new values in its content attribute.',

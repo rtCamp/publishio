@@ -175,7 +175,7 @@ final class Render_Preview extends Ability {
 		}
 
 		if ( 'page' === ( $input['view'] ?? '' ) ) {
-			$details = Page_Details::of( $post );
+			$details = is_post_type_viewable( $post->post_type ) ? Page_Details::of( $post ) : [];
 
 			return [ 'html' => self::document( $tree->blocks(), $post ) ] + $details;
 		}

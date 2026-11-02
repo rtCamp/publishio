@@ -75,7 +75,7 @@ final class Update_Post extends Ability {
 				'excerpt'   => $string,
 				'parent_id' => [ 'type' => 'integer' ],
 				'template'  => $string,
-				'url'       => $string,
+				'url'       => Schema::post_url(),
 			],
 		];
 	}
@@ -141,7 +141,7 @@ final class Update_Post extends Ability {
 			'excerpt'   => $post->post_excerpt,
 			'parent_id' => (int) $post->post_parent,
 			'template'  => (string) get_page_template_slug( $post ),
-			'url'       => (string) get_permalink( $post ),
+			'url'       => Post_Details::url( $post ),
 		];
 	}
 }

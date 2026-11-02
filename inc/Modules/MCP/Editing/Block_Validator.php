@@ -27,6 +27,12 @@ final class Block_Validator {
 
 	private const SCHEMA_TYPES = [ 'string', 'integer', 'number', 'boolean', 'array', 'object', 'null' ];
 
+	private const SOURCE_ARGS = [
+		'core/post-meta' => [ 'key' ],
+		'core/post-data' => [ 'field', 'key' ],
+		'core/term-data' => [ 'field' ],
+	];
+
 	/**
 	 * The post the blocks are for, which decides the blocks allowed.
 	 *
@@ -94,8 +100,12 @@ final class Block_Validator {
 	 */
 	public function check( array $blocks, array $ancestors = [], bool $trusted = false, array $baseline = [] ): array {
 		$problems = [];
+		$context  = [
+			'type'  => 'wp_block' === $this->post->post_type || in_array( 'core/post-template', $ancestors, true ) ? null : $this->post->post_type,
+			'query' => null,
+		];
 
-		$this->visit( $blocks, $ancestors, Block_Path::root(), $trusted, $problems );
+		$this->visit( $blocks, $ancestors, Block_Path::root(), $trusted, $context, $problems );
 
 		$known = array_count_values( array_map( [ self::class, 'problem_key' ], $baseline ) );
 		$new   = [];
@@ -316,9 +326,10 @@ final class Block_Validator {
 	 * @param array<int, string>                               $ancestors Full names of the blocks around them, outermost first.
 	 * @param \rtCamp\Publishio\Modules\MCP\Editing\Block_Path $parent_path Their parent's path within the new markup.
 	 * @param bool                                             $trusted   Whether the markup is a registered pattern's.
+	 * @param array{type: ?string, query: ?string}             $context   The post type whose fields bound blocks show, and the nearest query loop's post type. Null when unknown.
 	 * @param array<int, Problem>                              $problems  Problems found so far.
 	 */
-	private function visit( array $blocks, array $ancestors, Block_Path $parent_path, bool $trusted, array &$problems ): void {
+	private function visit( array $blocks, array $ancestors, Block_Path $parent_path, bool $trusted, array $context, array &$problems ): void {
 		$registry = \WP_Block_Type_Registry::get_instance();
 
 		foreach ( array_values( $blocks ) as $i => $block ) {
@@ -373,12 +384,14 @@ final class Block_Validator {
 				$problems[] = Errors::problem( 'html_stripped', $path, sprintf( __( 'WordPress would remove %s when saving, because this account can\'t save unfiltered HTML. Leave them out.', 'publishio' ), wp_sprintf( '%l', $stripped ) ) );
 			}
 
+			array_push( $problems, ...self::binding_problems( $name, $attrs, $path, $context['type'] ) );
+
 			if ( 'core/block' === $name ) {
 				array_push( $problems, ...Pattern_Overrides::check( $block, $path ) );
 				continue;
 			}
 
-			$this->visit( (array) ( $block['innerBlocks'] ?? [] ), [ ...$ancestors, $name ], $parent_path->child( $i, $name ), $trusted, $problems );
+			$this->visit( (array) ( $block['innerBlocks'] ?? [] ), [ ...$ancestors, $name ], $parent_path->child( $i, $name ), $trusted, self::inner_context( $name, $attrs, $context ), $problems );
 		}
 	}
 
@@ -453,6 +466,149 @@ final class Block_Validator {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Problems with a block's bindings that would leave the attribute empty on the page, by the rules WordPress renders with.
+	 *
+	 * Pattern overrides are left to Pattern_Overrides. Fields aren't checked when the post type is unknown: in a saved pattern, which any post type can use, or in a query loop that follows the main query.
+	 *
+	 * @param string               $name      The block's full name.
+	 * @param array<string, mixed> $attrs     The attributes in the block comment.
+	 * @param string               $path      Where the block is.
+	 * @param ?string              $post_type The post type whose fields the block shows.
+	 *
+	 * @return list<Problem>
+	 */
+	private static function binding_problems( string $name, array $attrs, string $path, ?string $post_type ): array {
+		$bindings = $attrs['metadata']['bindings'] ?? null;
+
+		if ( ! is_array( $bindings ) ) {
+			return [];
+		}
+
+		$problems  = [];
+		$supported = get_block_bindings_supported_attributes( $name );
+
+		foreach ( $bindings as $attribute => $binding ) {
+			$attribute = (string) $attribute;
+			$source    = is_array( $binding ) && is_string( $binding['source'] ?? null ) ? $binding['source'] : null;
+
+			if ( 'core/pattern-overrides' === $source ) {
+				continue;
+			}
+
+			if ( null === $source ) {
+				/* translators: 1: block name, 2: attribute name */
+				$problems[] = Errors::problem( 'invalid_binding', $path, sprintf( __( '%1$s binds "%2$s" without a source, such as core/post-meta.', 'publishio' ), $name, $attribute ) );
+				continue;
+			}
+
+			if ( null === get_block_bindings_source( $source ) ) {
+				/* translators: 1: block name, 2: attribute name, 3: binding source name */
+				$problems[] = Errors::problem( 'invalid_binding', $path, sprintf( __( '%1$s binds "%2$s" to "%3$s", which isn\'t a binding source on this site.', 'publishio' ), $name, $attribute, $source ) );
+				continue;
+			}
+
+			if ( ! in_array( $attribute, $supported, true ) ) {
+				$problems[] = Errors::problem(
+					'invalid_binding',
+					$path,
+					[] === $supported
+						/* translators: %s: block name */
+						? sprintf( __( '%s doesn\'t support bindings. Remove metadata.bindings.', 'publishio' ), $name )
+						/* translators: 1: block name, 2: attribute name, 3: attributes it can bind */
+						: sprintf( __( '%1$s can\'t bind "%2$s". It can bind %3$s.', 'publishio' ), $name, $attribute, wp_sprintf( '%l', $supported ) )
+				);
+				continue;
+			}
+
+			$args  = is_array( $binding['args'] ?? null ) ? $binding['args'] : [];
+			$names = self::SOURCE_ARGS[ $source ] ?? [];
+			$value = null;
+
+			foreach ( $names as $arg ) {
+				if ( null === $value && is_string( $args[ $arg ] ?? null ) && '' !== $args[ $arg ] ) {
+					$value = $args[ $arg ];
+				}
+			}
+
+			if ( [] !== $names && null === $value ) {
+				/* translators: 1: block name, 2: attribute name, 3: binding source name, 4: argument name */
+				$problems[] = Errors::problem( 'invalid_binding', $path, sprintf( __( '%1$s binds "%2$s" to %3$s without args.%4$s, so it would show nothing.', 'publishio' ), $name, $attribute, $source, $names[0] ) );
+				continue;
+			}
+
+			if ( 'core/post-meta' === $source && null !== $post_type && ! in_array( $value, self::bindable_fields( $post_type ), true ) ) {
+				$problems[] = Errors::problem( 'invalid_binding', $path, self::unknown_field_message( (string) $value, $post_type ) );
+			}
+		}
+
+		return $problems;
+	}
+
+	/**
+	 * The context for a block's inner blocks: inside a query loop's post template, blocks show the queried posts' fields.
+	 *
+	 * @param string                               $name    The block's full name.
+	 * @param array<string, mixed>                 $attrs   Its attributes.
+	 * @param array{type: ?string, query: ?string} $context Its own context.
+	 *
+	 * @return array{type: ?string, query: ?string}
+	 */
+	private static function inner_context( string $name, array $attrs, array $context ): array {
+		if ( 'core/query' === $name ) {
+			$query            = is_array( $attrs['query'] ?? null ) ? $attrs['query'] : [];
+			$context['query'] = empty( $query['inherit'] ) ? ( is_string( $query['postType'] ?? null ) ? $query['postType'] : 'post' ) : null;
+		}
+
+		if ( 'core/post-template' === $name ) {
+			$context['type'] = $context['query'];
+		}
+
+		return $context;
+	}
+
+	/**
+	 * The fields core/post-meta can show for a post type: registered for it or for every type, shown in REST, and not protected.
+	 *
+	 * @param string $post_type The post type.
+	 *
+	 * @return list<string>
+	 */
+	private static function bindable_fields( string $post_type ): array {
+		$fields = array_merge( get_registered_meta_keys( 'post', $post_type ), get_registered_meta_keys( 'post', '' ) );
+
+		return array_values(
+			array_map(
+				'strval',
+				array_keys(
+					array_filter(
+						$fields,
+						static fn ( array $args, string $key ): bool => ! empty( $args['show_in_rest'] ) && ! is_protected_meta( $key, 'post' ),
+						ARRAY_FILTER_USE_BOTH
+					)
+				)
+			)
+		);
+	}
+
+	/**
+	 * The message for a field a post type doesn't show to blocks.
+	 *
+	 * @param string $key       The field's key.
+	 * @param string $post_type The post type.
+	 */
+	private static function unknown_field_message( string $key, string $post_type ): string {
+		$type   = get_post_type_object( $post_type );
+		$label  = $type ? $type->labels->name : $post_type;
+		$fields = self::bindable_fields( $post_type );
+
+		return [] === $fields
+			/* translators: 1: field key, 2: post type name */
+			? sprintf( __( '"%1$s" isn\'t a field %2$s show to blocks, so this block would show nothing. %2$s have no such fields: write the value in the markup instead.', 'publishio' ), $key, $label )
+			/* translators: 1: field key, 2: post type name, 3: the fields they show */
+			: sprintf( __( '"%1$s" isn\'t a field %2$s show to blocks, so this block would show nothing. Use one of %3$s.', 'publishio' ), $key, $label, wp_sprintf( '%l', $fields ) );
 	}
 
 	/**

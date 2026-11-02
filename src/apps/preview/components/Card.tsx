@@ -22,7 +22,8 @@ interface Props {
 export function Card( { kind, card, body, onRetry, onOpen }: Props ) {
 	const [ tab, setTab ] = useState< Tab >( 'Page' );
 	const ready = body.status === 'ready' ? body.body : null;
-	const tabs = kind === 'page' && ready !== null;
+	const tabs =
+		kind === 'page' && ready !== null && ready.search !== undefined;
 
 	return (
 		<article className="pc" data-state={ body.status }>

@@ -9,6 +9,9 @@ declare( strict_types = 1 );
 
 namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
+use rtCamp\Publishio\Modules\MCP\Abilities\Content\Post_Details;
+use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+
 /**
  * Class - Search_Posts
  */
@@ -70,10 +73,7 @@ class Search_Posts {
 							'date'      => [
 								'type' => 'string',
 							],
-							'url'       => [
-								'type'   => 'string',
-								'format' => 'uri',
-							],
+							'url'       => Schema::post_url(),
 							'edit_url'  => [
 								'type'   => 'string',
 								'format' => 'uri',
@@ -111,7 +111,7 @@ class Search_Posts {
 							'post_type' => $post->post_type,
 							'status'    => $post->post_status,
 							'date'      => $post->post_date,
-							'url'       => get_permalink( $post->ID ),
+							'url'       => Post_Details::url( $post ),
 							'edit_url'  => get_edit_post_link( $post->ID, 'raw' ) ?: '',
 						];
 					}

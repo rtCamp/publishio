@@ -37,7 +37,7 @@ final class Preview_Post extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return __( 'Shows the user the whole post, with how it looks in search results and as a shared link, in apps that show previews. Call it once the content and all details are set, again after significant changes, and when the user asks. Share the links it returns: url is the post\'s address, or the address it gets when published, and preview_url shows a draft to a signed-in user.', 'publishio' );
+		return __( 'Shows the user the whole post, with how it looks in search results and as a shared link, in apps that show previews. Call it once the content and all details are set, again after significant changes, and when the user asks. Share the links it returns: url is the post\'s address, or the address it gets when published, and preview_url shows a draft to a signed-in user. For post types visitors can\'t view, share edit_url instead.', 'publishio' );
 	}
 
 	/**
@@ -67,7 +67,7 @@ final class Preview_Post extends Ability {
 				'post_id'     => [ 'type' => 'integer' ],
 				'title'       => $string,
 				'status'      => $string,
-				'url'         => $string,
+				'url'         => Schema::post_url(),
 				'preview_url' => $string,
 				'edit_url'    => [ 'type' => [ 'string', 'null' ] ],
 			],

@@ -231,13 +231,13 @@ final class Errors {
 	 */
 	public static function live_post_needs_approval( \WP_Post $post, string $token ): \WP_Error {
 		$state = match ( $post->post_status ) {
-			'future'  => __( 'scheduled, so this change goes live when it publishes', 'publishio' ),
+			'future'  => __( 'scheduled, so this change takes effect when it publishes', 'publishio' ),
 			'private' => __( 'private, so this change is seen right away by everyone who can read it', 'publishio' ),
-			default   => __( 'published, so this change goes live immediately', 'publishio' ),
+			default   => __( 'published, so this change takes effect right away', 'publishio' ),
 		};
 
 		/* translators: 1: post title, 2: what the post's status means for the change, 3: the approval token */
-		return self::make( 'live_post_needs_approval', sprintf( __( '"%1$s" is %2$s. Ask the user first, unless they already agreed to changes to this page. If they agree, call again with approval_token: "%3$s".', 'publishio' ), self::title( $post ), $state, $token ), 409 );
+		return self::make( 'live_post_needs_approval', sprintf( __( '"%1$s" is %2$s. Ask the user first, unless they already agreed to changes to it. If they agree, call again with approval_token: "%3$s".', 'publishio' ), self::title( $post ), $state, $token ), 409 );
 	}
 
 	/**

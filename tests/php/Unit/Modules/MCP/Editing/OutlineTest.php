@@ -44,6 +44,27 @@ class OutlineTest extends TestCase {
 	}
 
 	/**
+	 * Table cells and paragraphs read as separate words, inline formatting doesn't split a word, and a bound attribute names where its value comes from.
+	 */
+	public function test_cell_text_and_bindings(): void {
+		$tree = Block_Tree::from_markup(
+			'<!-- wp:table --><figure class="wp-block-table"><table><thead><tr><th>Item</th><th>Qty</th></tr></thead><tbody><tr><td>Rye</td><td>2</td></tr></tbody></table></figure><!-- /wp:table -->'
+			. '<!-- wp:paragraph --><p><strong>Pri</strong>ce<br>list</p><!-- /wp:paragraph -->'
+			. '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"price"}}}}} --><p></p><!-- /wp:paragraph -->'
+			. '<!-- wp:button {"metadata":{"bindings":{"url":{"source":"acme/links"},"text":"not a binding"}}} --><div class="wp-block-button"><a class="wp-block-button__link">Order</a></div><!-- /wp:button -->'
+		);
+
+		$outline = Outline::of( $tree, Block_Path::root() );
+
+		$this->assertIsArray( $outline );
+		$this->assertSame( 'Item Qty Rye 2', $outline['rows'][0]['text'] );
+		$this->assertSame( 'Price list', $outline['rows'][1]['text'] );
+		$this->assertArrayNotHasKey( 'bindings', $outline['rows'][1] );
+		$this->assertSame( [ 'content' => 'core/post-meta: price' ], $outline['rows'][2]['bindings'] ?? null );
+		$this->assertSame( [ 'url' => 'acme/links' ], $outline['rows'][3]['bindings'] ?? null );
+	}
+
+	/**
 	 * A synced pattern's row shows its override fields and this post's values, and nothing inside it.
 	 */
 	public function test_lists_synced_pattern_overrides(): void {

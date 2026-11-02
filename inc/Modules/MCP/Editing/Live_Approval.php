@@ -23,7 +23,7 @@ final class Live_Approval {
 	private const PATTERN = '/^(\d{10,12})\.([a-f0-9]{64})$/';
 
 	/**
-	 * Whether a post's changes are seen by visitors, now or when it publishes.
+	 * Whether the post is published, scheduled or private, so changes need the user's approval.
 	 *
 	 * @param \WP_Post $post The post.
 	 */

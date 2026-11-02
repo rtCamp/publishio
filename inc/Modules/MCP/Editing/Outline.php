@@ -15,7 +15,7 @@ namespace rtCamp\Publishio\Modules\MCP\Editing;
  * Each row is a block's path and a short text that identifies it. A synced pattern's row also lists its override fields and the values this post sets.
  *
  * @phpstan-type Override array{name: string, block: string, attributes: list<string>, values: object}
- * @phpstan-type Row array{path: string, text: string, overrides?: list<Override>}
+ * @phpstan-type Row array{path: string, text: string, bindings?: array<string, string>, overrides?: list<Override>}
  */
 final class Outline {
 	public const MAX_ROWS = 300;
@@ -132,10 +132,17 @@ final class Outline {
 	 */
 	private static function row( array $block, Block_Path $path ): array {
 		if ( 'core/block' !== Block_Tree::name_of( $block ) ) {
-			return [
+			$row      = [
 				'path' => $path->to_string(),
 				'text' => self::text( $block ),
 			];
+			$bindings = self::bindings( $block );
+
+			if ( [] !== $bindings ) {
+				$row['bindings'] = $bindings;
+			}
+
+			return $row;
 		}
 
 		$ref = (int) ( $block['attrs']['ref'] ?? 0 );
@@ -166,12 +173,36 @@ final class Outline {
 	}
 
 	/**
+	 * Where a block's bound attributes get their values.
+	 *
+	 * @param array<string, mixed> $block The block.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function bindings( array $block ): array {
+		$bindings = $block['attrs']['metadata']['bindings'] ?? null;
+		$sources  = [];
+
+		foreach ( is_array( $bindings ) ? $bindings : [] as $attribute => $binding ) {
+			if ( ! is_array( $binding ) || ! is_string( $binding['source'] ?? null ) ) {
+				continue;
+			}
+
+			$key = $binding['args']['key'] ?? null;
+
+			$sources[ (string) $attribute ] = is_string( $key ) ? $binding['source'] . ': ' . $key : $binding['source'];
+		}
+
+		return $sources;
+	}
+
+	/**
 	 * A short text that identifies a block: its own text, an image's alt text, or the first text inside it.
 	 *
 	 * @param array<string, mixed> $block The block.
 	 */
 	public static function text( array $block ): string {
-		$html = Block_Tree::own_html( $block );
+		$html = (string) preg_replace( '#</(?:p|h[1-6]|li|dt|dd|td|th|caption|figcaption|blockquote|pre|div)>|<br\s*/?>#i', '$0 ', Block_Tree::own_html( $block ) );
 		$text = trim( (string) preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
 
 		if ( '' === $text && str_contains( $html, '<img' ) ) {

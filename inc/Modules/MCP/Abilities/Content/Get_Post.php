@@ -39,7 +39,7 @@ final class Get_Post extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return __( 'Reads a post\'s details and its block outline: every block\'s path and a short text, plus each synced pattern\'s override fields. Returns no markup; use get-post-content for a block\'s markup. is_live means changes are seen by visitors, so edits need the user\'s approval.', 'publishio' );
+		return __( 'Reads a post\'s details and its block outline: every block\'s path and a short text, plus each synced pattern\'s override fields. Returns no markup; use get-post-content for a block\'s markup. is_live means the post is published, scheduled or private, so edits need the user\'s approval.', 'publishio' );
 	}
 
 	/**
@@ -82,7 +82,7 @@ final class Get_Post extends Ability {
 				'template'       => $string,
 				'date'           => $string,
 				'modified'       => $string,
-				'url'            => $string,
+				'url'            => Schema::post_url(),
 				'edit_url'       => $string,
 				'featured_image' => [
 					'type'       => [ 'object', 'null' ],
@@ -143,7 +143,7 @@ final class Get_Post extends Ability {
 			'template'       => (string) get_page_template_slug( $post ),
 			'date'           => $post->post_date,
 			'modified'       => $post->post_modified,
-			'url'            => (string) get_permalink( $post ),
+			'url'            => Post_Details::url( $post ),
 			'edit_url'       => (string) get_edit_post_link( $post, 'raw' ),
 			'featured_image' => self::featured_image( $post ),
 			'outline'        => $outline,

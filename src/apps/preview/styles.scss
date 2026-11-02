@@ -56,7 +56,7 @@
 	box-sizing: border-box;
 }
 
-/* The host sizes the app to fit, so only a preview body scrolls. */
+/* The host sizes the app to fit, so the app itself never scrolls. */
 html,
 body {
 	margin: 0;
@@ -293,11 +293,6 @@ button {
 		display: none;
 	}
 
-	&.frame {
-		overflow-x: hidden;
-		scrollbar-width: thin;
-	}
-
 	&.fixed {
 		height: 220px;
 	}
@@ -318,7 +313,6 @@ button {
 		display: block;
 		max-width: none;
 		border: 0;
-		pointer-events: none;
 		transform-origin: top left;
 	}
 }

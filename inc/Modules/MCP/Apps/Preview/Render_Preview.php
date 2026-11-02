@@ -220,16 +220,9 @@ final class Render_Preview extends Ability {
 
 		$html = Render_Blocks::render( $blocks, $post );
 
-		Preview_Styles::activate();
 		ob_start();
+		Templates::get_template_part( 'preview', null, [ 'html' => $html ] );
 
-		try {
-			Templates::get_template_part( 'preview', null, [ 'html' => $html ] );
-		} finally {
-			$document = (string) ob_get_clean();
-			Preview_Styles::deactivate();
-		}
-
-		return $document;
+		return (string) ob_get_clean();
 	}
 }

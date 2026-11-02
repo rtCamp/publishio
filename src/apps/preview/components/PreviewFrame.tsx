@@ -1,13 +1,11 @@
 import { useLayoutEffect, useRef } from 'react';
 
-import { pinViewportUnits } from '../viewport-units';
-
 const MIN_HEIGHT = 140;
-const MAX_HEIGHT = 400;
 const LOADING_HEIGHT = 220;
 
-// Render at desktop width so desktop breakpoints apply, then scale down to fit, as the user sees the page on a desktop screen.
+// The page renders in a desktop window, so breakpoints and viewport units apply as on a desktop screen, then scales down to fit the card.
 const DESKTOP_WIDTH = 1300;
+const DESKTOP_HEIGHT = 800;
 
 const TRANSPARENT = /^(transparent|rgba\(0, 0, 0, 0\))$/;
 
@@ -31,21 +29,10 @@ function backgroundOf( doc: Document ): string {
 	return '#fff';
 }
 
-/** The width a classic scrollbar takes from the box; zero with overlay scrollbars. */
-function scrollbarWidth( box: HTMLElement ): number {
-	const overflow = box.style.overflowY;
-
-	box.style.overflowY = 'scroll';
-	const width = box.offsetWidth - box.clientWidth;
-	box.style.overflowY = overflow;
-
-	return width;
-}
-
 /**
- * The rendered document at desktop width, scaled to the card, as tall as its content from 140 to 400 pixels. Taller content scrolls inside the box, and shorter content is centered on the theme's background.
+ * The rendered document in a desktop-sized window, scaled to the card. The box is as tall as the content, from 140 pixels up to one screen; a longer page scrolls inside the frame, like a browser window. Shorter content is centered on the theme's background.
  *
- * Sizes are set on the elements directly and rounded to whole pixels, so measuring never re-renders and the app's height has no fraction left over. The scrollbar is decided from the width without it, so showing it can't change the scale and hide it again.
+ * The frame's size never changes, so viewport units resolve as on a desktop and measuring can't feed back into the layout. Sizes are rounded to whole pixels, so the app's height has no fraction left over.
  */
 export function PreviewFrame( { html, title, hidden }: Props ) {
 	const boxRef = useRef< HTMLDivElement >( null );
@@ -67,42 +54,25 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 
 		const measure = () => {
 			const doc = frame.contentDocument;
-			const full = box.offsetWidth;
+			const width = box.offsetWidth;
 
-			if ( ! doc?.body || 0 === full ) {
+			if ( ! doc?.body || 0 === width ) {
 				return;
 			}
 
-			// The frame is as tall as its content, so it never scrolls; a scrollbar inside it would narrow the layout below desktop width.
-			doc.documentElement.style.overflow = 'hidden';
-
-			const height = Math.ceil( doc.body.scrollHeight );
-			const narrow = Math.min(
-				1,
-				( full - scrollbarWidth( box ) ) / DESKTOP_WIDTH
+			const scale = Math.min( 1, width / DESKTOP_WIDTH );
+			const height = Math.min(
+				Math.ceil( doc.body.scrollHeight ),
+				DESKTOP_HEIGHT
 			);
-			const scrolls = Math.ceil( height * narrow ) > MAX_HEIGHT;
+			const shown = Math.ceil( height * scale );
 
-			// Content that fits at the narrow scale but not the full one shrinks a little to keep the box within the maximum.
-			const scale = scrolls
-				? narrow
-				: Math.min( 1, full / DESKTOP_WIDTH, MAX_HEIGHT / height );
-			const shown = Math.min(
-				Math.ceil( height * scale ),
-				scrolls ? Infinity : MAX_HEIGHT
-			);
-
-			box.style.overflowY = scrolls ? 'scroll' : 'hidden';
-			box.style.height = `${
-				scrolls ? MAX_HEIGHT : Math.max( shown, MIN_HEIGHT )
-			}px`;
+			box.style.height = `${ Math.max( shown, MIN_HEIGHT ) }px`;
 			box.style.background = backgroundOf( doc );
 
 			inner.style.height = `${ shown }px`;
 			inner.style.visibility = 'visible';
 
-			frame.style.width = `${ DESKTOP_WIDTH }px`;
-			frame.style.height = `${ height }px`;
 			frame.style.transform = `scale(${ scale })`;
 		};
 
@@ -121,9 +91,6 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 			if ( ! doc?.body ) {
 				return;
 			}
-
-			// The frame takes its content's height, so a 100vh section would grow with it.
-			pinViewportUnits( doc, DESKTOP_WIDTH );
 
 			content?.disconnect();
 			content = new ResizeObserver( schedule );
@@ -159,10 +126,9 @@ export function PreviewFrame( { html, title, hidden }: Props ) {
 					ref={ frameRef }
 					title={ title }
 					srcDoc={ html }
-					sandbox="allow-same-origin"
-					scrolling="no"
+					sandbox="allow-scripts allow-same-origin"
 					tabIndex={ -1 }
-					style={ { width: DESKTOP_WIDTH } }
+					style={ { width: DESKTOP_WIDTH, height: DESKTOP_HEIGHT } }
 				/>
 			</div>
 		</div>

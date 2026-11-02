@@ -6,5 +6,11 @@ body {
 
 body {
 	display: flow-root;
+	height: auto !important;
 	min-height: 0 !important;
+}
+
+/* The page scrolls, but links and controls stay inert. */
+body * {
+	pointer-events: none !important;
 }

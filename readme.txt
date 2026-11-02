@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.1
-Stable tag:        1.2.0
+Stable tag:        1.3.0
 
 AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
@@ -140,15 +140,26 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 1. The chat prompt in ChatGPT or Claude, where you describe the page or post you want in plain language.
 2. The AI's plan in the chat — a section-by-section outline of the page, with each section mapped to one of your site's own block patterns.
-3. The in-chat preview of a generated page section, shown for review with insert and show-alternative controls before anything is added to the draft.
+3. The in-chat preview of the finished draft, with tabs for how it looks in search results and when shared, and a button to open it in the editor.
 4. The finished page on your site, assembled from your patterns and styled by your active theme.
-5. The Publishio Guide page, with your MCP server URL, a readiness check, and setup guides for Claude and ChatGPT.
+5. The Publishio Guide page, with your MCP server URL, the AI skill download, a readiness check, and setup guides for Claude and ChatGPT.
 6. The Claude AI setup guide showing how to add a custom MCP connector in Claude's Customize > Connectors panel.
 7. The authorization screen, where you approve an AI app's access to your site.
 8. The Connections page listing all AI apps that have authenticated with your site, with user, connection date, and last-active details.
 9. The Status page, checking whether AI apps can connect to your site.
 
 == Changelog ==
+
+= 1.3.0 =
+* Let AI apps write and edit blocks directly instead of filling in pattern schemas. The AI builds from your site's patterns first, and adds, changes, moves, copies and removes blocks one section at a time.
+* Let the AI use any block the editor allows for the post type, including blocks from other plugins, on pages as well as posts.
+* Use every pattern on your site, including the synced and unsynced patterns in your pattern library, and let the AI save new patterns and update unsynced ones when you ask.
+* Check every change before it's saved, so content opens in the Block Editor without block errors.
+* Add previews in the chat for apps that show them: each section as it's added, each saved pattern, and the finished page with how it looks in search results and as a shared link. Other apps share the preview and editor links.
+* Ask for your OK in the chat before the AI changes a published, scheduled or private page.
+* Support custom post types better: featured images, terms and Yoast SEO fields follow the same rules as content edits, types visitors can't view get no public link, and blocks bound to custom fields are checked against the fields the type has.
+* Add a Download SKILL.md button to the Publishio page, so the skill always matches the installed version.
+* Remove the Pattern Approval screen and the pattern-schema tools, which the new tools replace.
 
 = 1.2.0 =
 * Add a Status page (Publishio → Status) that checks whether AI apps can reach your site and tells you what to fix.
@@ -191,6 +202,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+* Freeform block editing. Tools that edit blocks directly, and previews in the chat, replace the pattern-schema tools and the Pattern Approval screen. Start a new chat after updating so the AI uses the new tools.
 
 = 1.2.0 =
 * MCP specification and security update. AI apps now connect with CIMD instead of DCR, as the latest MCP specification recommends, so approve each app, such as ChatGPT or Claude, again after updating. Apps without CIMD support, such as Cursor, can't connect yet.

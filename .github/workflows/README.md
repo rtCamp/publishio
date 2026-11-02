@@ -6,26 +6,27 @@ Workflows are defined to be reusable and modular.
 
 Main CI pipeline used to validate code. Based on file changes it calls the following reusable workflows:
 
-| Reusable Workflow                                                                                                                                                                      | What                                      |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [`reusable-phpcs.yml`](reusable-phpcs.yml) <br /> [`reusable-phpcs-public.yml`](reusable-phpcs-public.yml)                                                                             | PHPCS linting                             |
-| [`reusable-phpstan.yml`](reusable-phpstan.yml) <br /> [`reusable-phpstan-public.yml`](reusable-phpstan-public.yml)                                                                     | PHPStan static analysis                   |
-| [`reusable-phpunit.yml`](reusable-phpunit.yml) <br /> [`reusable-phpunit-public.yml`](reusable-phpunit-public.yml)                                                                     | PHPUnit tests                             |
-| [`reusable-lint-css-js.yml`](reusable-lint-css-js.yml) <br /> [`reusable-lint-css-js-public.yml`](reusable-lint-css-js-public.yml)                                                     | ESLint, Stylelint, Prettier, tsc linting  |
-| [`reusable-jest.yml`](reusable-jest.yml) <br /> [`reusable-jest-public.yml`](reusable-jest-public.yml)                                                                                 | Jest tests                                |
-| [`reusable-e2e.yml`](reusable-e2e.yml) <br /> [`reusable-e2e-public.yml`](reusable-e2e-public.yml)                                                                                     | Playwright end-to-end tests               |
-| [`reusable-build.yml`](reusable-build.yml) <br /> [`reusable-build-public.yml`](reusable-build-public.yml)                                                                             | Creates a build zip (used by playground)  |
-| [`reusable-wp-playground-pr-preview.yml`](reusable-wp-playground-pr-preview.yml) <br /> [`reusable-wp-playground-pr-preview-public.yml`](reusable-wp-playground-pr-preview-public.yml) | PR preview environment with wp-playground |
+| Reusable Workflow                                                                | What                                      |
+| -------------------------------------------------------------------------------- | ----------------------------------------- |
+| [`reusable-phpcs.yml`](reusable-phpcs.yml)                                       | PHPCS linting                             |
+| [`reusable-phpstan.yml`](reusable-phpstan.yml)                                   | PHPStan static analysis                   |
+| [`reusable-phpunit.yml`](reusable-phpunit.yml)                                   | PHPUnit tests                             |
+| [`reusable-lint-css-js.yml`](reusable-lint-css-js.yml)                           | ESLint, Stylelint, Prettier, tsc linting  |
+| [`reusable-jest.yml`](reusable-jest.yml)                                         | Jest tests                                |
+| [`reusable-build.yml`](reusable-build.yml)                                       | Creates a build zip (used by playground)  |
+| [`reusable-wp-playground-pr-preview.yml`](reusable-wp-playground-pr-preview.yml) | PR preview environment with wp-playground |
 
-Reusable workflows have a `*-public.yml` variant which is used for public GitHub runners and should be used for public repositories. The non-public `*.yml` are meant for private repositories using private runners.
+### E2E: [`e2e.yml`](e2e.yml), [`e2e-scheduled.yml`](e2e-scheduled.yml), [`wp-release-watch.yml`](wp-release-watch.yml)
 
-Ensure that `ci.yml` points to the correct workflows you need, and delete the others.
-
-If you are using `ci.yml` in a private repository with rtCamp runners and later steps in the same job need authenticated Git operations, set `persist-credentials: true` in the `actions/checkout` step of `ci.yml`.
+Run the Playwright end-to-end tests through [`reusable-e2e-public.yml`](reusable-e2e-public.yml): on pull requests and pushes to `main`, nightly and weekly, and when WordPress ships a new release. See [the E2E README](../../tests/e2e/README.md#in-ci-github-actions) for what runs when.
 
 ### [`copilot-setup-steps.yml`](copilot-setup-steps.yml)
 
 Sets up dev environment for GitHub Copilot coding agent.
+
+### [`copilot-code-review.yml`](copilot-code-review.yml)
+
+Setup steps for Copilot code review on pull requests.
 
 ### [`pr-title.yml`](pr-title.yml)
 
@@ -42,11 +43,11 @@ Triggers on bare `X.Y.Z` tag pushes. Builds the plugin via `reusable-build.yml`,
 
 ### Secrets
 
-| Secret          | Required By                                                    | Notes                                                |
-| --------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| `CODECOV_TOKEN` | `reusable-phpunit-public.yml` <br />`reusable-jest-public.yml` | Optional - coverage uploads fail silently without it |
-| `SVN_USERNAME`  | `release.yml`                                                  | WordPress.org committer username.                    |
-| `SVN_PASSWORD`  | `release.yml`                                                  | WordPress.org committer password.                    |
+| Secret          | Required By                                      | Notes                                                |
+| --------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| `CODECOV_TOKEN` | `reusable-phpunit.yml` <br />`reusable-jest.yml` | Optional - coverage uploads fail silently without it |
+| `SVN_USERNAME`  | `release.yml`                                    | WordPress.org committer username.                    |
+| `SVN_PASSWORD`  | `release.yml`                                    | WordPress.org committer password.                    |
 
 ### PR Previews
 

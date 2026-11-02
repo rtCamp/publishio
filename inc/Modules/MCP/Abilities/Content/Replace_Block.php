@@ -62,7 +62,7 @@ final class Replace_Block extends Block_Edit_Ability {
 		return [
 			'readonly'    => false,
 			'destructive' => false,
-			'idempotent'  => true,
+			'idempotent'  => false,
 		];
 	}
 

@@ -88,7 +88,7 @@ final class Block_Validator {
 	 * @param array<int, array<string, mixed>> $blocks    The new blocks, from Block_Tree::parse().
 	 * @param array<int, string>               $ancestors The full names of the blocks they go inside, outermost first.
 	 * @param bool                             $trusted   Whether the markup is a registered pattern's, which skips the HTML and attribute-name checks meant for written markup.
-	 * @param array<int, Problem>              $baseline  Problems the replaced blocks already had, from check() on them. They aren't reported again, so content the AI didn't touch can't block a change.
+	 * @param array<int, Problem>              $baseline  Problems the replaced blocks already had, from check() on them. Each excuses one matching problem, so content the AI didn't touch can't block a change, but new copies of it are still reported.
 	 *
 	 * @return list<Problem>
 	 */
@@ -97,13 +97,21 @@ final class Block_Validator {
 
 		$this->visit( $blocks, $ancestors, Block_Path::root(), $trusted, $problems );
 
-		if ( [] === $baseline ) {
-			return array_values( $problems );
+		$known = array_count_values( array_map( [ self::class, 'problem_key' ], $baseline ) );
+		$new   = [];
+
+		foreach ( $problems as $problem ) {
+			$key = self::problem_key( $problem );
+
+			if ( ( $known[ $key ] ?? 0 ) > 0 ) {
+				--$known[ $key ];
+				continue;
+			}
+
+			$new[] = $problem;
 		}
 
-		$known = array_flip( array_map( [ self::class, 'problem_key' ], $baseline ) );
-
-		return array_values( array_filter( $problems, static fn ( array $problem ): bool => ! isset( $known[ self::problem_key( $problem ) ] ) ) );
+		return $new;
 	}
 
 	/**

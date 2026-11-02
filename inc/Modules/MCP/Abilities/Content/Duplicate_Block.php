@@ -79,15 +79,23 @@ final class Duplicate_Block extends Block_Edit_Ability {
 			return $path;
 		}
 
-		$tree   = $opened['tree'];
-		$before = clone $tree;
-		$paths  = $tree->duplicate( $path, max( 1, min( self::MAX_COPIES, (int) ( $input['count'] ?? 1 ) ) ) );
+		$tree  = $opened['tree'];
+		$block = $tree->get( $path );
+
+		if ( is_wp_error( $block ) ) {
+			return $block;
+		}
+
+		$validator = new Block_Validator( $opened['post'] );
+		$problems  = $validator->check( [ $block ], $tree->names_down_to( $path->parent() ), true );
+		$before    = clone $tree;
+		$paths     = $tree->duplicate( $path, max( 1, min( self::MAX_COPIES, (int) ( $input['count'] ?? 1 ) ) ) );
 
 		if ( is_wp_error( $paths ) ) {
 			return $paths;
 		}
 
-		$problems = ( new Block_Validator( $opened['post'] ) )->check_single_use( $tree, $before );
+		$problems = [ ...$problems, ...$validator->check_single_use( $tree, $before ) ];
 
 		if ( [] !== $problems ) {
 			return Errors::from_problems( $problems );

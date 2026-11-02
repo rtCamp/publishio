@@ -156,6 +156,44 @@ class Block_Edit_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * A problem the replaced block already had excuses one copy of it, not every new block with the same problem.
+	 */
+	public function test_replace_reports_new_copies_of_an_existing_problem(): void {
+		$heading = '<!-- wp:heading --><h2 class="wp-block-heading">%s</h2><!-- /wp:heading -->';
+		$filter  = static fn (): array => [ 'core/paragraph' ];
+
+		wp_update_post(
+			[
+				'ID'           => $this->post_id,
+				'post_content' => sprintf( $heading, 'Old' ),
+			]
+		);
+		add_filter( 'allowed_block_types_all', $filter );
+
+		$two = $this->run_ability(
+			'replace-block',
+			[
+				'path'   => '0:heading',
+				'markup' => sprintf( $heading, 'One' ) . sprintf( $heading, 'Two' ),
+			]
+		);
+		$one = $this->run_ability(
+			'replace-block',
+			[
+				'path'   => '0:heading',
+				'markup' => sprintf( $heading, 'New' ),
+			]
+		);
+
+		remove_filter( 'allowed_block_types_all', $filter );
+
+		$this->assertWPError( $two );
+		$this->assertSame( 'block_not_allowed', $two->get_error_code() );
+		$this->assertIsArray( $one );
+		$this->assertStringContainsString( '>New</h2>', get_post_field( 'post_content', $this->post_id ) );
+	}
+
+	/**
 	 * The move-block tool refuses a place the block can't go, then moves it where it can.
 	 */
 	public function test_move_checks_the_new_place(): void {
@@ -218,6 +256,23 @@ class Block_Edit_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * The duplicate-block tool refuses to copy a block the post type no longer allows.
+	 */
+	public function test_duplicate_checks_the_allowed_blocks(): void {
+		$filter = static fn (): array => [ 'core/paragraph', 'core/group' ];
+
+		add_filter( 'allowed_block_types_all', $filter );
+
+		$result = $this->run_ability( 'duplicate-block', [ 'path' => '0:heading' ] );
+
+		remove_filter( 'allowed_block_types_all', $filter );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'block_not_allowed', $result->get_error_code() );
+		$this->assertSame( self::CONTENT, get_post_field( 'post_content', $this->post_id ) );
+	}
+
+	/**
 	 * The delete-blocks tool refuses when any path is wrong, then removes every listed block.
 	 */
 	public function test_delete_checks_every_path_first(): void {
@@ -234,11 +289,12 @@ class Block_Edit_AbilitiesTest extends TestCase {
 	}
 
 	/**
-	 * The delete-blocks tool is marked destructive, so read-only connections can't call it.
+	 * The delete-blocks tool is marked destructive, so read-only connections can't call it. Repeating a replace-block call can add blocks again, so it isn't idempotent.
 	 */
 	public function test_annotations(): void {
 		$this->assertTrue( wp_get_ability( 'publishio/delete-blocks' )->get_meta()['annotations']['destructive'] ); // @phpstan-ignore method.nonObject
 		$this->assertFalse( wp_get_ability( 'publishio/insert-blocks' )->get_meta()['annotations']['readonly'] ); // @phpstan-ignore method.nonObject
+		$this->assertFalse( wp_get_ability( 'publishio/replace-block' )->get_meta()['annotations']['idempotent'] ); // @phpstan-ignore method.nonObject
 	}
 
 	/**

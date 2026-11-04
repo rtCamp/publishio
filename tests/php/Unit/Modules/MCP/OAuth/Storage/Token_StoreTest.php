@@ -477,12 +477,16 @@ class Token_StoreTest extends TestCase {
 
 	/**
 	 * Removing a user from a site deletes their tokens there, and nowhere else.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
 	 */
-	public function test_removing_user_from_site_deletes_tokens_there_only(): void {
+	#[DataProvider( 'site_shapes' )]
+	public function test_removing_user_from_site_deletes_tokens_there_only( string $domain, string $path ): void {
 		$this->skipWithoutMultisite();
 
 		$main_tokens = $this->issue();
-		$site_id     = $this->create_site_with_publishio();
+		$site_id     = $this->create_site_with_publishio( $domain, $path );
 		add_user_to_blog( $site_id, $this->user_id, 'editor' );
 
 		switch_to_blog( $site_id );
@@ -582,10 +586,30 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
-	 * A subdirectory site with Publishio's token table, as Publishio sets one up on its first request there.
+	 * A site in a subdirectory of the network's domain, and one on its own subdomain.
+	 *
+	 * @return array<string, array{string, string}>
 	 */
-	private function create_site_with_publishio(): int {
-		$site_id = self::factory()->blog->create( [ 'path' => '/site2/' ] );
+	public static function site_shapes(): array {
+		return [
+			'subdirectory' => [ '', '/site2/' ],
+			'subdomain'    => [ 'site2.example.org', '/' ],
+		];
+	}
+
+	/**
+	 * A site with Publishio's token table, as Publishio sets one up on its first request there.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
+	 */
+	private function create_site_with_publishio( string $domain, string $path ): int {
+		$site_id = self::factory()->blog->create(
+			[
+				'domain' => '' === $domain ? get_network()->domain : $domain,
+				'path'   => $path,
+			]
+		);
 
 		switch_to_blog( $site_id );
 		Token_Store::create_table();

@@ -46,6 +46,11 @@ tests_add_filter(
 	}
 );
 
+// WP_MULTISITE=1 runs the tests on a subdirectory network; WP_TESTS_SUBDOMAIN=1 as well makes it a subdomain network. Core keeps a value defined here.
+if ( '1' === getenv( 'WP_TESTS_SUBDOMAIN' ) ) {
+	define( 'SUBDOMAIN_INSTALL', true );
+}
+
 // Start up the WP testing environment.
 require $_test_root . '/includes/bootstrap.php';
 

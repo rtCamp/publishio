@@ -26,11 +26,13 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
  * would prefix the URL with `/wp-json/{namespace}/`, breaking OAuth client
  * discovery. Clients look for the well-known URI at the site root per spec.
  *
- * The `echo; exit;` pattern in send_json_response() short-circuits WordPress
- * template loading, which is the standard approach for lightweight custom
- * endpoints that don't need the full theme/bootstrap pipeline.
+ * The `echo; exit;` pattern in Json_Response::send_json_response() short-circuits
+ * WordPress template loading, which is the standard approach for lightweight
+ * custom endpoints that don't need the full theme/bootstrap pipeline.
  */
 class Auth_Server_Metadata implements Registrable {
+	use Json_Response;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -73,7 +75,7 @@ class Auth_Server_Metadata implements Registrable {
 			return;
 		}
 
-		$this->send_json_response( $this->get_metadata() );
+		$this->send_json_response( self::get_metadata() );
 	}
 
 	/**
@@ -81,7 +83,7 @@ class Auth_Server_Metadata implements Registrable {
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function get_metadata(): array {
+	public static function get_metadata(): array {
 		return [
 			'issuer'                                => Config::get_issuer_url(),
 			'authorization_endpoint'                => Config::get_authorize_url(),
@@ -95,27 +97,5 @@ class Auth_Server_Metadata implements Registrable {
 			'scopes_supported'                      => Scope::SUPPORTED,
 			'resource_indicators_supported'         => true,
 		];
-	}
-
-	/**
-	 * Send a JSON response and terminate the request.
-	 *
-	 * This bypasses the WordPress template loader intentionally — there is no
-	 * theme to render for a machine-readable JSON metadata document. The
-	 * rewrite-rule + parse_request approach is needed because this endpoint
-	 * must live at `/.well-known/…` (RFC 8414), which the REST API cannot do.
-	 *
-	 * CORS: Allow-Origin: * is safe here; this endpoint exposes no user data,
-	 * only static server capability metadata.
-	 *
-	 * @param array<string, mixed> $data Response data.
-	 */
-	private function send_json_response( array $data ): void {
-		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Cache-Control: no-store' );
-		header( 'Access-Control-Allow-Origin: *' );
-
-		echo wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
-		exit;
 	}
 }

@@ -16,6 +16,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Token;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 use rtCamp\Publishio\Modules\MCP\OAuth\Transport\Bearer_Token_Auth;
 use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Auth_Server_Metadata;
+use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Path_Discovery;
 use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Protected_Resource;
 
 /**
@@ -28,6 +29,7 @@ final class OAuth implements Registrable {
 	public function register_hooks(): void {
 		( new Protected_Resource() )->register_hooks();
 		( new Auth_Server_Metadata() )->register_hooks();
+		( new Path_Discovery() )->register_hooks();
 		( new Authorize() )->register_hooks();
 		( new Token() )->register_hooks();
 		( new Bearer_Token_Auth() )->register();

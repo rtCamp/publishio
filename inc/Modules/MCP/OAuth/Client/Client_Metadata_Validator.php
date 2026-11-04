@@ -170,6 +170,45 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
+	 * Whether a host is, or is under, a domain of this WordPress install: this site's addresses, and on multisite every site's and network's domain.
+	 *
+	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust. A leading www. is dropped, since WordPress serves a site on its www. name too. Subdomains count, since a subdomain network's wildcard DNS sends any name to the same server, which serves uploads for any name.
+	 *
+	 * @param string $host Lowercase ASCII host, without a port.
+	 */
+	private static function is_install_host( string $host ): bool {
+		foreach ( [ home_url(), site_url() ] as $url ) {
+			$base = preg_replace( '/^www\./', '', strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) );
+
+			if ( self::is_same_or_subdomain( $host, (string) $base ) ) {
+				return true;
+			}
+		}
+
+		if ( ! is_multisite() ) {
+			return false;
+		}
+
+		// The host and each domain above it, with and without www., so a stored domain matches when the host is it or under it.
+		$labels  = explode( '.', $host );
+		$levels  = count( $labels ) - 1;
+		$domains = [];
+		for ( $i = 0; $i < $levels; $i++ ) {
+			$domain    = implode( '.', array_slice( $labels, $i ) );
+			$domains[] = $domain;
+			$domains[] = 'www.' . $domain;
+		}
+
+		$query = [
+			'domain__in' => $domains,
+			'number'     => 1,
+			'fields'     => 'ids',
+		];
+
+		return [] !== get_sites( $query ) || [] !== get_networks( $query );
+	}
+
+	/**
 	 * Whether $host equals $base or is a subdomain of it.
 	 *
 	 * @param string $host Host to check.
@@ -181,7 +220,7 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
-	 * Host rules for the client_id: a public DNS name that isn't this site, optionally narrowed by an allowlist.
+	 * Host rules for the client_id: a public DNS name outside this WordPress install, optionally narrowed by an allowlist.
 	 *
 	 * @param string $host Lowercase ASCII host.
 	 */
@@ -200,9 +239,7 @@ final class Client_Metadata_Validator {
 			}
 		}
 
-		// Not this site itself because content on the site could otherwise pose as an app under the site's own domain.
-		$site_hosts = [ wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( site_url(), PHP_URL_HOST ) ];
-		if ( in_array( $host, $site_hosts, true ) ) {
+		if ( self::is_install_host( $host ) ) {
 			return false;
 		}
 

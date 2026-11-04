@@ -124,12 +124,78 @@ class Client_Metadata_ValidatorTest extends TestCase {
 	}
 
 	/**
-	 * A client_id hosted on this site is rejected.
+	 * A client_id on this site's domain, its www. name or a subdomain of it is rejected; neighbouring domains aren't.
+	 *
+	 * @param string $host    The client_id's host.
+	 * @param bool   $allowed Whether it's accepted.
 	 */
-	public function test_rejects_client_id_on_this_site(): void {
-		$host = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+	#[DataProvider( 'hosts_near_this_site' )]
+	public function test_rejects_client_id_on_this_site( string $host, bool $allowed ): void {
+		add_filter( 'option_home', static fn (): string => 'https://www.shop.example.net', 20 );
+		add_filter( 'option_siteurl', static fn (): string => 'https://cms.example.org', 20 );
 
-		$this->assertFalse( Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ) );
+		$this->assertSame( $allowed, Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ) );
+	}
+
+	/**
+	 * Hosts around a site at www.shop.example.net with WordPress at cms.example.org.
+	 *
+	 * @return array<string, array{string, bool}>
+	 */
+	public static function hosts_near_this_site(): array {
+		return [
+			'home domain'         => [ 'shop.example.net', false ],
+			'home www. name'      => [ 'www.shop.example.net', false ],
+			'subdomain of home'   => [ 'cdn.shop.example.net', false ],
+			'WordPress address'   => [ 'cms.example.org', false ],
+			'parent domain'       => [ 'example.net', true ],
+			'sibling'             => [ 'blog.example.net', true ],
+			'same suffix'         => [ 'myshop.example.net', true ],
+			'home as a subdomain' => [ 'shop.example.net.attacker.com', true ],
+			'unrelated'           => [ 'claude.ai', true ],
+		];
+	}
+
+	/**
+	 * On multisite, a client_id on any site's or network's domain, or under one, is rejected, including archived sites and mapped domains.
+	 */
+	public function test_rejects_client_id_on_other_sites_and_networks(): void {
+		$this->skipWithoutMultisite();
+
+		self::factory()->blog->create(
+			[
+				'domain' => 'blog.example.net',
+				'path'   => '/',
+			]
+		);
+		$archived = self::factory()->blog->create(
+			[
+				'domain' => 'old.example.net',
+				'path'   => '/',
+			]
+		);
+		update_blog_status( $archived, 'archived', '1' );
+		self::factory()->blog->create(
+			[
+				'domain' => 'www.brand-shop.com',
+				'path'   => '/',
+			]
+		);
+		self::factory()->network->create(
+			[
+				'domain' => 'second-network.example.org',
+				'path'   => '/',
+			]
+		);
+
+		$refused = [ 'blog.example.net', 'www.blog.example.net', 'cdn.blog.example.net', 'old.example.net', 'brand-shop.com', 'www.brand-shop.com', 'second-network.example.org', 'made-up.second-network.example.org' ];
+		foreach ( $refused as $host ) {
+			$this->assertFalse( Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ), $host );
+		}
+
+		foreach ( [ 'example.net', 'shop.example.net', 'example.org', 'claude.ai' ] as $host ) {
+			$this->assertTrue( Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ), $host );
+		}
 	}
 
 	/**

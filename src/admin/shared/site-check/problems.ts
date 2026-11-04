@@ -275,6 +275,16 @@ function specific( check: CheckId ): Record< string, Problem > {
 						'publishio'
 					),
 				},
+				main_site_inactive: {
+					message: __(
+						"This site is in a subfolder, and Publishio isn't running on the network's main site, which answers for it.",
+						'publishio'
+					),
+					fix: __(
+						'A network administrator can network-activate Publishio, or activate it on the main site too.',
+						'publishio'
+					),
+				},
 				answered_by_other: {
 					message: __(
 						'A caching or security plugin answered instead of Publishio.',

@@ -53,6 +53,62 @@ class Site_StatusTest extends TestCase {
 	}
 
 	/**
+	 * A single site has no network facts.
+	 */
+	public function test_facts_have_no_network_on_single_site(): void {
+		$this->skipWithMultisite();
+
+		$this->assertNull( ( new Site_Status() )->facts()['network'] );
+	}
+
+	/**
+	 * The main site is not a subdirectory site, and runs Publishio when it's active there.
+	 */
+	public function test_facts_describe_the_main_site(): void {
+		$this->skipWithoutMultisite();
+
+		update_option( 'active_plugins', [ plugin_basename( PUBLISHIO_FILE ) ] );
+
+		$this->assertSame(
+			[
+				'subdirectory'     => false,
+				'main_site_active' => true,
+			],
+			( new Site_Status() )->facts()['network']
+		);
+	}
+
+	/**
+	 * A subdirectory site reports whether the main site runs Publishio, which answers discovery for it.
+	 */
+	public function test_facts_tell_subdirectory_site_whether_main_site_runs_publishio(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create( [ 'path' => '/site2/' ] );
+
+		switch_to_blog( $site_id );
+		$without = ( new Site_Status() )->facts()['network'];
+		update_blog_option( get_main_site_id(), 'active_plugins', [ plugin_basename( PUBLISHIO_FILE ) ] );
+		$with = ( new Site_Status() )->facts()['network'];
+		restore_current_blog();
+
+		$this->assertSame(
+			[
+				'subdirectory'     => true,
+				'main_site_active' => false,
+			],
+			$without
+		);
+		$this->assertSame(
+			[
+				'subdirectory'     => true,
+				'main_site_active' => true,
+			],
+			$with
+		);
+	}
+
+	/**
 	 * Plain permalinks are reported, since they break discovery.
 	 */
 	public function test_facts_report_plain_permalinks(): void {

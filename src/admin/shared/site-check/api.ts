@@ -18,6 +18,7 @@ function toFacts( data: unknown ): SiteFacts {
 	}
 
 	const adapter = data[ 'mcp_adapter' ];
+	const network = data[ 'network' ];
 	return {
 		publishioVersion: str( data[ 'publishio_version' ] ),
 		wpVersion: str( data[ 'wp_version' ] ),
@@ -36,6 +37,12 @@ function toFacts( data: unknown ): SiteFacts {
 			: null,
 		mcpServer: false !== data[ 'mcp_server' ],
 		tools: typeof data[ 'tools' ] === 'number' ? data[ 'tools' ] : 0,
+		network: isRecord( network )
+			? {
+					subdirectory: true === network[ 'subdirectory' ],
+					mainSiteActive: true === network[ 'main_site_active' ],
+			  }
+			: null,
 	};
 }
 

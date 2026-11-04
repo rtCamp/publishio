@@ -13,6 +13,7 @@ use WP\MCP\Core\McpAdapter;
 use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Fetcher;
 use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
+use rtCamp\Publishio\Modules\MCP\OAuth\Well_Known\Path_Discovery;
 use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
@@ -68,7 +69,7 @@ final class Site_Status {
 	/**
 	 * Site details that explain check results and fill the report.
 	 *
-	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, mcp_server: bool, tools: int}
+	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, mcp_server: bool, tools: int, network: array{subdirectory: bool, main_site_active: bool}|null}
 	 */
 	public function facts(): array {
 		$server = Server::get_server();
@@ -86,6 +87,29 @@ final class Site_Status {
 			'mcp_adapter'       => self::mcp_adapter(),
 			'mcp_server'        => null !== $server,
 			'tools'             => null === $server ? 0 : count( $server->get_tools() ),
+			'network'           => self::network(),
+		];
+	}
+
+	/**
+	 * Where the site sits on a network, or null on a single site.
+	 *
+	 * A subdirectory site relies on the site at the root of its domain, usually the main site, to answer discovery for it, so Publishio has to run there too.
+	 *
+	 * @return array{subdirectory: bool, main_site_active: bool}|null
+	 */
+	private static function network(): ?array {
+		$site = is_multisite() ? get_site() : null;
+
+		if ( null === $site ) {
+			return null;
+		}
+
+		$root = Path_Discovery::root_site();
+
+		return [
+			'subdirectory'     => '/' !== $site->path,
+			'main_site_active' => null !== $root && Path_Discovery::is_active_on( $root ),
 		];
 	}
 

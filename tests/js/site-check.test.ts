@@ -50,6 +50,7 @@ const FACTS: SiteFacts = {
 	mcpAdapter: { version: '0.6.1', bundled: true, source: 'publishio' },
 	mcpServer: true,
 	tools: 21,
+	network: null,
 };
 
 const APPS_OK: AppsResult = {
@@ -473,6 +474,35 @@ describe( 'checks against a site', () => {
 			( await notFound( '<https://api.w.org.example.net/>; rel="next"' ) )
 				.details.result?.code
 		).toBe( 'blocked_before_wordpress' );
+	} );
+
+	it( "blames the main site only for a subdirectory site's missing root details", async () => {
+		const notFound = {
+			status: 404,
+			body: '<title>Not found</title>',
+			headers: { link: `<${ SITE }/wp-json/>; rel="https://api.w.org/"` },
+		};
+		const subdirectory = ( url: string, mainSiteActive: boolean ) =>
+			run(
+				{ ...HEALTHY, [ url ]: notFound },
+				{
+					facts: {
+						...FACTS,
+						multisite: true,
+						network: { subdirectory: true, mainSiteActive },
+					},
+				}
+			);
+
+		expect(
+			( await subdirectory( SERVER_URL, false ) ).details.result?.code
+		).toBe( 'main_site_inactive' );
+		expect(
+			( await subdirectory( SERVER_URL, true ) ).details.result?.code
+		).toBe( 'not_found_in_wordpress' );
+		expect(
+			( await subdirectory( RESOURCE_URL, false ) ).details.result?.code
+		).toBe( 'not_found_in_wordpress' );
 	} );
 
 	it( 'reports a request that takes too long, without retrying it', async () => {

@@ -299,7 +299,8 @@ const mcp: CheckDefinition = {
 
 async function discoveryProblem(
 	result: ProbeResult,
-	context: CheckContext
+	context: CheckContext,
+	step: number
 ): Promise< string > {
 	// Discovery can't work at all with Plain permalinks, whatever the response: usually a redirect to the homepage.
 	if ( 'plain' === ( await context.facts() )?.permalinks ) {
@@ -314,7 +315,13 @@ async function discoveryProblem(
 			return 'blocked_before_wordpress';
 		}
 		if ( 404 === reply.status ) {
-			return 'not_found_in_wordpress';
+			// Step 2 is at the host root, which a subdirectory site leaves to the main site.
+			const network = ( await context.facts() )?.network;
+			return 2 === step &&
+				network?.subdirectory &&
+				! network.mainSiteActive
+				? 'main_site_inactive'
+				: 'not_found_in_wordpress';
 		}
 		if ( 200 === reply.status ) {
 			return isRecord( reply.json )
@@ -357,7 +364,7 @@ const details: CheckDefinition = {
 				),
 			} ) );
 			return fail(
-				code ?? ( await discoveryProblem( result, context ) ),
+				code ?? ( await discoveryProblem( result, context, failed ) ),
 				__( "AI apps can't read them", 'publishio' ),
 				{ exchanges: [ ...exchanges, ...skipped ] }
 			);

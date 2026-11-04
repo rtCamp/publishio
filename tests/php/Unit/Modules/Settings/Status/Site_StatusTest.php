@@ -109,6 +109,32 @@ class Site_StatusTest extends TestCase {
 	}
 
 	/**
+	 * With no site at its domain's root, as on a network installed in a subfolder, a site isn't one that the main site answers for.
+	 */
+	public function test_facts_without_a_site_at_the_root(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create(
+			[
+				'domain' => 'subfolder-network.example.org',
+				'path'   => '/wp/',
+			]
+		);
+
+		switch_to_blog( $site_id );
+		$network = ( new Site_Status() )->facts()['network'];
+		restore_current_blog();
+
+		$this->assertSame(
+			[
+				'subdirectory'     => false,
+				'main_site_active' => false,
+			],
+			$network
+		);
+	}
+
+	/**
 	 * Plain permalinks are reported, since they break discovery.
 	 */
 	public function test_facts_report_plain_permalinks(): void {

@@ -197,19 +197,21 @@ class Profile_Section {
 				),
 				'publishio_oauth_revoke_' . $user->ID
 			);
+
+			// Connections are per site, so on a network removing all of them covers this site only.
+			if ( is_multisite() ) {
+				$remove_all_label   = __( 'Remove All Connections on This Site', 'publishio' );
+				$remove_all_confirm = __( 'Remove all connections on this site? Each app loses access right away and must be connected again. Connections on other sites stay.', 'publishio' );
+			} else {
+				$remove_all_label   = __( 'Remove All Connections', 'publishio' );
+				$remove_all_confirm = __( 'Remove all connections? Each app loses access right away and must be connected again.', 'publishio' );
+			}
 			?>
 			<p style="margin-top: 12px;">
-				<?php if ( is_multisite() ) : ?>
-					<a href="<?php echo esc_url( $revoke_url ); ?>" class="button button-secondary"
-						onclick="return confirm('<?php echo esc_js( __( 'Remove all connections on this site? Each app loses access right away and must be connected again. Connections on other sites stay.', 'publishio' ) ); ?>');">
-						<?php esc_html_e( 'Remove All Connections on This Site', 'publishio' ); ?>
-					</a>
-				<?php else : ?>
-					<a href="<?php echo esc_url( $revoke_url ); ?>" class="button button-secondary"
-						onclick="return confirm('<?php echo esc_js( __( 'Remove all connections? Each app loses access right away and must be connected again.', 'publishio' ) ); ?>');">
-						<?php esc_html_e( 'Remove All Connections', 'publishio' ); ?>
-					</a>
-				<?php endif; ?>
+				<a href="<?php echo esc_url( $revoke_url ); ?>" class="button button-secondary"
+					onclick="return confirm('<?php echo esc_js( $remove_all_confirm ); ?>');">
+					<?php echo esc_html( $remove_all_label ); ?>
+				</a>
 			</p>
 		<?php endif; ?>
 		<?php

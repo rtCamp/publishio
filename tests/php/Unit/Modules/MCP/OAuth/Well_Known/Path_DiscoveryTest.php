@@ -198,6 +198,41 @@ class Path_DiscoveryTest extends TestCase {
 	}
 
 	/**
+	 * The subsite's own permalinks decide its REST URLs, whichever /index.php/ setting the main site has. The main site's rewrite object is restored.
+	 *
+	 * @param string $main_structure Main site's permalink structure.
+	 * @param string $site_structure Subsite's permalink structure.
+	 * @param string $resource_path  The subsite's resource path.
+	 */
+	#[DataProvider( 'permalink_mixes' )]
+	public function test_subsite_permalinks_decide_its_urls( string $main_structure, string $site_structure, string $resource_path ): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( $main_structure );
+		update_blog_option( $this->site_id, 'permalink_structure', $site_structure );
+		$main_rewrite = $wp_rewrite;
+
+		$document = Path_Discovery::document_for( '.well-known/oauth-protected-resource' . $resource_path );
+
+		$this->assertIsArray( $document );
+		$this->assertSame( $this->main_url . $resource_path, $document['resource'] );
+		$this->assertSame( $main_rewrite, $wp_rewrite );
+		$this->assertSame( $main_structure, $wp_rewrite->permalink_structure );
+	}
+
+	/**
+	 * A main site and subsite that differ on /index.php/ permalinks.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function permalink_mixes(): array {
+		return [
+			'main uses index.php'    => [ '/index.php/%postname%/', '/%postname%/', '/site2/wp-json/mcp/publishio' ],
+			'subsite uses index.php' => [ '/%postname%/', '/index.php/%postname%/', '/site2/index.php/wp-json/mcp/publishio' ],
+		];
+	}
+
+	/**
 	 * A subsite's root site is the main site; a site on its own domain is its own root.
 	 */
 	public function test_root_site(): void {

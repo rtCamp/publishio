@@ -170,17 +170,17 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
-	 * Whether a host is, or is under, a domain of this WordPress install: this site's addresses, and on multisite every site's and network's domain.
+	 * Whether a host belongs to this WordPress install: this site's addresses and, on multisite, every site's and network's domain, each with or without www., since WordPress serves a site on its www. name too. On a subdomain network any name under a network's domain counts as well, since its wildcard DNS sends every such name to the same server, which serves uploads for any name.
 	 *
-	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust. A leading www. is dropped, since WordPress serves a site on its www. name too. Subdomains count, since a subdomain network's wildcard DNS sends any name to the same server, which serves uploads for any name.
+	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust.
 	 *
 	 * @param string $host Lowercase ASCII host, without a port.
 	 */
 	private static function is_install_host( string $host ): bool {
-		foreach ( [ home_url(), site_url() ] as $url ) {
-			$base = preg_replace( '/^www\./', '', strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) );
+		$name = self::without_www( $host );
 
-			if ( self::is_same_or_subdomain( $host, (string) $base ) ) {
+		foreach ( [ home_url(), site_url() ] as $url ) {
+			if ( self::without_www( strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) ) === $name ) {
 				return true;
 			}
 		}
@@ -189,23 +189,58 @@ final class Client_Metadata_Validator {
 			return false;
 		}
 
-		// The host and each domain above it, with and without www., so a stored domain matches when the host is it or under it.
+		$names = [ $name, 'www.' . $name ];
+
+		if ( [] !== get_sites( self::domain_query( $names ) ) ) {
+			return true;
+		}
+
+		return [] !== get_networks( self::domain_query( is_subdomain_install() ? self::with_parent_domains( $name ) : $names ) );
+	}
+
+	/**
+	 * A host and every domain above it with at least two labels, each with and without www.
+	 *
+	 * @param string $host Host without www.
+	 *
+	 * @return list<string>
+	 */
+	private static function with_parent_domains( string $host ): array {
 		$labels  = explode( '.', $host );
 		$levels  = count( $labels ) - 1;
 		$domains = [];
+
 		for ( $i = 0; $i < $levels; $i++ ) {
 			$domain    = implode( '.', array_slice( $labels, $i ) );
 			$domains[] = $domain;
 			$domains[] = 'www.' . $domain;
 		}
 
-		$query = [
+		return $domains;
+	}
+
+	/**
+	 * Query arguments for get_sites() and get_networks(): does any have one of these domains.
+	 *
+	 * @param string[] $domains Domains to look for.
+	 *
+	 * @return array{domain__in: string[], number: int, fields: string}
+	 */
+	private static function domain_query( array $domains ): array {
+		return [
 			'domain__in' => $domains,
 			'number'     => 1,
 			'fields'     => 'ids',
 		];
+	}
 
-		return [] !== get_sites( $query ) || [] !== get_networks( $query );
+	/**
+	 * A host without a leading www.
+	 *
+	 * @param string $host Host.
+	 */
+	private static function without_www( string $host ): string {
+		return str_starts_with( $host, 'www.' ) ? substr( $host, 4 ) : $host;
 	}
 
 	/**

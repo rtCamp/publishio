@@ -16,13 +16,9 @@ trait Json_Response {
 	/**
 	 * Send a JSON response and terminate the request.
 	 *
-	 * This bypasses the WordPress template loader intentionally — there is no
-	 * theme to render for a machine-readable JSON metadata document. The
-	 * rewrite-rule + parse_request approach is needed because these documents
-	 * must live at `/.well-known/…` (RFC 8414, RFC 9728), which the REST API cannot do.
+	 * This bypasses the WordPress template loader intentionally — there is no theme to render for a machine-readable JSON metadata document. The rewrite-rule + parse_request approach is needed because these documents must live at `/.well-known/…` (RFC 8414, RFC 9728), which the REST API cannot do.
 	 *
-	 * CORS: Allow-Origin: * is safe here; these documents expose no user data,
-	 * only static server capability metadata.
+	 * CORS: Allow-Origin: * is safe here; these documents expose no user data, only static server capability metadata.
 	 *
 	 * @param array<string, mixed> $data Response data.
 	 */

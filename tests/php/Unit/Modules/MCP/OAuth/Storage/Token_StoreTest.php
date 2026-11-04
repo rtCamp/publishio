@@ -581,8 +581,27 @@ class Token_StoreTest extends TestCase {
 		$wpdb->update( $wpdb->users, [ 'spam' => 1 ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		clean_user_cache( $this->user_id );
 
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+		$this->assertSame( [], Token_Store::get_connections( 0, 10, time() ) );
 		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
 		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
+	 * The spam check is about the token's owner, never the logged-in user, even when the owner no longer exists.
+	 */
+	public function test_spam_check_ignores_the_logged_in_user(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$spammer = self::factory()->user->create();
+		$wpdb->update( $wpdb->users, [ 'spam' => 1 ], [ 'ID' => $spammer ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $spammer );
+		wp_set_current_user( $spammer );
+
+		$this->assertFalse( Token_Store::is_revoked( 999999, time() ) );
+		$this->assertFalse( Token_Store::is_revoked( $this->user_id, time() ) );
 	}
 
 	/**

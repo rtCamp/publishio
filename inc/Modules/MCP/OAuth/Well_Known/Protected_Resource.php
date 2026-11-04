@@ -27,9 +27,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
  * would prefix the URL with `/wp-json/{namespace}/`, breaking OAuth client
  * discovery. Clients look for the well-known URI at the site root per spec.
  *
- * The `echo; exit;` pattern in Json_Response::send_json_response() short-circuits
- * WordPress template loading, which is the standard approach for lightweight
- * custom endpoints that don't need the full theme/bootstrap pipeline.
+ * The `echo; exit;` pattern in Json_Response::send_json_response() short-circuits WordPress template loading, which is the standard approach for lightweight custom endpoints that don't need the full theme/bootstrap pipeline.
  */
 class Protected_Resource implements Registrable {
 	use Json_Response;

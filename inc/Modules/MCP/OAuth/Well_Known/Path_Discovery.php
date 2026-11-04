@@ -83,10 +83,15 @@ final class Path_Discovery implements Registrable {
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.switch_to_blog_switch_to_blog -- Only that site's options are read, to build its URLs; its plugins and theme aren't needed.
 		switch_to_blog( (int) $site->blog_id );
 
+		// The switch keeps this site's rewrite object, which rest_url() reads; a fresh one reads the subsite's permalinks, such as /index.php/.
+		$rewrite = $GLOBALS['wp_rewrite'];
+
 		try {
-			$url      = $server ? Config::get_issuer_url() : Config::get_mcp_resource_claim();
-			$document = $server ? Auth_Server_Metadata::get_metadata() : Protected_Resource::get_metadata();
+			$GLOBALS['wp_rewrite'] = new \WP_Rewrite(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below.
+			$url                   = $server ? Config::get_issuer_url() : Config::get_mcp_resource_claim();
+			$document              = $server ? Auth_Server_Metadata::get_metadata() : Protected_Resource::get_metadata();
 		} finally {
+			$GLOBALS['wp_rewrite'] = $rewrite; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores this site's rewrite object.
 			restore_current_blog();
 		}
 

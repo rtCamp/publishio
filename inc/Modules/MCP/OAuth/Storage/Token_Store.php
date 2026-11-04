@@ -25,15 +25,6 @@ class Token_Store implements Registrable {
 	private const REVOKED_AT_META = 'publishio_tokens_revoked_at';
 
 	/**
-	 * Conditions on the token table `t` for a connection that still works: an unexpired refresh token, within the lifetime, approved after the user's last revocation.
-	 *
-	 * The revocation time is network-wide user meta, while each site keeps its own rows, so other sites' rows are left in place and filtered here. NOT EXISTS, unlike a join, can't count a row twice if the meta is duplicated.
-	 *
-	 * Placeholders are filled by live_connection_args().
-	 */
-	private const LIVE_CONNECTION = 't.refresh_expires_at > %d AND t.authorized_at >= %d AND NOT EXISTS ( SELECT 1 FROM %i m WHERE m.user_id = t.user_id AND m.meta_key = %s AND CAST( m.meta_value AS UNSIGNED ) >= t.authorized_at )';
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
@@ -315,8 +306,8 @@ class Token_Store implements Registrable {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
-			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills LIVE_CONNECTION's placeholders.
-				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::LIVE_CONNECTION, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- A constant with placeholders.
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills live_connection()'s placeholders.
+				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::live_connection(), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Fixed conditions with placeholders.
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
 				...self::live_connection_args( $now )
@@ -344,9 +335,9 @@ class Token_Store implements Registrable {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills LIVE_CONNECTION's placeholders.
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills live_connection()'s placeholders.
 				// $direction is one of two fixed strings; prepare() has no placeholder for a sort direction.
-				'SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::LIVE_CONNECTION . " ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::live_connection() . " ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
 				...$args
@@ -480,7 +471,9 @@ class Token_Store implements Registrable {
 		}
 
 		// A spam flag set without the make_spam_user action, such as directly in the database, still blocks the user's apps.
-		return is_multisite() && is_user_spammy( get_userdata( $user_id ) ?: null );
+		$user = is_multisite() ? get_userdata( $user_id ) : false;
+
+		return $user instanceof \WP_User && is_user_spammy( $user );
 	}
 
 	/**
@@ -591,7 +584,20 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * Values for the placeholders in LIVE_CONNECTION.
+	 * Conditions on the token table `t`, joined to users as `u`, for a connection that still works: an unexpired refresh token, within the lifetime, approved after the user's last revocation, and on multisite a user not marked as spam (only networks have that column).
+	 *
+	 * The revocation time is network-wide user meta, while each site keeps its own rows, so other sites' rows are left in place and filtered here. NOT EXISTS, unlike a join, can't count a row twice if the meta is duplicated.
+	 *
+	 * Placeholders are filled by live_connection_args().
+	 */
+	private static function live_connection(): string {
+		$conditions = 't.refresh_expires_at > %d AND t.authorized_at >= %d AND NOT EXISTS ( SELECT 1 FROM %i m WHERE m.user_id = t.user_id AND m.meta_key = %s AND CAST( m.meta_value AS UNSIGNED ) >= t.authorized_at )';
+
+		return is_multisite() ? $conditions . ' AND u.spam = 0' : $conditions;
+	}
+
+	/**
+	 * Values for the placeholders in live_connection().
 	 *
 	 * @param int $now Current Unix timestamp.
 	 *

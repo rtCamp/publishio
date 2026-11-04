@@ -94,7 +94,7 @@ final class Site_Status {
 	/**
 	 * Where the site sits on a network, or null on a single site.
 	 *
-	 * A subdirectory site relies on the site at the root of its domain, usually the main site, to answer discovery for it, so Publishio has to run there too.
+	 * A subdirectory site is under the site at the root of its domain, usually the main site, which answers discovery for it, so Publishio has to run there too. A site with no site at its domain's root, as on a network installed in a subfolder, isn't one: nothing on the network can answer for it.
 	 *
 	 * @return array{subdirectory: bool, main_site_active: bool}|null
 	 */
@@ -108,7 +108,7 @@ final class Site_Status {
 		$root = Path_Discovery::root_site();
 
 		return [
-			'subdirectory'     => '/' !== $site->path,
+			'subdirectory'     => '/' !== $site->path && null !== $root,
 			'main_site_active' => null !== $root && Path_Discovery::is_active_on( $root ),
 		];
 	}

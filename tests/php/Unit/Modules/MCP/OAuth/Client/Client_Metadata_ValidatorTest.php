@@ -124,7 +124,7 @@ class Client_Metadata_ValidatorTest extends TestCase {
 	}
 
 	/**
-	 * A client_id on this site's domain, its www. name or a subdomain of it is rejected; neighbouring domains aren't.
+	 * A client_id on this site's domain or its www. name is rejected; subdomains and neighbouring domains aren't.
 	 *
 	 * @param string $host    The client_id's host.
 	 * @param bool   $allowed Whether it's accepted.
@@ -146,7 +146,7 @@ class Client_Metadata_ValidatorTest extends TestCase {
 		return [
 			'home domain'         => [ 'shop.example.net', false ],
 			'home www. name'      => [ 'www.shop.example.net', false ],
-			'subdomain of home'   => [ 'cdn.shop.example.net', false ],
+			'subdomain of home'   => [ 'cdn.shop.example.net', true ],
 			'WordPress address'   => [ 'cms.example.org', false ],
 			'parent domain'       => [ 'example.net', true ],
 			'sibling'             => [ 'blog.example.net', true ],
@@ -157,7 +157,7 @@ class Client_Metadata_ValidatorTest extends TestCase {
 	}
 
 	/**
-	 * On multisite, a client_id on any site's or network's domain, or under one, is rejected, including archived sites and mapped domains.
+	 * On multisite, a client_id on any site's or network's domain, or its www. name, is rejected, including archived sites and mapped domains. On a subdomain network so is any name under a network's domain, which its wildcard DNS reaches.
 	 */
 	public function test_rejects_client_id_on_other_sites_and_networks(): void {
 		$this->skipWithoutMultisite();
@@ -188,14 +188,16 @@ class Client_Metadata_ValidatorTest extends TestCase {
 			]
 		);
 
-		$refused = [ 'blog.example.net', 'www.blog.example.net', 'cdn.blog.example.net', 'old.example.net', 'brand-shop.com', 'www.brand-shop.com', 'second-network.example.org', 'made-up.second-network.example.org' ];
+		$refused = [ 'blog.example.net', 'www.blog.example.net', 'old.example.net', 'brand-shop.com', 'www.brand-shop.com', 'second-network.example.org', 'www.second-network.example.org' ];
 		foreach ( $refused as $host ) {
 			$this->assertFalse( Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ), $host );
 		}
 
-		foreach ( [ 'example.net', 'shop.example.net', 'example.org', 'claude.ai' ] as $host ) {
+		foreach ( [ 'example.net', 'cdn.blog.example.net', 'cdn.brand-shop.com', 'example.org', 'claude.ai' ] as $host ) {
 			$this->assertTrue( Client_Metadata_Validator::is_valid_client_id( "https://{$host}/client.json" ), $host );
 		}
+
+		$this->assertSame( ! is_subdomain_install(), Client_Metadata_Validator::is_valid_client_id( 'https://made-up.second-network.example.org/client.json' ) );
 	}
 
 	/**

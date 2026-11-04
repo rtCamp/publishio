@@ -11,7 +11,7 @@ on:
       projects:
         description: 'What to run'
         type: choice
-        options: [all, smoke, install, full, smoke-wp69, install-wp69]
+        options: [all, smoke, install, full, smoke-wp69, install-wp69, multisite, multisite-subdomain]
         default: all
       update:
         description: 'Which tests: tagged @plugin-update, tagged @wp-update, or all'
@@ -83,13 +83,13 @@ jobs:
             exit 0
           fi
           case "$EVENT:$CHOICE" in
-            pull_request:*) projects='smoke install' ;;
-            push:*) projects='smoke install smoke-wp69 install-wp69' ;;
-            *:all) projects='smoke install smoke-wp69 install-wp69' ;;
+            pull_request:*) projects='smoke install multisite multisite-subdomain' ;;
+            push:*) projects='smoke install smoke-wp69 install-wp69 multisite multisite-subdomain' ;;
+            *:all) projects='smoke install smoke-wp69 install-wp69 multisite multisite-subdomain' ;;
             *) projects="$CHOICE" ;;
           esac
           # shellcheck disable=SC2086
-          jobs=$(printf '%s\n' $projects | jq -Rnc '[ inputs | if startswith( "install" )
+          jobs=$(printf '%s\n' $projects | jq -Rnc '[ inputs | if startswith( "install" ) or startswith( "multisite" )
             then { project: ., shard: "" }
             else ( { project: ., shard: "1/2" }, { project: ., shard: "2/2" } ) end ]')
           echo "jobs=$jobs" >> "$GITHUB_OUTPUT"

@@ -98,17 +98,27 @@ class REST_Controller extends Abstract_REST_Controller {
 		$total        = Token_Store::count_connections( $now );
 		$connections  = $total > 0 ? Token_Store::get_connections( ( $page - 1 ) * self::PAGE_SIZE, self::PAGE_SIZE, $now, $oldest_first ) : [];
 
-		// Batch-load WP_User objects.
 		$user_ids = array_unique( array_column( $connections, 'user_id' ) );
 		$user_map = [];
 		if ( ! empty( $user_ids ) ) {
-			foreach ( get_users( [ 'include' => $user_ids ] ) as $wp_user ) {
+			$members = is_multisite() ? self::members( $user_ids ) : $user_ids;
+
+			// Users from the whole network: a super admin can connect to a site without being a member.
+			$users = get_users(
+				[
+					'blog_id' => 0,
+					'include' => $user_ids,
+				]
+			);
+
+			foreach ( $users as $wp_user ) {
 				$user_map[ $wp_user->ID ] = [
 					'id'             => $wp_user->ID,
 					'name'           => $wp_user->display_name,
 					'email'          => $wp_user->user_email,
 					'avatar_url'     => get_avatar_url( $wp_user->ID, [ 'size' => 32 ] ),
-					'admin_edit_url' => admin_url( 'user-edit.php?user_id=' . $wp_user->ID ),
+					'admin_edit_url' => current_user_can( 'edit_user', $wp_user->ID ) ? admin_url( 'user-edit.php?user_id=' . $wp_user->ID ) : null,
+					'membership'     => self::membership( $wp_user->ID, $members ),
 				];
 			}
 		}
@@ -162,6 +172,40 @@ class REST_Controller extends Abstract_REST_Controller {
 		}
 
 		return new WP_REST_Response( [ 'deleted' => true ], 200 );
+	}
+
+	/**
+	 * Which of these users are members of this site.
+	 *
+	 * @param array<int> $user_ids User IDs.
+	 *
+	 * @return array<int>
+	 */
+	private static function members( array $user_ids ): array {
+		$members = get_users(
+			[
+				'include' => $user_ids,
+				'fields'  => 'ID',
+			]
+		);
+
+		return array_map( 'intval', $members );
+	}
+
+	/**
+	 * How a user with a connection relates to this site. On a single site every user counts as a member.
+	 *
+	 * @param int        $user_id The user's ID.
+	 * @param array<int> $members Members of this site among the listed users.
+	 *
+	 * @return 'member'|'super_admin'|'not_member'
+	 */
+	private static function membership( int $user_id, array $members ): string {
+		if ( in_array( $user_id, $members, true ) ) {
+			return 'member';
+		}
+
+		return is_super_admin( $user_id ) ? 'super_admin' : 'not_member';
 	}
 
 	/**

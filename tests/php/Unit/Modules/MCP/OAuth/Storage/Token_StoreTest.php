@@ -447,6 +447,155 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
+	 * Rows approved before the user's last revocation leave the list and its count, as they stay behind on other sites of a network. A row approved after it is listed.
+	 */
+	public function test_connections_leave_out_rows_approved_before_revocation(): void {
+		$this->issue();
+		$revoked_at = time();
+		update_user_meta( $this->user_id, 'publishio_tokens_revoked_at', $revoked_at );
+
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+		$this->assertSame( [], Token_Store::get_connections( 0, 10, time() ) );
+
+		Token_Store::issue( $this->user_id, self::CLIENT_ID, 'After', 'mcp:read', 'https://example.org/wp-json/mcp/publishio', $revoked_at + 1 );
+
+		$this->assertSame( 1, Token_Store::count_connections( time() ) );
+		$this->assertSame( [ 'After' ], array_column( Token_Store::get_connections( 0, 10, time() ), 'client_name' ) );
+	}
+
+	/**
+	 * A duplicated revocation meta row doesn't list or count a connection twice.
+	 */
+	public function test_duplicate_revocation_meta_counts_once(): void {
+		$this->issue();
+		add_user_meta( $this->user_id, 'publishio_tokens_revoked_at', 1 );
+		add_user_meta( $this->user_id, 'publishio_tokens_revoked_at', 1 );
+
+		$this->assertSame( 1, Token_Store::count_connections( time() ) );
+		$this->assertCount( 1, Token_Store::get_connections( 0, 10, time() ) );
+	}
+
+	/**
+	 * Removing a user from a site deletes their tokens there, and nowhere else.
+	 */
+	public function test_removing_user_from_site_deletes_tokens_there_only(): void {
+		$this->skipWithoutMultisite();
+
+		$main_tokens = $this->issue();
+		$site_id     = $this->create_site_with_publishio();
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		switch_to_blog( $site_id );
+		$site_rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertSame( [], $site_rows );
+		$this->assertNotNull( Token_Store::validate_access_token( $main_tokens['access_token'] ) );
+	}
+
+	/**
+	 * Removing a user from a site that never ran Publishio doesn't touch a token table, which doesn't exist there.
+	 */
+	public function test_removing_user_from_site_without_publishio_queries_no_table(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create( [ 'path' => '/site3/' ] );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		$queries = [];
+		add_filter(
+			'query',
+			static function ( string $query ) use ( &$queries ): string {
+				if ( str_contains( $query, 'publishio_oauth_tokens' ) ) {
+					$queries[] = $query;
+				}
+
+				return $query;
+			}
+		);
+
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		$this->assertSame( [], $queries );
+	}
+
+	/**
+	 * Deleting a site drops its token table along with core's tables.
+	 */
+	public function test_site_table_dropped_with_site(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$prefix = $wpdb->get_blog_prefix( 7 );
+		$tables = apply_filters( 'wpmu_drop_tables', [ 'posts' => $prefix . 'posts' ], 7 );
+
+		$this->assertSame(
+			[
+				'posts' => $prefix . 'posts',
+				$prefix . 'publishio_oauth_tokens',
+			],
+			$tables
+		);
+	}
+
+	/**
+	 * Marking a user as spam ends their connections on every site.
+	 */
+	public function test_marking_user_as_spam_ends_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$tokens = $this->issue();
+
+		wp_update_user(
+			[
+				'ID'   => $this->user_id,
+				'spam' => '1',
+			]
+		);
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+		$this->assertGreaterThan( 0, (int) get_user_meta( $this->user_id, 'publishio_tokens_revoked_at', true ) );
+	}
+
+	/**
+	 * A spam flag set without the make_spam_user action, directly in the database, blocks the user's tokens too.
+	 */
+	public function test_spam_flag_blocks_tokens_without_the_action(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$tokens = $this->issue();
+		$wpdb->update( $wpdb->users, [ 'spam' => 1 ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $this->user_id );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
+	 * A subdirectory site with Publishio's token table, as Publishio sets one up on its first request there.
+	 */
+	private function create_site_with_publishio(): int {
+		$site_id = self::factory()->blog->create( [ 'path' => '/site2/' ] );
+
+		switch_to_blog( $site_id );
+		Token_Store::create_table();
+		update_option( 'publishio_version', PUBLISHIO_VERSION );
+		restore_current_blog();
+
+		return $site_id;
+	}
+
+	/**
 	 * Click "Log Out Everywhere" on a user's profile as a new user with this role. On multisite an administrator is a super admin, since only they can edit other users.
 	 *
 	 * @param int    $user_id The user to log out.

@@ -342,7 +342,12 @@ class Token_StoreTest extends TestCase {
 		self::log_out_everywhere( $this->user_id, 'author' );
 
 		// A user who can, with a wrong nonce.
-		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$admin = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin );
+		}
+
+		wp_set_current_user( $admin );
 		$_POST['nonce'] = 'invalid';
 		do_action( 'wp_ajax_destroy-sessions' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
@@ -442,13 +447,19 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
-	 * Click "Log Out Everywhere" on a user's profile as a new user with this role.
+	 * Click "Log Out Everywhere" on a user's profile as a new user with this role. On multisite an administrator is a super admin, since only they can edit other users.
 	 *
 	 * @param int    $user_id The user to log out.
 	 * @param string $role    Role of the user clicking.
 	 */
 	private static function log_out_everywhere( int $user_id, string $role ): void {
-		wp_set_current_user( self::factory()->user->create( [ 'role' => $role ] ) );
+		$clicker = self::factory()->user->create( [ 'role' => $role ] );
+
+		if ( is_multisite() && 'administrator' === $role ) {
+			grant_super_admin( $clicker );
+		}
+
+		wp_set_current_user( $clicker );
 		$_POST['user_id'] = (string) $user_id;
 		$_POST['nonce']   = wp_create_nonce( 'update-user_' . $user_id );
 

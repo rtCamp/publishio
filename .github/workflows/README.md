@@ -10,7 +10,7 @@ Main CI pipeline used to validate code. Based on file changes it calls the follo
 | -------------------------------------------------------------------------------- | ----------------------------------------- |
 | [`reusable-phpcs.yml`](reusable-phpcs.yml)                                       | PHPCS linting                             |
 | [`reusable-phpstan.yml`](reusable-phpstan.yml)                                   | PHPStan static analysis                   |
-| [`reusable-phpunit.yml`](reusable-phpunit.yml)                                   | PHPUnit tests                             |
+| [`reusable-phpunit.yml`](reusable-phpunit.yml)                                   | PHPUnit tests, also on multisite networks |
 | [`reusable-lint-css-js.yml`](reusable-lint-css-js.yml)                           | ESLint, Stylelint, Prettier, tsc linting  |
 | [`reusable-jest.yml`](reusable-jest.yml)                                         | Jest tests                                |
 | [`reusable-build.yml`](reusable-build.yml)                                       | Creates a build zip (used by playground)  |

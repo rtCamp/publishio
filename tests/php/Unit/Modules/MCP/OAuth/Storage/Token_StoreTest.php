@@ -638,6 +638,77 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
+	 * Rejoining a site removes connections left there after the user was removed, such as one from a code approved just before the removal.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
+	 */
+	#[DataProvider( 'site_shapes' )]
+	public function test_rejoining_a_site_removes_leftover_connections( string $domain, string $path ): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( $domain, $path );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertSame( [], $rows );
+	}
+
+	/**
+	 * Core fires the join action for a current member too, such as when their role changes or a sign-in plugin syncs it. Their connections stay.
+	 */
+	public function test_role_change_keeps_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( '', '/site2/' );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'author' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertCount( 1, $rows );
+	}
+
+	/**
+	 * A super admin can connect apps on a site they aren't a member of. Joining it keeps those connections.
+	 */
+	public function test_super_admin_joining_keeps_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( '', '/site2/' );
+		grant_super_admin( $this->user_id );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertCount( 1, $rows );
+	}
+
+	/**
 	 * A site in a subdirectory of the network's domain, and one on its own subdomain.
 	 *
 	 * @return array<string, array{string, string}>

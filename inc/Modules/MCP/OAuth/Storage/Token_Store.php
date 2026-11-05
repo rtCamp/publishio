@@ -30,6 +30,13 @@ class Token_Store implements Registrable {
 	private const PASSWORD_META = 'publishio_password_fingerprint';
 
 	/**
+	 * Whether each user being added to a site, keyed "user:site", is joining it rather than already a member.
+	 *
+	 * @var array<string, bool>
+	 */
+	private static array $joining = [];
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
@@ -42,6 +49,8 @@ class Token_Store implements Registrable {
 
 		if ( is_multisite() ) {
 			add_action( 'remove_user_from_blog', [ self::class, 'revoke_all_on_site' ], 10, 2 );
+			add_filter( 'can_add_user_to_blog', [ self::class, 'note_join' ], 10, 4 );
+			add_action( 'add_user_to_blog', [ self::class, 'revoke_on_join' ], 10, 3 );
 			add_action( 'make_spam_user', [ self::class, 'revoke_on_spam' ] );
 			add_filter( 'wpmu_drop_tables', [ self::class, 'drop_with_site' ], 10, 2 );
 		}
@@ -422,6 +431,40 @@ class Token_Store implements Registrable {
 			[ 'user_id' => (int) $user_id ],
 			[ '%d' ]
 		);
+	}
+
+	/**
+	 * Note whether a user being added to a site is joining it, before core sets their role there. Core also adds current members, such as when their role changes.
+	 *
+	 * @param mixed $can_add Whether the user can be added, passed through.
+	 * @param mixed $user_id The WordPress user ID.
+	 * @param mixed $_role   The user's role on the site.
+	 * @param mixed $site_id The site the user is added to.
+	 */
+	public static function note_join( mixed $can_add, mixed $user_id, mixed $_role, mixed $site_id ): mixed { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+		self::$joining[ (int) $user_id . ':' . (int) $site_id ] = ! is_user_member_of_blog( (int) $user_id, (int) $site_id );
+
+		return $can_add;
+	}
+
+	/**
+	 * Revoke a user's leftover tokens on a site they join or rejoin, so their apps need approving again there.
+	 *
+	 * Rows can outlive a removal: a code approved just before it can be exchanged after it, and network admin can run without Publishio. Once the user is back, those rows would work again. A super admin's connections on a site they weren't a member of are their own, so they stay.
+	 *
+	 * @param mixed $user_id The WordPress user ID.
+	 * @param mixed $_role   The user's role on the site.
+	 * @param mixed $site_id The site the user is added to.
+	 */
+	public static function revoke_on_join( mixed $user_id, mixed $_role, mixed $site_id ): void { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+		$key     = (int) $user_id . ':' . (int) $site_id;
+		$joining = self::$joining[ $key ] ?? false;
+
+		unset( self::$joining[ $key ] );
+
+		if ( $joining && ! is_super_admin( (int) $user_id ) ) {
+			self::revoke_all_on_site( $user_id, $site_id );
+		}
 	}
 
 	/**

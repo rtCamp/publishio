@@ -170,9 +170,9 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
-	 * Whether a host belongs to this WordPress install: this site's addresses and, on multisite, every site's and network's domain, each with or without www., since WordPress serves a site on its www. name too. On a subdomain network any name under a network's domain counts as well, since its wildcard DNS sends every such name to the same server, which serves uploads for any name.
+	 * Whether a host belongs to this WordPress install: this site's addresses and, on multisite, every site's and network's domain, or any name under one, ignoring a leading www.
 	 *
-	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust.
+	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust. WordPress serves a site on its www. name too, and wildcard DNS, which subdomain networks need, sends any name under a domain to the same server, which serves uploads for any name.
 	 *
 	 * @param string $host Lowercase ASCII host, without a port.
 	 */
@@ -180,7 +180,7 @@ final class Client_Metadata_Validator {
 		$name = self::without_www( $host );
 
 		foreach ( [ home_url(), site_url() ] as $url ) {
-			if ( self::without_www( strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) ) === $name ) {
+			if ( self::is_same_or_subdomain( $name, self::without_www( strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) ) ) ) {
 				return true;
 			}
 		}
@@ -189,13 +189,9 @@ final class Client_Metadata_Validator {
 			return false;
 		}
 
-		$names = [ $name, 'www.' . $name ];
+		$query = self::domain_query( self::with_parent_domains( $name ) );
 
-		if ( [] !== get_sites( self::domain_query( $names ) ) ) {
-			return true;
-		}
-
-		return [] !== get_networks( self::domain_query( is_subdomain_install() ? self::with_parent_domains( $name ) : $names ) );
+		return [] !== get_sites( $query ) || [] !== get_networks( $query );
 	}
 
 	/**
@@ -274,7 +270,13 @@ final class Client_Metadata_Validator {
 			}
 		}
 
-		if ( self::is_install_host( $host ) ) {
+		/**
+		 * Filters whether a client_id host belongs to this WordPress install, which refuses it. Return false to let an app you run under your own domain, such as ai.example.com, connect.
+		 *
+		 * @param bool   $is_install_host Whether the host is this site's address, or a site's or network's domain, or a name under one.
+		 * @param string $host            The client_id's host.
+		 */
+		if ( (bool) apply_filters( 'publishio_cimd_is_install_host', self::is_install_host( $host ), $host ) ) {
 			return false;
 		}
 

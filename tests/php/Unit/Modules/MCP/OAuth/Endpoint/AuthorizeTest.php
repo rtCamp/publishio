@@ -16,6 +16,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 use rtCamp\Publishio\Modules\MCP\OAuth\Endpoint\Authorize;
 use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 use rtCamp\Publishio\Tests\TestCase;
 
 /**
@@ -157,6 +158,34 @@ class AuthorizeTest extends TestCase {
 		$this->post( 'mcp:read', 'approve' );
 
 		$this->assertNotSame( '', get_user_meta( get_current_user_id(), 'publishio_password_fingerprint', true ) );
+	}
+
+	/**
+	 * After a password change Publishio didn't see, opening the approval screen ends the earlier connections. The code approved a moment later still works.
+	 */
+	public function test_approval_screen_ends_connections_from_before_an_unseen_password_change(): void {
+		global $wpdb;
+
+		$user_id = get_current_user_id();
+		delete_user_meta( $user_id, 'publishio_tokens_revoked_at' );
+		$this->post( 'mcp:read', 'approve' );
+		$this->assertIsArray( Token_Store::issue( $user_id, self::CLIENT_ID, 'Earlier App', 'mcp:read', Config::get_mcp_resource_claim() ) );
+		$this->assertSame( 1, Token_Store::count_connections( time() ) );
+
+		$wpdb->update( $wpdb->users, [ 'user_pass' => wp_hash_password( 'changed-elsewhere' ) ], [ 'ID' => $user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $user_id );
+		$this->get( 'mcp:read' );
+
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+
+		// The user takes a moment to click Allow.
+		update_user_meta( $user_id, 'publishio_tokens_revoked_at', time() - 1 );
+		$this->redirect = null;
+		$this->post( 'mcp:read', 'approve' );
+		$code = Auth_Code_Store::consume( $this->redirect_query()['code'] ?? '' );
+
+		$this->assertIsArray( $code );
+		$this->assertFalse( Token_Store::is_revoked( $user_id, (int) $code['created_at'] ) );
 	}
 
 	/**

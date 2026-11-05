@@ -449,6 +449,20 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
+	 * Approving another app after a password change Publishio didn't see ends the earlier connections, rather than recording the new password over the old one.
+	 */
+	public function test_approval_after_an_unseen_password_change_ends_earlier_connections(): void {
+		$tokens = $this->issue();
+		Token_Store::remember_password( $this->user_id );
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+		Token_Store::remember_password( $this->user_id );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
 	 * An authorization code approved before a password change Publishio didn't see can't be exchanged.
 	 */
 	public function test_code_from_before_an_unseen_password_change_is_refused(): void {

@@ -505,11 +505,21 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * Record the user's current password, as they approve an app.
+	 * Record the user's current password, as they approve an app. A change Publishio didn't see is revoked first, so the new record can't hide it.
 	 *
 	 * @param int $user_id The WordPress user ID.
 	 */
 	public static function remember_password( int $user_id ): void {
+		self::notice_password_change( $user_id );
+		self::record_password( $user_id );
+	}
+
+	/**
+	 * Store the fingerprint of the user's current password.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function record_password( int $user_id ): void {
 		update_user_meta( $user_id, self::PASSWORD_META, self::password_fingerprint( $user_id ) );
 	}
 
@@ -520,7 +530,7 @@ class Token_Store implements Registrable {
 	 */
 	private static function follow_password( int $user_id ): void {
 		if ( metadata_exists( 'user', $user_id, self::PASSWORD_META ) ) {
-			self::remember_password( $user_id );
+			self::record_password( $user_id );
 		}
 	}
 
@@ -542,7 +552,7 @@ class Token_Store implements Registrable {
 	 *
 	 * @param int $user_id The WordPress user ID.
 	 */
-	private static function notice_password_change( int $user_id ): void {
+	public static function notice_password_change( int $user_id ): void {
 		$recorded = (string) get_user_meta( $user_id, self::PASSWORD_META, true );
 		$current  = self::password_fingerprint( $user_id );
 
@@ -552,7 +562,7 @@ class Token_Store implements Registrable {
 
 		// Connections approved before the fingerprint existed start from the current password.
 		if ( '' === $recorded ) {
-			self::remember_password( $user_id );
+			self::record_password( $user_id );
 			return;
 		}
 

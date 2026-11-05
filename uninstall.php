@@ -21,6 +21,7 @@ const PLUGIN_PREFIX = 'publishio_';
 function run_uninstaller(): void {
 	// User meta is shared by every site.
 	delete_metadata( 'user', 0, PLUGIN_PREFIX . 'tokens_revoked_at', '', true );
+	delete_metadata( 'user', 0, PLUGIN_PREFIX . 'password_fingerprint', '', true );
 
 	if ( ! is_multisite() ) {
 		uninstall();

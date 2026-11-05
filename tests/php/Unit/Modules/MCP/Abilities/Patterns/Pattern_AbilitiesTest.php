@@ -128,6 +128,19 @@ class Pattern_AbilitiesTest extends TestCase {
 	}
 
 	/**
+	 * The category filter matches the name list-patterns gives, including a namespaced one such as Ollie's ollie/card (issue #168).
+	 */
+	public function test_list_patterns_filters_by_namespaced_category(): void {
+		register_block_pattern_category( 'acme-plugin/cards', [ 'label' => 'Cards' ] );
+		$this->register( 'acme-plugin/card', 'Card', sprintf( self::PARAGRAPH, 'Card' ), [ 'categories' => [ 'acme-plugin/cards' ] ] );
+
+		$listed = $this->sources( [ 'category' => 'acme-plugin/cards' ] );
+		unregister_block_pattern_category( 'acme-plugin/cards' );
+
+		$this->assertSame( [ 'acme-plugin/card' ], array_keys( $listed ) );
+	}
+
+	/**
 	 * Unknown and unpublished patterns are refused; a synced pattern lists its override fields, nested patterns are resolved as insert-pattern resolves them, and not_allowed lists blocks the post type can't use.
 	 */
 	public function test_get_pattern(): void {

@@ -46,6 +46,12 @@ export interface SiteFacts {
 	mcpAdapter: { version: string; bundled: boolean; source: string } | null;
 	mcpServer: boolean;
 	tools: number;
+	/** Null on a single site. A subdirectory site needs Publishio on the main site, which answers discovery for it. */
+	network: {
+		subdirectory: boolean;
+		mainSiteActive: boolean;
+		networkActive: boolean;
+	} | null;
 }
 
 export interface AppCheck {

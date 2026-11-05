@@ -387,6 +387,18 @@ npm run test:php:yoast
 
 The Yoast SEO version is pinned in `.wp-env.test.json`. After changing it, run `npm run wp-env:test -- start --update` to download it.
 
+The same tests run on a multisite network, which the test suite installs on its own:
+
+```bash
+# A subdirectory network
+npm run test:php:multisite
+
+# A subdomain network
+npm run test:php:multisite-subdomain
+```
+
+Tests that need a network call `$this->skipWithoutMultisite()` and carry `#[Group( 'ms-required' )]`; single-site-only tests call `$this->skipWithMultisite()`. CI runs all three setups on every pull request.
+
 ### Jest (JavaScript Unit Tests)
 
 We use [Jest](https://jestjs.io/) for JavaScript/TypeScript unit testing, configured via [`jest.config.js`](../jest.config.js) and extending `@wordpress/scripts` defaults.

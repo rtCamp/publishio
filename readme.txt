@@ -54,6 +54,7 @@ To use the skill in Claude (claude.ai):
 * **WordPress 6.9 or higher**
 * **Pretty permalinks** (any Permalinks setting except Plain). AI apps can't connect with Plain permalinks.
 * **AI apps must be able to reach your site.** Addresses under `/.well-known/` and `/wp-json/` must reach WordPress for visitors who aren't logged in. Some web servers and firewalls block `/.well-known/`; **Publishio → Status** checks this for you.
+* **Multisite:** on a network whose sites are in subfolders (`example.com/shop/`), Publishio must also run on the main site, which answers AI apps for the sites under it. Network-activate it, or activate it on the main site too. Sites on their own subdomain or domain don't need this.
 
 = Themes =
 
@@ -102,6 +103,9 @@ Open **Publishio → Status** in your dashboard. It checks your site the way an 
 
 = Does my content and data stay on my site? =
 Yes — Publishio adds no third-party service. It runs entirely on your own WordPress site as a self-hosted MCP server, and your site connects directly to the AI you choose; nothing is routed through rtCamp or any Publishio-operated cloud. The pages and posts you create live in your own database, exactly like any other WordPress content. The only data that leaves your site is what you send to your chosen AI assistant (ChatGPT or Claude) during a chat — the same as using that assistant anywhere else — governed by that provider's terms.
+
+= Does it work on WordPress multisite? =
+Yes, with sites in subfolders, on subdomains or on their own domains. Network-activate Publishio, or activate it site by site. On a network whose sites are in subfolders, it must also run on the main site, because AI apps look for a subfolder site's connection details at the main site's address; **Publishio → Status** on the subsite tells you if it doesn't. Each site has its own MCP server URL and its own connections: approving an app on one site gives it no access to another, and each site's **Publishio → Connections** page lists that site's connections, including those of super admins who aren't members of the site. Changing your password ends your connections on every site. Log Out Everywhere does too when Publishio is network-activated; activated site by site, it only reaches the sites that run Publishio.
 
 = Does it support custom post types? =
 Yes. Publishio works with any post type that uses the Block Editor — pages, posts, and custom post types (e.g. portfolio, product, event). Featured images, categories, tags and Yoast fields work on every type that has them. Just tell the AI which post type to create.

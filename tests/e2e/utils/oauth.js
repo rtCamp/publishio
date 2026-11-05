@@ -90,6 +90,57 @@ export async function discover( api ) {
 }
 
 /**
+ * A well-known address for an issuer or resource URL: the well-known segment goes between the host and the path (RFC 8414, RFC 9728).
+ * @param {string} url  Issuer or resource URL.
+ * @param {string} name Well-known name, such as `oauth-authorization-server`.
+ */
+export function wellKnownUrl( url, name ) {
+	const parsed = new URL( url );
+	return `${ parsed.origin }/.well-known/${ name }${ parsed.pathname.replace(
+		/\/$/,
+		''
+	) }`;
+}
+
+/**
+ * Discovery as the MCP SDK does it from the server URL: the 401's resource_metadata address, then the issuer's well-known address. For a subdirectory site that address is at the host root, which the main site answers.
+ * @param {import('@playwright/test').APIRequestContext} api    Request context without cookies, as an AI client.
+ * @param {string}                                       mcpUrl MCP server URL.
+ */
+export async function discoverFrom( api, mcpUrl ) {
+	const challenge = await api.post( mcpUrl, { data: {} } );
+	expect( challenge.status(), 'MCP server must ask for a token' ).toBe( 401 );
+	const metadataUrl = /resource_metadata="([^"]+)"/.exec(
+		challenge.headers()[ 'www-authenticate' ] ?? ''
+	)?.[ 1 ];
+	expect(
+		metadataUrl,
+		'WWW-Authenticate must name the resource metadata'
+	).toBeTruthy();
+
+	const pr = await api.get( metadataUrl );
+	expect( pr.status(), metadataUrl ).toBe( 200 );
+	const prJson = await pr.json();
+
+	const asUrl = wellKnownUrl(
+		prJson.authorization_servers[ 0 ],
+		'oauth-authorization-server'
+	);
+	const as = await api.get( asUrl );
+	expect( as.status(), asUrl ).toBe( 200 );
+	const asJson = await as.json();
+
+	return {
+		resource: prJson.resource,
+		issuer: asJson.issuer,
+		authorizationEndpoint: asJson.authorization_endpoint,
+		tokenEndpoint: asJson.token_endpoint,
+		registrationEndpoint: asJson.registration_endpoint,
+		cimd: asJson.client_id_metadata_document_supported === true,
+	};
+}
+
+/**
  * Cached CIMD client on CIMD servers, otherwise dynamic registration.
  * @param {import('@playwright/test').APIRequestContext} api       Request context to send with.
  * @param {Discovery}                                    discovery Result of discover().
@@ -123,8 +174,9 @@ export async function registerClient( api, discovery, overrides = {} ) {
 /**
  * Seed the CIMD cache directly; the test site cannot reliably fetch a real document.
  * @param {{client_name: string, redirect_uris: string[]}} metadata Client metadata.
+ * @param {string}                                         siteUrl  Site of a network to seed; the main site when empty.
  */
-export function provisionMetadataClient( metadata ) {
+export function provisionMetadataClient( metadata, siteUrl = '' ) {
 	const client_id = `https://${ TEST_CLIENT_HOST }/clients/${ randomState().slice(
 		0,
 		12
@@ -141,7 +193,9 @@ export function provisionMetadataClient( metadata ) {
 		'base64'
 	);
 	wpCli(
-		`eval '$c = json_decode( base64_decode( "${ payload }" ), true ); set_transient( "publishio_cimd_" . hash( "sha256", $c["client_id"] ), $c, HOUR_IN_SECONDS );'`
+		`eval '$c = json_decode( base64_decode( "${ payload }" ), true ); set_transient( "publishio_cimd_" . hash( "sha256", $c["client_id"] ), $c, HOUR_IN_SECONDS );'${
+			siteUrl ? ` --url=${ siteUrl }` : ''
+		}`
 	);
 	return {
 		client_id,

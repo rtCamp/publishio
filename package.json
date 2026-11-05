@@ -50,6 +50,8 @@
 		"test:js:coverage": "wp-scripts test-unit-js --passWithNoTests --coverage",
 		"test:php": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ vendor/bin/phpunit -c phpunit.xml.dist",
 		"test:php:yoast": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ vendor/bin/phpunit -c phpunit-yoast.xml.dist",
+		"test:php:multisite": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ env WP_MULTISITE=1 vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:php:multisite-subdomain": "npm run wp-env:test -- run cli --env-cwd=wp-content/plugins/publishio/ env WP_MULTISITE=1 WP_TESTS_SUBDOMAIN=1 vendor/bin/phpunit -c phpunit.xml.dist",
 		"version:check": "node bin/check-version.mjs",
 		"wp-env": "wp-env",
 		"wp-env:cli": "wp-env run cli --env-cwd=wp-content/plugins/publishio/",

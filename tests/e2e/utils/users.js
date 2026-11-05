@@ -41,17 +41,23 @@ export async function ensureUser( requestUtils, role ) {
  * @param {import('@playwright/test').PlaywrightWorkerArgs['playwright']} playwright Playwright fixture.
  * @param {string}                                                        username   User login.
  * @param {string}                                                        password   User password.
+ * @param {string}                                                        baseURL    Site to log in to; the project's when omitted.
  */
-export async function loginApi( playwright, username, password = PASSWORD ) {
+export async function loginApi(
+	playwright,
+	username,
+	password = PASSWORD,
+	baseURL = test.info().project.use.baseURL
+) {
 	const api = await playwright.request.newContext( {
-		baseURL: test.info().project.use.baseURL,
+		baseURL,
 		// Jar, not a Cookie header: the header would drop the login cookies.
 		storageState: {
 			cookies: [
 				{
 					name: 'wordpress_test_cookie',
 					value: 'WP%20Cookie%20check',
-					domain: new URL( test.info().project.use.baseURL ).hostname,
+					domain: new URL( baseURL ).hostname,
 					path: '/',
 					expires: -1,
 					httpOnly: false,
@@ -84,10 +90,16 @@ export async function loginApi( playwright, username, password = PASSWORD ) {
  * @param {import('@playwright/test').Browser} browser  Browser fixture.
  * @param {string}                             username User login.
  * @param {string}                             password User password.
+ * @param {string}                             baseURL  Site to log in to; the project's when omitted.
  */
-export async function loginBrowser( browser, username, password = PASSWORD ) {
+export async function loginBrowser(
+	browser,
+	username,
+	password = PASSWORD,
+	baseURL = test.info().project.use.baseURL
+) {
 	const context = await browser.newContext( {
-		baseURL: test.info().project.use.baseURL,
+		baseURL,
 		storageState: { cookies: [], origins: [] },
 	} );
 	const page = await context.newPage();

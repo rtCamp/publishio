@@ -54,6 +54,7 @@
 		"phpstan": "phpstan analyse --memory-limit=1G",
 		"test": "vendor/bin/phpunit -c phpunit.xml.dist",
 		"test:yoast": "vendor/bin/phpunit -c phpunit-yoast.xml.dist",
-		"test-multisite": "WP_MULTISITE=1 phpunit --exclude-group=ms-excluded"
+		"test:multisite": "WP_MULTISITE=1 vendor/bin/phpunit -c phpunit.xml.dist",
+		"test:multisite-subdomain": "WP_MULTISITE=1 WP_TESTS_SUBDOMAIN=1 vendor/bin/phpunit -c phpunit.xml.dist"
 	}
 }

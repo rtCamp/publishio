@@ -25,6 +25,18 @@ class Token_Store implements Registrable {
 	private const REVOKED_AT_META = 'publishio_tokens_revoked_at';
 
 	/**
+	 * User meta holding a fingerprint of the user's password hash, from when they last approved an app. A different hash means the password changed, perhaps on a site of the network where Publishio isn't loaded to see it.
+	 */
+	private const PASSWORD_META = 'publishio_password_fingerprint';
+
+	/**
+	 * Whether each user being added to a site, keyed "user:site", is joining it rather than already a member.
+	 *
+	 * @var array<string, bool>
+	 */
+	private static array $joining = [];
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
@@ -34,14 +46,24 @@ class Token_Store implements Registrable {
 		add_action( 'profile_update', [ self::class, 'revoke_on_profile_update' ], 10, 3 );
 		// Core's handler runs at priority 1 and exits.
 		add_action( 'wp_ajax_destroy-sessions', [ self::class, 'revoke_on_destroy_sessions' ], 0 );
+
+		if ( is_multisite() ) {
+			add_action( 'remove_user_from_blog', [ self::class, 'revoke_all_on_site' ], 10, 2 );
+			add_filter( 'can_add_user_to_blog', [ self::class, 'note_join' ], 10, 4 );
+			add_action( 'add_user_to_blog', [ self::class, 'revoke_on_join' ], 10, 3 );
+			add_action( 'make_spam_user', [ self::class, 'revoke_on_spam' ] );
+			add_filter( 'wpmu_drop_tables', [ self::class, 'drop_with_site' ], 10, 2 );
+		}
 	}
 
 	/**
-	 * Get the custom table name.
+	 * Get the custom table name of the current site, or of another site on the network.
+	 *
+	 * @param int|null $site_id Site ID; the current site when null.
 	 */
-	private static function table_name(): string {
+	private static function table_name( ?int $site_id = null ): string {
 		global $wpdb;
-		return $wpdb->prefix . 'publishio_oauth_tokens';
+		return $wpdb->get_blog_prefix( $site_id ) . 'publishio_oauth_tokens';
 	}
 
 	/**
@@ -289,7 +311,7 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * Count tokens with an unexpired refresh token, within the current lifetime. Tokens of deleted users are left out.
+	 * Count connections that still work: an unexpired refresh token, within the current lifetime, approved after the user's last revocation. Tokens of deleted users are left out.
 	 *
 	 * @param int $now Current Unix timestamp.
 	 */
@@ -298,12 +320,11 @@ class Token_Store implements Registrable {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d AND t.authorized_at >= %d',
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills live_connection()'s placeholders.
+				'SELECT COUNT(*) FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::live_connection(), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Fixed conditions with placeholders.
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
-				$now,
-				self::earliest_live_approval( $now )
+				...self::live_connection_args( $now )
 			)
 		);
 
@@ -311,7 +332,7 @@ class Token_Store implements Registrable {
 	}
 
 	/**
-	 * A page of tokens with an unexpired refresh token, within the current lifetime, sorted by last activity. Each token is one connection. Tokens of deleted users are left out.
+	 * A page of connections that still work, as count_connections() counts them, sorted by last activity. Each token is one connection.
 	 *
 	 * @param int  $offset       Page offset (0-based).
 	 * @param int  $limit        Number of rows to return.
@@ -324,18 +345,16 @@ class Token_Store implements Registrable {
 		global $wpdb;
 
 		$direction = $oldest_first ? 'ASC' : 'DESC';
+		$args      = [ ...self::live_connection_args( $now ), $limit, $offset ];
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			$wpdb->prepare(
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The spread fills live_connection()'s placeholders.
 				// $direction is one of two fixed strings; prepare() has no placeholder for a sort direction.
-				"SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE t.refresh_expires_at > %d AND t.authorized_at >= %d ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT t.id, t.client_id, t.client_name, t.user_id, t.authorized_at, t.created_at FROM %i t INNER JOIN %i u ON u.ID = t.user_id WHERE ' . self::live_connection() . " ORDER BY t.created_at {$direction}, t.id {$direction} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				self::table_name(),
 				$wpdb->users, // phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users -- Primary-key join that leaves out tokens of deleted users.
-				$now,
-				self::earliest_live_approval( $now ),
-				$limit,
-				$offset
+				...$args
 			),
 			ARRAY_A
 		);
@@ -390,6 +409,89 @@ class Token_Store implements Registrable {
 	}
 
 	/**
+	 * Revoke a user's tokens on one site of the network, when they are removed from it.
+	 *
+	 * Publishio stores its version on a site when it creates the table there, so a site without it has no tokens.
+	 *
+	 * @param mixed $user_id The WordPress user ID.
+	 * @param mixed $site_id The site the user is removed from.
+	 */
+	public static function revoke_all_on_site( mixed $user_id, mixed $site_id ): void {
+		global $wpdb;
+
+		$site_id = (int) $site_id;
+
+		if ( false === get_blog_option( $site_id, 'publishio_version' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete(
+			self::table_name( $site_id ),
+			[ 'user_id' => (int) $user_id ],
+			[ '%d' ]
+		);
+	}
+
+	/**
+	 * Note whether a user being added to a site is joining it, before core sets their role there. Core also adds current members, such as when their role changes.
+	 *
+	 * @param mixed $can_add Whether the user can be added, passed through.
+	 * @param mixed $user_id The WordPress user ID.
+	 * @param mixed $_role   The user's role on the site.
+	 * @param mixed $site_id The site the user is added to.
+	 */
+	public static function note_join( mixed $can_add, mixed $user_id, mixed $_role, mixed $site_id ): mixed { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+		self::$joining[ (int) $user_id . ':' . (int) $site_id ] = ! is_user_member_of_blog( (int) $user_id, (int) $site_id );
+
+		return $can_add;
+	}
+
+	/**
+	 * Revoke a user's leftover tokens on a site they join or rejoin, so their apps need approving again there.
+	 *
+	 * Rows can outlive a removal: a code approved just before it can be exchanged after it, and network admin can run without Publishio. Once the user is back, those rows would work again. A super admin's connections on a site they weren't a member of are their own, so they stay.
+	 *
+	 * @param mixed $user_id The WordPress user ID.
+	 * @param mixed $_role   The user's role on the site.
+	 * @param mixed $site_id The site the user is added to.
+	 */
+	public static function revoke_on_join( mixed $user_id, mixed $_role, mixed $site_id ): void { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+		$key     = (int) $user_id . ':' . (int) $site_id;
+		$joining = self::$joining[ $key ] ?? false;
+
+		unset( self::$joining[ $key ] );
+
+		if ( $joining && ! is_super_admin( (int) $user_id ) ) {
+			self::revoke_all_on_site( $user_id, $site_id );
+		}
+	}
+
+	/**
+	 * Revoke all tokens for a user marked as spam, on every site of the network.
+	 *
+	 * @param mixed $user_id The WordPress user ID.
+	 */
+	public static function revoke_on_spam( mixed $user_id ): void {
+		self::revoke_issued_until_now( (int) $user_id );
+	}
+
+	/**
+	 * Drop a site's token table along with the site.
+	 *
+	 * @param mixed $tables  Tables core drops with the site.
+	 * @param mixed $site_id The site being deleted.
+	 *
+	 * @return array<array-key, mixed>
+	 */
+	public static function drop_with_site( mixed $tables, mixed $site_id ): array {
+		$tables   = is_array( $tables ) ? $tables : [];
+		$tables[] = self::table_name( (int) $site_id );
+
+		return $tables;
+	}
+
+	/**
 	 * Revoke all of a user's tokens, and the authorization codes and refreshes still in flight.
 	 *
 	 * Deleting rows can't reach a pending code or a row a refresh inserts after the delete, so the time is recorded and anything issued before it is rejected.
@@ -399,10 +501,76 @@ class Token_Store implements Registrable {
 	private static function revoke_issued_until_now( int $user_id ): void {
 		update_user_meta( $user_id, self::REVOKED_AT_META, time() );
 		self::revoke_all( $user_id );
+		self::follow_password( $user_id );
 	}
 
 	/**
-	 * Whether a user's token or authorization code was revoked after it was issued.
+	 * Record the user's current password, as they approve an app. A change Publishio didn't see is revoked first, so the new record can't hide it.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	public static function remember_password( int $user_id ): void {
+		self::notice_password_change( $user_id );
+		self::record_password( $user_id );
+	}
+
+	/**
+	 * Store the fingerprint of the user's current password.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function record_password( int $user_id ): void {
+		update_user_meta( $user_id, self::PASSWORD_META, self::password_fingerprint( $user_id ) );
+	}
+
+	/**
+	 * Keep the recorded password in step after a change Publishio saw, for a user who has one recorded.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function follow_password( int $user_id ): void {
+		if ( metadata_exists( 'user', $user_id, self::PASSWORD_META ) ) {
+			self::record_password( $user_id );
+		}
+	}
+
+	/**
+	 * A fingerprint of the user's password hash, or an empty string for a user who doesn't exist.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function password_fingerprint( int $user_id ): string {
+		$user = get_userdata( $user_id );
+
+		return $user instanceof \WP_User ? wp_hash( $user->user_pass, 'auth', 'sha256' ) : '';
+	}
+
+	/**
+	 * Revoke the user's tokens if their password changed since it was recorded.
+	 *
+	 * Catches a change made where Publishio wasn't loaded to revoke at the time, such as another site of a network. A login that only re-hashes the password there counts too, so those connections end; that is rare, and safe.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	public static function notice_password_change( int $user_id ): void {
+		$recorded = (string) get_user_meta( $user_id, self::PASSWORD_META, true );
+		$current  = self::password_fingerprint( $user_id );
+
+		if ( '' === $current || $recorded === $current ) {
+			return;
+		}
+
+		// Connections approved before the fingerprint existed start from the current password.
+		if ( '' === $recorded ) {
+			self::record_password( $user_id );
+			return;
+		}
+
+		self::revoke_issued_until_now( $user_id );
+	}
+
+	/**
+	 * Whether a user's token or authorization code was revoked after it was issued, or the user is marked as spam on the network. A password change Publishio didn't see is revoked here first.
 	 *
 	 * The revocation's own second counts, or a script with the old password could mint codes just before it.
 	 *
@@ -410,9 +578,18 @@ class Token_Store implements Registrable {
 	 * @param int $issued_at When the code was created or the connection approved.
 	 */
 	public static function is_revoked( int $user_id, int $issued_at ): bool {
+		self::notice_password_change( $user_id );
+
 		$revoked_at = (int) get_user_meta( $user_id, self::REVOKED_AT_META, true );
 
-		return $revoked_at > 0 && $issued_at <= $revoked_at;
+		if ( $revoked_at > 0 && $issued_at <= $revoked_at ) {
+			return true;
+		}
+
+		// A spam flag set without the make_spam_user action, such as directly in the database, still blocks the user's apps.
+		$user = is_multisite() ? get_userdata( $user_id ) : false;
+
+		return $user instanceof \WP_User && is_user_spammy( $user );
 	}
 
 	/**
@@ -444,6 +621,7 @@ class Token_Store implements Registrable {
 
 		// Logging in re-hashes an unchanged password whose hash is outdated. Only then is the password worth a second hash check.
 		if ( null !== $old_pass && is_string( $password ) && doing_filter( 'authenticate' ) && wp_check_password( $password, $old_pass, $user_id ) ) {
+			self::follow_password( $user_id );
 			return;
 		}
 
@@ -520,6 +698,33 @@ class Token_Store implements Registrable {
 		$lifetime = Config::get_max_connection_lifetime();
 
 		return $lifetime > 0 ? max( 0, $now - $lifetime + 1 ) : 0;
+	}
+
+	/**
+	 * Conditions on the token table `t`, joined to users as `u`, for a connection that still works: an unexpired refresh token, within the lifetime, approved after the user's last revocation, and on multisite a user not marked as spam (only networks have that column).
+	 *
+	 * The revocation time is network-wide user meta, while each site keeps its own rows, so other sites' rows are left in place and filtered here. NOT EXISTS, unlike a join, can't count a row twice if the meta is duplicated.
+	 *
+	 * Placeholders are filled by live_connection_args().
+	 */
+	private static function live_connection(): string {
+		$conditions = 't.refresh_expires_at > %d AND t.authorized_at >= %d AND NOT EXISTS ( SELECT 1 FROM %i m WHERE m.user_id = t.user_id AND m.meta_key = %s AND CAST( m.meta_value AS UNSIGNED ) >= t.authorized_at )';
+
+		return is_multisite() ? $conditions . ' AND u.spam = 0' : $conditions;
+	}
+
+	/**
+	 * Values for the placeholders in live_connection().
+	 *
+	 * @param int $now Current Unix timestamp.
+	 *
+	 * @return array{int, int, string, string}
+	 */
+	private static function live_connection_args( int $now ): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__usermeta -- Reads one key per row to leave out revoked connections.
+		return [ $now, self::earliest_live_approval( $now ), $wpdb->usermeta, self::REVOKED_AT_META ];
 	}
 
 	/**

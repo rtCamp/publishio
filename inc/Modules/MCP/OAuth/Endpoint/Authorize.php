@@ -18,6 +18,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
@@ -97,7 +98,7 @@ class Authorize implements Registrable {
 	 * Handle GET — validate params, ensure login, show consent.
 	 */
 	private function handle_get(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only consent screen; no state change. GET params are validated below.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Consent screen; nothing the request asks for is changed. GET params are validated below.
 		$params = $this->extract_params( $_GET );
 
 		$error = $this->validate_request( $params );
@@ -130,6 +131,9 @@ class Authorize implements Registrable {
 			$this->render_error( $client );
 			return;
 		}
+
+		// Here rather than on Allow, so the revocation's own second is over before the new code is created.
+		Token_Store::notice_password_change( get_current_user_id() );
 
 		$this->render_consent_screen( $params, $client, $scope );
 	}
@@ -193,6 +197,8 @@ class Authorize implements Registrable {
 			$this->render_error( $scope );
 			return;
 		}
+
+		Token_Store::remember_password( get_current_user_id() );
 
 		$code = Auth_Code_Store::create(
 			get_current_user_id(),

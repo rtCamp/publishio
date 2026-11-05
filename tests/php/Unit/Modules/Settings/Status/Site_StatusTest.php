@@ -53,6 +53,103 @@ class Site_StatusTest extends TestCase {
 	}
 
 	/**
+	 * A single site has no network facts.
+	 */
+	public function test_facts_have_no_network_on_single_site(): void {
+		$this->skipWithMultisite();
+
+		$this->assertNull( ( new Site_Status() )->facts()['network'] );
+	}
+
+	/**
+	 * The main site is not a subdirectory site, and runs Publishio when it's active there.
+	 */
+	public function test_facts_describe_the_main_site(): void {
+		$this->skipWithoutMultisite();
+
+		update_option( 'active_plugins', [ plugin_basename( PUBLISHIO_FILE ) ] );
+
+		$this->assertSame(
+			[
+				'subdirectory'     => false,
+				'main_site_active' => true,
+				'network_active'   => false,
+			],
+			( new Site_Status() )->facts()['network']
+		);
+	}
+
+	/**
+	 * A subdirectory site reports whether the main site runs Publishio, which answers discovery for it.
+	 */
+	public function test_facts_tell_subdirectory_site_whether_main_site_runs_publishio(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create( [ 'path' => '/site2/' ] );
+
+		switch_to_blog( $site_id );
+		$without = ( new Site_Status() )->facts()['network'];
+		update_blog_option( get_main_site_id(), 'active_plugins', [ plugin_basename( PUBLISHIO_FILE ) ] );
+		$with = ( new Site_Status() )->facts()['network'];
+		restore_current_blog();
+
+		$this->assertSame(
+			[
+				'subdirectory'     => true,
+				'main_site_active' => false,
+				'network_active'   => false,
+			],
+			$without
+		);
+		$this->assertSame(
+			[
+				'subdirectory'     => true,
+				'main_site_active' => true,
+				'network_active'   => false,
+			],
+			$with
+		);
+	}
+
+	/**
+	 * With no site at its domain's root, as on a network installed in a subfolder, a site isn't one that the main site answers for.
+	 */
+	public function test_facts_without_a_site_at_the_root(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create(
+			[
+				'domain' => 'subfolder-network.example.org',
+				'path'   => '/wp/',
+			]
+		);
+
+		switch_to_blog( $site_id );
+		$network = ( new Site_Status() )->facts()['network'];
+		restore_current_blog();
+
+		$this->assertSame(
+			[
+				'subdirectory'     => false,
+				'main_site_active' => false,
+				'network_active'   => false,
+			],
+			$network
+		);
+	}
+
+	/**
+	 * Network activation is reported, since only then does Log Out Everywhere reach every site.
+	 */
+	public function test_facts_report_network_activation(): void {
+		$this->skipWithoutMultisite();
+
+		update_site_option( 'active_sitewide_plugins', [ plugin_basename( PUBLISHIO_FILE ) => time() ] );
+
+		$this->assertTrue( ( new Site_Status() )->facts()['network']['network_active'] );
+	}
+
+	/**
 	 * Plain permalinks are reported, since they break discovery.
 	 */
 	public function test_facts_report_plain_permalinks(): void {

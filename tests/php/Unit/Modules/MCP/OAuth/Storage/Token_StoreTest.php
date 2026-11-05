@@ -342,7 +342,12 @@ class Token_StoreTest extends TestCase {
 		self::log_out_everywhere( $this->user_id, 'author' );
 
 		// A user who can, with a wrong nonce.
-		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$admin = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin );
+		}
+
+		wp_set_current_user( $admin );
 		$_POST['nonce'] = 'invalid';
 		do_action( 'wp_ajax_destroy-sessions' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
@@ -411,7 +416,8 @@ class Token_StoreTest extends TestCase {
 		// An old phpass hash, as users who haven't logged in since WordPress 6.8 still have.
 		$wpdb->update( $wpdb->users, [ 'user_pass' => ( new \PasswordHash( 8, true ) )->HashPassword( 'password' ) ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		clean_user_cache( $this->user_id );
-		$tokens       = $this->issue();
+		$tokens = $this->issue();
+		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ), 'records the password fingerprint' );
 		$set_password = did_action( 'wp_set_password' );
 
 		$user = wp_authenticate( get_userdata( $this->user_id )->user_login, 'password' );
@@ -420,6 +426,52 @@ class Token_StoreTest extends TestCase {
 		$this->assertSame( $set_password + 1, did_action( 'wp_set_password' ) );
 		$this->assertStringStartsWith( '$wp', get_userdata( $this->user_id )->user_pass );
 		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+	}
+
+	/**
+	 * A password changed where Publishio wasn't loaded, such as another site of a network, ends the user's connections the next time one is used. Connections from before the fingerprint existed are watched from their first use. One approved after the change works.
+	 */
+	public function test_password_change_publishio_did_not_see_ends_connections(): void {
+		$tokens = $this->issue();
+		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+
+		Token_Store::remember_password( $this->user_id );
+		$after = Token_Store::issue( $this->user_id, self::CLIENT_ID, 'After', 'mcp:read', 'https://example.org/wp-json/mcp/publishio', time() + 1 );
+
+		$this->assertIsArray( $after );
+		$this->assertNotNull( Token_Store::validate_access_token( $after['access_token'] ) );
+	}
+
+	/**
+	 * Approving another app after a password change Publishio didn't see ends the earlier connections, rather than recording the new password over the old one.
+	 */
+	public function test_approval_after_an_unseen_password_change_ends_earlier_connections(): void {
+		$tokens = $this->issue();
+		Token_Store::remember_password( $this->user_id );
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+		Token_Store::remember_password( $this->user_id );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
+	 * An authorization code approved before a password change Publishio didn't see can't be exchanged.
+	 */
+	public function test_code_from_before_an_unseen_password_change_is_refused(): void {
+		Token_Store::remember_password( $this->user_id );
+		$created_at = time();
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+
+		$this->assertTrue( Token_Store::is_revoked( $this->user_id, $created_at ) );
 	}
 
 	/**
@@ -442,13 +494,294 @@ class Token_StoreTest extends TestCase {
 	}
 
 	/**
-	 * Click "Log Out Everywhere" on a user's profile as a new user with this role.
+	 * Rows approved before the user's last revocation leave the list and its count, as they stay behind on other sites of a network. A row approved after it is listed.
+	 */
+	public function test_connections_leave_out_rows_approved_before_revocation(): void {
+		$this->issue();
+		$revoked_at = time();
+		update_user_meta( $this->user_id, 'publishio_tokens_revoked_at', $revoked_at );
+
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+		$this->assertSame( [], Token_Store::get_connections( 0, 10, time() ) );
+
+		Token_Store::issue( $this->user_id, self::CLIENT_ID, 'After', 'mcp:read', 'https://example.org/wp-json/mcp/publishio', $revoked_at + 1 );
+
+		$this->assertSame( 1, Token_Store::count_connections( time() ) );
+		$this->assertSame( [ 'After' ], array_column( Token_Store::get_connections( 0, 10, time() ), 'client_name' ) );
+	}
+
+	/**
+	 * A duplicated revocation meta row doesn't list or count a connection twice.
+	 */
+	public function test_duplicate_revocation_meta_counts_once(): void {
+		$this->issue();
+		add_user_meta( $this->user_id, 'publishio_tokens_revoked_at', 1 );
+		add_user_meta( $this->user_id, 'publishio_tokens_revoked_at', 1 );
+
+		$this->assertSame( 1, Token_Store::count_connections( time() ) );
+		$this->assertCount( 1, Token_Store::get_connections( 0, 10, time() ) );
+	}
+
+	/**
+	 * Removing a user from a site deletes their tokens there, and nowhere else.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
+	 */
+	#[DataProvider( 'site_shapes' )]
+	public function test_removing_user_from_site_deletes_tokens_there_only( string $domain, string $path ): void {
+		$this->skipWithoutMultisite();
+
+		$main_tokens = $this->issue();
+		$site_id     = $this->create_site_with_publishio( $domain, $path );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		switch_to_blog( $site_id );
+		$site_rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertSame( [], $site_rows );
+		$this->assertNotNull( Token_Store::validate_access_token( $main_tokens['access_token'] ) );
+	}
+
+	/**
+	 * Removing a user from a site that never ran Publishio doesn't touch a token table, which doesn't exist there.
+	 */
+	public function test_removing_user_from_site_without_publishio_queries_no_table(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = self::factory()->blog->create( [ 'path' => '/site3/' ] );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		$queries = [];
+		add_filter(
+			'query',
+			static function ( string $query ) use ( &$queries ): string {
+				if ( str_contains( $query, 'publishio_oauth_tokens' ) ) {
+					$queries[] = $query;
+				}
+
+				return $query;
+			}
+		);
+
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		$this->assertSame( [], $queries );
+	}
+
+	/**
+	 * Deleting a site drops its token table along with core's tables.
+	 */
+	public function test_site_table_dropped_with_site(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$prefix = $wpdb->get_blog_prefix( 7 );
+		$tables = apply_filters( 'wpmu_drop_tables', [ 'posts' => $prefix . 'posts' ], 7 );
+
+		$this->assertSame(
+			[
+				'posts' => $prefix . 'posts',
+				$prefix . 'publishio_oauth_tokens',
+			],
+			$tables
+		);
+	}
+
+	/**
+	 * Marking a user as spam ends their connections on every site.
+	 */
+	public function test_marking_user_as_spam_ends_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$tokens = $this->issue();
+
+		wp_update_user(
+			[
+				'ID'   => $this->user_id,
+				'spam' => '1',
+			]
+		);
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+		$this->assertGreaterThan( 0, (int) get_user_meta( $this->user_id, 'publishio_tokens_revoked_at', true ) );
+	}
+
+	/**
+	 * A spam flag set without the make_spam_user action, directly in the database, blocks the user's tokens too.
+	 */
+	public function test_spam_flag_blocks_tokens_without_the_action(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$tokens = $this->issue();
+		$wpdb->update( $wpdb->users, [ 'spam' => 1 ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $this->user_id );
+
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+		$this->assertSame( [], Token_Store::get_connections( 0, 10, time() ) );
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+	}
+
+	/**
+	 * The spam check is about the token's owner, never the logged-in user, even when the owner no longer exists.
+	 */
+	public function test_spam_check_ignores_the_logged_in_user(): void {
+		global $wpdb;
+
+		$this->skipWithoutMultisite();
+
+		$spammer = self::factory()->user->create();
+		$wpdb->update( $wpdb->users, [ 'spam' => 1 ], [ 'ID' => $spammer ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $spammer );
+		wp_set_current_user( $spammer );
+
+		$this->assertFalse( Token_Store::is_revoked( 999999, time() ) );
+		$this->assertFalse( Token_Store::is_revoked( $this->user_id, time() ) );
+	}
+
+	/**
+	 * Rejoining a site removes connections left there after the user was removed, such as one from a code approved just before the removal.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
+	 */
+	#[DataProvider( 'site_shapes' )]
+	public function test_rejoining_a_site_removes_leftover_connections( string $domain, string $path ): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( $domain, $path );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+		remove_user_from_blog( $this->user_id, $site_id );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertSame( [], $rows );
+	}
+
+	/**
+	 * Core fires the join action for a current member too, such as when their role changes or a sign-in plugin syncs it. Their connections stay.
+	 */
+	public function test_role_change_keeps_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( '', '/site2/' );
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'author' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertCount( 1, $rows );
+	}
+
+	/**
+	 * A super admin can connect apps on a site they aren't a member of. Joining it keeps those connections.
+	 */
+	public function test_super_admin_joining_keeps_connections(): void {
+		$this->skipWithoutMultisite();
+
+		$site_id = $this->create_site_with_publishio( '', '/site2/' );
+		grant_super_admin( $this->user_id );
+
+		switch_to_blog( $site_id );
+		$this->issue();
+		restore_current_blog();
+
+		add_user_to_blog( $site_id, $this->user_id, 'editor' );
+
+		switch_to_blog( $site_id );
+		$rows = $this->rows();
+		restore_current_blog();
+
+		$this->assertCount( 1, $rows );
+	}
+
+	/**
+	 * A site in a subdirectory of the network's domain, and one on its own subdomain.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function site_shapes(): array {
+		return [
+			'subdirectory' => [ '', '/site2/' ],
+			'subdomain'    => [ 'site2.example.org', '/' ],
+		];
+	}
+
+	/**
+	 * A site with Publishio's token table, as Publishio sets one up on its first request there.
+	 *
+	 * @param string $domain Site domain; the network's when empty.
+	 * @param string $path   Site path.
+	 */
+	private function create_site_with_publishio( string $domain, string $path ): int {
+		$site_id = self::factory()->blog->create(
+			[
+				'domain' => '' === $domain ? get_network()->domain : $domain,
+				'path'   => $path,
+			]
+		);
+
+		switch_to_blog( $site_id );
+		Token_Store::create_table();
+		update_option( 'publishio_version', PUBLISHIO_VERSION );
+		restore_current_blog();
+
+		return $site_id;
+	}
+
+	/**
+	 * Change the test user's password without the hooks that revoke tokens, as on a site where Publishio isn't loaded.
+	 *
+	 * @param string $password The new password.
+	 */
+	private function change_password_unseen( string $password ): void {
+		global $wpdb;
+
+		$wpdb->update( $wpdb->users, [ 'user_pass' => wp_hash_password( $password ) ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $this->user_id );
+	}
+
+	/**
+	 * Click "Log Out Everywhere" on a user's profile as a new user with this role. On multisite an administrator is a super admin, since only they can edit other users.
 	 *
 	 * @param int    $user_id The user to log out.
 	 * @param string $role    Role of the user clicking.
 	 */
 	private static function log_out_everywhere( int $user_id, string $role ): void {
-		wp_set_current_user( self::factory()->user->create( [ 'role' => $role ] ) );
+		$clicker = self::factory()->user->create( [ 'role' => $role ] );
+
+		if ( is_multisite() && 'administrator' === $role ) {
+			grant_super_admin( $clicker );
+		}
+
+		wp_set_current_user( $clicker );
 		$_POST['user_id'] = (string) $user_id;
 		$_POST['nonce']   = wp_create_nonce( 'update-user_' . $user_id );
 

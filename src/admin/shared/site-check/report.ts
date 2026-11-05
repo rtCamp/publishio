@@ -51,6 +51,20 @@ function table( exchanges: Exchange[] ): string[] {
 	];
 }
 
+function siteKind( facts: SiteFacts ): string {
+	if ( ! facts.network ) {
+		return facts.multisite ? 'multisite' : 'single site';
+	}
+
+	if ( ! facts.network.subdirectory ) {
+		return 'multisite, site at the root of its domain';
+	}
+
+	return facts.network.mainSiteActive
+		? 'multisite, subdirectory site, Publishio runs on the main site'
+		: "multisite, subdirectory site, Publishio isn't running on the main site";
+}
+
 function site( facts: SiteFacts | null ): string[] {
 	if ( ! facts ) {
 		return [ __( "Site details couldn't be loaded.", 'publishio' ), '' ];
@@ -75,9 +89,7 @@ function site( facts: SiteFacts | null ): string[] {
 		) }`,
 		`- Publishio ${ facts.publishioVersion }, WordPress ${
 			facts.wpVersion
-		} (${ facts.multisite ? 'multisite' : 'single site' }), PHP ${
-			facts.phpVersion
-		}`,
+		} (${ siteKind( facts ) }), PHP ${ facts.phpVersion }`,
 		`- ${ sprintf(
 			/* translators: %s: plain or pretty */
 			__( 'Permalinks: %s', 'publishio' ),

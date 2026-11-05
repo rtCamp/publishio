@@ -170,6 +170,76 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
+	 * Whether a host belongs to this WordPress install: this site's addresses and, on multisite, every site's and network's domain, or any name under one, ignoring a leading www.
+	 *
+	 * Content on those domains comes from the install's users, not from an app's developer, so it could pose as an app under a domain they trust. WordPress serves a site on its www. name too, and wildcard DNS, which subdomain networks need, sends any name under a domain to the same server, which serves uploads for any name.
+	 *
+	 * @param string $host Lowercase ASCII host, without a port.
+	 */
+	private static function is_install_host( string $host ): bool {
+		$name = self::without_www( $host );
+
+		foreach ( [ home_url(), site_url() ] as $url ) {
+			if ( self::is_same_or_subdomain( $name, self::without_www( strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) ) ) ) {
+				return true;
+			}
+		}
+
+		if ( ! is_multisite() ) {
+			return false;
+		}
+
+		$query = self::domain_query( self::with_parent_domains( $name ) );
+
+		return [] !== get_sites( $query ) || [] !== get_networks( $query );
+	}
+
+	/**
+	 * A host and every domain above it with at least two labels, each with and without www.
+	 *
+	 * @param string $host Host without www.
+	 *
+	 * @return list<string>
+	 */
+	private static function with_parent_domains( string $host ): array {
+		$labels  = explode( '.', $host );
+		$levels  = count( $labels ) - 1;
+		$domains = [];
+
+		for ( $i = 0; $i < $levels; $i++ ) {
+			$domain    = implode( '.', array_slice( $labels, $i ) );
+			$domains[] = $domain;
+			$domains[] = 'www.' . $domain;
+		}
+
+		return $domains;
+	}
+
+	/**
+	 * Query arguments for get_sites() and get_networks(): does any have one of these domains.
+	 *
+	 * @param string[] $domains Domains to look for.
+	 *
+	 * @return array{domain__in: string[], number: int, fields: string}
+	 */
+	private static function domain_query( array $domains ): array {
+		return [
+			'domain__in' => $domains,
+			'number'     => 1,
+			'fields'     => 'ids',
+		];
+	}
+
+	/**
+	 * A host without a leading www.
+	 *
+	 * @param string $host Host.
+	 */
+	private static function without_www( string $host ): string {
+		return str_starts_with( $host, 'www.' ) ? substr( $host, 4 ) : $host;
+	}
+
+	/**
 	 * Whether $host equals $base or is a subdomain of it.
 	 *
 	 * @param string $host Host to check.
@@ -181,7 +251,7 @@ final class Client_Metadata_Validator {
 	}
 
 	/**
-	 * Host rules for the client_id: a public DNS name that isn't this site, optionally narrowed by an allowlist.
+	 * Host rules for the client_id: a public DNS name outside this WordPress install, optionally narrowed by an allowlist.
 	 *
 	 * @param string $host Lowercase ASCII host.
 	 */
@@ -200,9 +270,13 @@ final class Client_Metadata_Validator {
 			}
 		}
 
-		// Not this site itself because content on the site could otherwise pose as an app under the site's own domain.
-		$site_hosts = [ wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( site_url(), PHP_URL_HOST ) ];
-		if ( in_array( $host, $site_hosts, true ) ) {
+		/**
+		 * Filters whether a client_id host belongs to this WordPress install, which refuses it. Return false to let an app you run under your own domain, such as ai.example.com, connect.
+		 *
+		 * @param bool   $is_install_host Whether the host is this site's address, or a site's or network's domain, or a name under one.
+		 * @param string $host            The client_id's host.
+		 */
+		if ( (bool) apply_filters( 'publishio_cimd_is_install_host', self::is_install_host( $host ), $host ) ) {
 			return false;
 		}
 

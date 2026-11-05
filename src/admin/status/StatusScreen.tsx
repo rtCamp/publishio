@@ -141,6 +141,10 @@ export function StatusScreen() {
 				<CaveatPanel
 					mcpUrl={ window.publishioAdmin?.mcpServerUrl ?? '' }
 					issuerUrl={ window.publishioAdmin?.issuerUrl ?? '' }
+					siteBySite={
+						!! siteCheck.facts?.network &&
+						! siteCheck.facts.network.networkActive
+					}
 				/>
 			</div>
 			{ showReport && null !== checkedAt && (

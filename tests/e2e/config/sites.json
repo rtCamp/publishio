@@ -42,11 +42,26 @@
 			"php": "8.2"
 		},
 		"test-multisite": {
-			"description": "Repo mounted as the plugin on a multisite network, latest WordPress (or WP_ENV_CORE); weekly run",
+			"description": "Repo mounted as the plugin on a subdirectory multisite network, latest WordPress (or WP_ENV_CORE), with a subsite at /site2/",
 			"wpEnvConfig": ".wp-env.test-multisite.json",
 			"baseURL": "http://localhost:8893",
 			"plugin": "mounted",
-			"debugLog": "tests/_output/debug-test-multisite.log"
+			"debugLog": "tests/_output/debug-test-multisite.log",
+			"subsite": {
+				"slug": "site2",
+				"url": "http://localhost:8893/site2/"
+			}
+		},
+		"test-multisite-subdomain": {
+			"description": "Repo mounted as the plugin on a subdomain multisite network, latest WordPress (or WP_ENV_CORE), with a subsite at site2.localhost. Cookies are per host, since Chromium refuses the .localhost cookie domain",
+			"wpEnvConfig": ".wp-env.test-multisite-subdomain.json",
+			"baseURL": "http://localhost:8896",
+			"plugin": "mounted",
+			"debugLog": "tests/_output/debug-test-multisite-subdomain.log",
+			"subsite": {
+				"slug": "site2",
+				"url": "http://site2.localhost:8896/"
+			}
 		}
 	},
 	"projects": {
@@ -101,10 +116,34 @@
 			"timeout": 120000
 		},
 		"smoke-multisite": {
-			"description": "Smoke on a multisite network (weekly scheduled run), plus the @multisite activation checks that INSTALL covers on single sites",
+			"description": "Smoke on a subdirectory multisite network (weekly scheduled run), plus the @multisite activation checks that INSTALL covers on single sites",
 			"site": "test-multisite",
 			"testMatch": [ "smoke/**/*.spec.js" ],
 			"grep": "@smoke|@multisite",
+			"retries": 1,
+			"timeout": 60000
+		},
+		"smoke-multisite-subdomain": {
+			"description": "Smoke on a subdomain multisite network (weekly scheduled run), plus the @multisite activation checks",
+			"site": "test-multisite-subdomain",
+			"testMatch": [ "smoke/**/*.spec.js" ],
+			"grep": "@smoke|@multisite",
+			"retries": 1,
+			"timeout": 60000
+		},
+		"multisite": {
+			"description": "Every PR: connecting to a subsite of a subdirectory network",
+			"site": "test-multisite",
+			"testMatch": [ "multisite/**/*.spec.js" ],
+			"grep": "@multisite",
+			"retries": 1,
+			"timeout": 60000
+		},
+		"multisite-subdomain": {
+			"description": "Every PR: connecting to a subsite of a subdomain network",
+			"site": "test-multisite-subdomain",
+			"testMatch": [ "multisite/**/*.spec.js" ],
+			"grep": "@multisite",
 			"retries": 1,
 			"timeout": 60000
 		}

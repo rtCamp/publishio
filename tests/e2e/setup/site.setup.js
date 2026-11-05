@@ -17,6 +17,21 @@ import { currentSite, pointWordPressUtilsAt, settings } from '../config/env';
 import { ALREADY, wpCli, wpCliQuietly } from '../utils/wp-cli';
 import { ensureRunning } from '../utils/wp-env';
 
+/**
+ * Create the network's subsite if needed, with pretty permalinks and Publishio active. The main site keeps Publishio too: it answers discovery for a subdirectory site.
+ * @param {{slug: string, url: string}} subsite The subsite's slug and URL.
+ */
+function prepareSubsite( subsite ) {
+	if (
+		! wpCli( 'site list --field=url' ).split( '\n' ).includes( subsite.url )
+	) {
+		wpCli( `site create --slug=${ subsite.slug }` );
+	}
+
+	wpCli( `rewrite structure '/%postname%/' --url=${ subsite.url }` );
+	wpCli( `plugin activate publishio --url=${ subsite.url }` );
+}
+
 setup( 'prepare site', async ( { playwright } ) => {
 	const site = currentSite();
 	setup.info().annotations.push( {
@@ -52,6 +67,10 @@ setup( 'prepare site', async ( { playwright } ) => {
 	if ( site.plugin === 'mounted' ) {
 		wpCli( 'plugin activate publishio' );
 		wpCli( 'rewrite flush --hard' );
+
+		if ( site.subsite ) {
+			prepareSubsite( site.subsite );
+		}
 	} else {
 		wpCliQuietly(
 			'plugin deactivate publishio --uninstall',

@@ -143,7 +143,7 @@ final class List_Patterns extends Ability {
 	protected function execute( array $input ): array {
 		$given   = [
 			'search'    => isset( $input['search'] ) ? sanitize_text_field( (string) $input['search'] ) : null,
-			'category'  => isset( $input['category'] ) ? sanitize_title( (string) $input['category'] ) : null,
+			'category'  => isset( $input['category'] ) ? sanitize_text_field( (string) $input['category'] ) : null,
 			'source'    => isset( $input['source'] ) ? (string) $input['source'] : null,
 			'synced'    => isset( $input['synced'] ) ? (bool) $input['synced'] : null,
 			'post_type' => isset( $input['post_type'] ) ? sanitize_key( (string) $input['post_type'] ) : null,

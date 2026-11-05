@@ -13,6 +13,8 @@ import { CodeBlock } from './TechnicalDetails';
 interface CaveatPanelProps {
 	mcpUrl: string;
 	issuerUrl: string;
+	/** A network where Publishio is activated site by site, not network-activated. */
+	siteBySite?: boolean;
 }
 
 /**
@@ -40,7 +42,11 @@ function commands( mcpUrl: string, issuerUrl: string ): string {
 	return lines.join( '\n' );
 }
 
-export function CaveatPanel( { mcpUrl, issuerUrl }: CaveatPanelProps ) {
+export function CaveatPanel( {
+	mcpUrl,
+	issuerUrl,
+	siteBySite = false,
+}: CaveatPanelProps ) {
 	const code = commands( mcpUrl, issuerUrl );
 
 	return (
@@ -66,6 +72,14 @@ export function CaveatPanel( { mcpUrl, issuerUrl }: CaveatPanelProps ) {
 							label={ __( 'Terminal', 'publishio' ) }
 							code={ code }
 						/>
+					) }
+					{ siteBySite && (
+						<p className="m-0 text-[13px] text-gray-700">
+							{ __(
+								"Publishio is activated site by site on this network. Log Out Everywhere on a site that doesn't run it leaves AI app connections working on the others. Network-activate Publishio so it reaches every site.",
+								'publishio'
+							) }
+						</p>
 					) }
 				</div>
 			</PanelBody>

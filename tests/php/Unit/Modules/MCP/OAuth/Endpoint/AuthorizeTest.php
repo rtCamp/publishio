@@ -151,6 +151,15 @@ class AuthorizeTest extends TestCase {
 	}
 
 	/**
+	 * Approving records the user's password, so a later change Publishio doesn't see still ends the connection.
+	 */
+	public function test_approve_records_the_password(): void {
+		$this->post( 'mcp:read', 'approve' );
+
+		$this->assertNotSame( '', get_user_meta( get_current_user_id(), 'publishio_password_fingerprint', true ) );
+	}
+
+	/**
 	 * Approving a form with no supported scope gets an error page and issues no code.
 	 */
 	public function test_approve_with_unsupported_scope_shows_error(): void {

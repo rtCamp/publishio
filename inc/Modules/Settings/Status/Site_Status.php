@@ -69,7 +69,7 @@ final class Site_Status {
 	/**
 	 * Site details that explain check results and fill the report.
 	 *
-	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, mcp_server: bool, tools: int, network: array{subdirectory: bool, main_site_active: bool}|null}
+	 * @return array{publishio_version: string, wp_version: string, php_version: string, multisite: bool, home_url: string, site_url: string, mcp_url: string, token_url: string, permalinks: string, mcp_adapter: array{version: string, bundled: bool, source: string}|null, mcp_server: bool, tools: int, network: array{subdirectory: bool, main_site_active: bool, network_active: bool}|null}
 	 */
 	public function facts(): array {
 		$server = Server::get_server();
@@ -96,7 +96,9 @@ final class Site_Status {
 	 *
 	 * A subdirectory site is under the site at the root of its domain, usually the main site, which answers discovery for it, so Publishio has to run there too. A site with no site at its domain's root, as on a network installed in a subfolder, isn't one: nothing on the network can answer for it.
 	 *
-	 * @return array{subdirectory: bool, main_site_active: bool}|null
+	 * Without network activation, Log Out Everywhere on a site that doesn't run Publishio leaves its connections working elsewhere.
+	 *
+	 * @return array{subdirectory: bool, main_site_active: bool, network_active: bool}|null
 	 */
 	private static function network(): ?array {
 		$site = is_multisite() ? get_site() : null;
@@ -105,11 +107,13 @@ final class Site_Status {
 			return null;
 		}
 
-		$root = Path_Discovery::root_site();
+		$root     = Path_Discovery::root_site();
+		$sitewide = (array) get_site_option( 'active_sitewide_plugins', [] );
 
 		return [
 			'subdirectory'     => '/' !== $site->path && null !== $root,
 			'main_site_active' => null !== $root && Path_Discovery::is_active_on( $root ),
+			'network_active'   => isset( $sitewide[ plugin_basename( PUBLISHIO_FILE ) ] ),
 		];
 	}
 

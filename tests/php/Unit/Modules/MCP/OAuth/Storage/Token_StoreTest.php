@@ -416,7 +416,8 @@ class Token_StoreTest extends TestCase {
 		// An old phpass hash, as users who haven't logged in since WordPress 6.8 still have.
 		$wpdb->update( $wpdb->users, [ 'user_pass' => ( new \PasswordHash( 8, true ) )->HashPassword( 'password' ) ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
 		clean_user_cache( $this->user_id );
-		$tokens       = $this->issue();
+		$tokens = $this->issue();
+		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ), 'records the password fingerprint' );
 		$set_password = did_action( 'wp_set_password' );
 
 		$user = wp_authenticate( get_userdata( $this->user_id )->user_login, 'password' );
@@ -425,6 +426,38 @@ class Token_StoreTest extends TestCase {
 		$this->assertSame( $set_password + 1, did_action( 'wp_set_password' ) );
 		$this->assertStringStartsWith( '$wp', get_userdata( $this->user_id )->user_pass );
 		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+	}
+
+	/**
+	 * A password changed where Publishio wasn't loaded, such as another site of a network, ends the user's connections the next time one is used. Connections from before the fingerprint existed are watched from their first use. One approved after the change works.
+	 */
+	public function test_password_change_publishio_did_not_see_ends_connections(): void {
+		$tokens = $this->issue();
+		$this->assertNotNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+
+		$this->assertNull( Token_Store::validate_access_token( $tokens['access_token'] ) );
+		$this->assertNull( Token_Store::refresh( $tokens['refresh_token'], self::CLIENT_ID ) );
+		$this->assertSame( 0, Token_Store::count_connections( time() ) );
+
+		Token_Store::remember_password( $this->user_id );
+		$after = Token_Store::issue( $this->user_id, self::CLIENT_ID, 'After', 'mcp:read', 'https://example.org/wp-json/mcp/publishio', time() + 1 );
+
+		$this->assertIsArray( $after );
+		$this->assertNotNull( Token_Store::validate_access_token( $after['access_token'] ) );
+	}
+
+	/**
+	 * An authorization code approved before a password change Publishio didn't see can't be exchanged.
+	 */
+	public function test_code_from_before_an_unseen_password_change_is_refused(): void {
+		Token_Store::remember_password( $this->user_id );
+		$created_at = time();
+
+		$this->change_password_unseen( 'changed-elsewhere' );
+
+		$this->assertTrue( Token_Store::is_revoked( $this->user_id, $created_at ) );
 	}
 
 	/**
@@ -636,6 +669,18 @@ class Token_StoreTest extends TestCase {
 		restore_current_blog();
 
 		return $site_id;
+	}
+
+	/**
+	 * Change the test user's password without the hooks that revoke tokens, as on a site where Publishio isn't loaded.
+	 *
+	 * @param string $password The new password.
+	 */
+	private function change_password_unseen( string $password ): void {
+		global $wpdb;
+
+		$wpdb->update( $wpdb->users, [ 'user_pass' => wp_hash_password( $password ) ], [ 'ID' => $this->user_id ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPressVIPMinimum.Variables.RestrictedVariables.user_meta__wpdb__users
+		clean_user_cache( $this->user_id );
 	}
 
 	/**

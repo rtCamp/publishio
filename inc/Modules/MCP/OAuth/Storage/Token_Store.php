@@ -25,6 +25,11 @@ class Token_Store implements Registrable {
 	private const REVOKED_AT_META = 'publishio_tokens_revoked_at';
 
 	/**
+	 * User meta holding a fingerprint of the user's password hash, from when they last approved an app. A different hash means the password changed, perhaps on a site of the network where Publishio isn't loaded to see it.
+	 */
+	private const PASSWORD_META = 'publishio_password_fingerprint';
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function register_hooks(): void {
@@ -453,10 +458,66 @@ class Token_Store implements Registrable {
 	private static function revoke_issued_until_now( int $user_id ): void {
 		update_user_meta( $user_id, self::REVOKED_AT_META, time() );
 		self::revoke_all( $user_id );
+		self::follow_password( $user_id );
 	}
 
 	/**
-	 * Whether a user's token or authorization code was revoked after it was issued, or the user is marked as spam on the network.
+	 * Record the user's current password, as they approve an app.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	public static function remember_password( int $user_id ): void {
+		update_user_meta( $user_id, self::PASSWORD_META, self::password_fingerprint( $user_id ) );
+	}
+
+	/**
+	 * Keep the recorded password in step after a change Publishio saw, for a user who has one recorded.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function follow_password( int $user_id ): void {
+		if ( metadata_exists( 'user', $user_id, self::PASSWORD_META ) ) {
+			self::remember_password( $user_id );
+		}
+	}
+
+	/**
+	 * A fingerprint of the user's password hash, or an empty string for a user who doesn't exist.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function password_fingerprint( int $user_id ): string {
+		$user = get_userdata( $user_id );
+
+		return $user instanceof \WP_User ? wp_hash( $user->user_pass, 'auth', 'sha256' ) : '';
+	}
+
+	/**
+	 * Revoke the user's tokens if their password changed since it was recorded.
+	 *
+	 * Catches a change made where Publishio wasn't loaded to revoke at the time, such as another site of a network. A login that only re-hashes the password there counts too, so those connections end; that is rare, and safe.
+	 *
+	 * @param int $user_id The WordPress user ID.
+	 */
+	private static function notice_password_change( int $user_id ): void {
+		$recorded = (string) get_user_meta( $user_id, self::PASSWORD_META, true );
+		$current  = self::password_fingerprint( $user_id );
+
+		if ( '' === $current || $recorded === $current ) {
+			return;
+		}
+
+		// Connections approved before the fingerprint existed start from the current password.
+		if ( '' === $recorded ) {
+			self::remember_password( $user_id );
+			return;
+		}
+
+		self::revoke_issued_until_now( $user_id );
+	}
+
+	/**
+	 * Whether a user's token or authorization code was revoked after it was issued, or the user is marked as spam on the network. A password change Publishio didn't see is revoked here first.
 	 *
 	 * The revocation's own second counts, or a script with the old password could mint codes just before it.
 	 *
@@ -464,6 +525,8 @@ class Token_Store implements Registrable {
 	 * @param int $issued_at When the code was created or the connection approved.
 	 */
 	public static function is_revoked( int $user_id, int $issued_at ): bool {
+		self::notice_password_change( $user_id );
+
 		$revoked_at = (int) get_user_meta( $user_id, self::REVOKED_AT_META, true );
 
 		if ( $revoked_at > 0 && $issued_at <= $revoked_at ) {
@@ -505,6 +568,7 @@ class Token_Store implements Registrable {
 
 		// Logging in re-hashes an unchanged password whose hash is outdated. Only then is the password worth a second hash check.
 		if ( null !== $old_pass && is_string( $password ) && doing_filter( 'authenticate' ) && wp_check_password( $password, $old_pass, $user_id ) ) {
+			self::follow_password( $user_id );
 			return;
 		}
 

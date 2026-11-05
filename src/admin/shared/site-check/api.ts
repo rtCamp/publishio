@@ -41,6 +41,7 @@ function toFacts( data: unknown ): SiteFacts {
 			? {
 					subdirectory: true === network[ 'subdirectory' ],
 					mainSiteActive: true === network[ 'main_site_active' ],
+					networkActive: true === network[ 'network_active' ],
 			  }
 			: null,
 	};

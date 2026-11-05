@@ -489,7 +489,11 @@ describe( 'checks against a site', () => {
 					facts: {
 						...FACTS,
 						multisite: true,
-						network: { subdirectory: true, mainSiteActive },
+						network: {
+							subdirectory: true,
+							mainSiteActive,
+							networkActive: false,
+						},
 					},
 				}
 			);

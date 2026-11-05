@@ -18,6 +18,7 @@ use rtCamp\Publishio\Modules\MCP\OAuth\Client\Client_Metadata_Validator;
 use rtCamp\Publishio\Modules\MCP\OAuth\Config;
 use rtCamp\Publishio\Modules\MCP\OAuth\Scope;
 use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Auth_Code_Store;
+use rtCamp\Publishio\Modules\MCP\OAuth\Storage\Token_Store;
 use rtCamp\Publishio\Modules\MCP\Server\Server;
 
 /**
@@ -193,6 +194,8 @@ class Authorize implements Registrable {
 			$this->render_error( $scope );
 			return;
 		}
+
+		Token_Store::remember_password( get_current_user_id() );
 
 		$code = Auth_Code_Store::create(
 			get_current_user_id(),

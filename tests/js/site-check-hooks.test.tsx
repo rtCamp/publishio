@@ -18,6 +18,8 @@ import {
 import { siteCheckApi } from '@/admin/shared/site-check/api';
 import { useSiteCheck } from '@/admin/shared/site-check/useSiteCheck';
 import { GuideScreen } from '@/admin/guide/GuideScreen';
+import { StatusScreen } from '@/admin/status/StatusScreen';
+import type { SiteFacts } from '@/admin/shared/site-check/types';
 
 jest.mock( '@wordpress/i18n', () => jest.requireActual( '@wordpress/i18n' ) );
 
@@ -104,5 +106,61 @@ describe( 'GuideScreen', () => {
 		expect(
 			screen.getByText( 'Checking whether AI apps can connect…' )
 		).toBeInTheDocument();
+	} );
+} );
+
+describe( 'StatusScreen', () => {
+	const facts = ( network: SiteFacts[ 'network' ] ): SiteFacts => ( {
+		publishioVersion: '1.3.0',
+		wpVersion: '7.1.3',
+		phpVersion: '8.4.18',
+		multisite: null !== network,
+		homeUrl: SITE,
+		siteUrl: SITE,
+		mcpUrl: `${ SITE }/wp-json/mcp/publishio`,
+		permalinks: 'pretty',
+		mcpAdapter: { version: '0.6.1', bundled: true, source: 'publishio' },
+		mcpServer: true,
+		tools: 21,
+		network,
+	} );
+
+	it.each( [
+		[ 'activated site by site', false, true ],
+		[ 'network-activated', true, false ],
+	] )(
+		'on a network where Publishio is %s, says whether Log Out Everywhere misses sites without it',
+		async ( _, networkActive, shown ) => {
+			jest.mocked( siteCheckApi.facts ).mockResolvedValueOnce(
+				facts( {
+					subdirectory: true,
+					mainSiteActive: true,
+					networkActive,
+				} )
+			);
+
+			await act( async () => {
+				render( <StatusScreen /> );
+			} );
+
+			expect(
+				null !== screen.queryByText( /activated site by site/ )
+			).toBe( shown );
+		}
+	);
+
+	it( 'has no network note on a single site', async () => {
+		jest.mocked( siteCheckApi.facts ).mockResolvedValueOnce(
+			facts( null )
+		);
+
+		await act( async () => {
+			render( <StatusScreen /> );
+		} );
+
+		expect(
+			screen.getByText( /run these from another network/ )
+		).toBeInTheDocument();
+		expect( screen.queryByText( /activated site by site/ ) ).toBeNull();
 	} );
 } );

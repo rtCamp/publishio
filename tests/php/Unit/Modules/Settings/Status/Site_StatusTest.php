@@ -73,6 +73,7 @@ class Site_StatusTest extends TestCase {
 			[
 				'subdirectory'     => false,
 				'main_site_active' => true,
+				'network_active'   => false,
 			],
 			( new Site_Status() )->facts()['network']
 		);
@@ -96,6 +97,7 @@ class Site_StatusTest extends TestCase {
 			[
 				'subdirectory'     => true,
 				'main_site_active' => false,
+				'network_active'   => false,
 			],
 			$without
 		);
@@ -103,6 +105,7 @@ class Site_StatusTest extends TestCase {
 			[
 				'subdirectory'     => true,
 				'main_site_active' => true,
+				'network_active'   => false,
 			],
 			$with
 		);
@@ -129,9 +132,21 @@ class Site_StatusTest extends TestCase {
 			[
 				'subdirectory'     => false,
 				'main_site_active' => false,
+				'network_active'   => false,
 			],
 			$network
 		);
+	}
+
+	/**
+	 * Network activation is reported, since only then does Log Out Everywhere reach every site.
+	 */
+	public function test_facts_report_network_activation(): void {
+		$this->skipWithoutMultisite();
+
+		update_site_option( 'active_sitewide_plugins', [ plugin_basename( PUBLISHIO_FILE ) => time() ] );
+
+		$this->assertTrue( ( new Site_Status() )->facts()['network']['network_active'] );
 	}
 
 	/**

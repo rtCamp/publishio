@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.1
-Stable tag:        1.3.0
+Stable tag:        1.4.0
 
 AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
@@ -154,6 +154,16 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 == Changelog ==
 
+= 1.4.0 =
+* Support WordPress multisite networks, with sites in subfolders, on subdomains or on their own domains. Each site has its own MCP server URL and its own connections.
+* Let sites in subfolders connect. The main site answers AI apps for them, so Publishio must run there too, and the Status page on a subfolder site says if it doesn't.
+* List every connection on a site's Connections page, including those of super admins who aren't members and of users who were removed, with a label for each.
+* End a user's connections on a site when they're removed from it, and on every site when they're marked as spam. Remove a site's connections when the site is deleted.
+* End a user's connections on every site when they change their password anywhere on the network, even on a site that doesn't run Publishio.
+* Name the site on the profile's connections list, and make "Remove All Connections" end only that site's connections.
+* Refuse apps whose client ID is hosted on your site's domain, another site's domain on the network, or any name under one, so one site can't pose as an app to another. The `publishio_cimd_is_install_host` filter can allow an in-house app.
+* Fix list-patterns returning nothing for namespaced pattern categories, such as the Ollie theme's `ollie/card`.
+
 = 1.3.0 =
 * Let AI apps write and edit blocks directly instead of filling in pattern schemas. The AI builds from your site's patterns first, and adds, changes, moves, copies and removes blocks one section at a time.
 * Let the AI use any block the editor allows for the post type, including blocks from other plugins, on pages as well as posts.
@@ -206,6 +216,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+* Multisite support. On a network with sites in subfolders, network-activate Publishio or activate it on the main site too. Apps whose client ID is hosted on your own domain or a name under it are now refused; the `publishio_cimd_is_install_host` filter can allow one.
 
 = 1.3.0 =
 * Freeform block editing. Tools that edit blocks directly, and previews in the chat, replace the pattern-schema tools and the Pattern Approval screen. Start a new chat after updating so the AI uses the new tools.

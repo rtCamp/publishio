@@ -118,6 +118,53 @@ final class Schema {
 	}
 
 	/**
+	 * A post's custom fields, from Post_Fields::describe().
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function custom_fields(): array {
+		return [
+			'type'                 => 'object',
+			'description'          => 'The custom fields update-post can set, by key, such as a product\'s price: each with its value, its type and, when the site gives them, a title, description and allowed values (enum). A block bound to a field (core/post-meta) shows its value. Left out when there are none, and when get-post is called with path.',
+			'additionalProperties' => [
+				'type'       => 'object',
+				'required'   => [ 'value', 'type' ],
+				'properties' => [
+					'value'       => self::any_value(),
+					'type'        => [ 'type' => 'string' ],
+					'title'       => [ 'type' => 'string' ],
+					'description' => [ 'type' => 'string' ],
+					'enum'        => [ 'type' => 'array' ],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Custom field values by key, as update-post takes and returns them.
+	 *
+	 * @param string $description What the values are.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function field_values( string $description ): array {
+		return [
+			'type'                 => 'object',
+			'description'          => $description,
+			'additionalProperties' => self::any_value(),
+		];
+	}
+
+	/**
+	 * Any JSON value, for a custom field whose type its own schema gives.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function any_value(): array {
+		return [ 'type' => [ 'string', 'number', 'integer', 'boolean', 'array', 'object', 'null' ] ];
+	}
+
+	/**
 	 * A post's or block's outline, from Outline::of().
 	 *
 	 * @return array<string, mixed>

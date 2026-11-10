@@ -15,6 +15,7 @@ use rtCamp\Publishio\Modules\MCP\Editing\Block_Path;
 use rtCamp\Publishio\Modules\MCP\Editing\Block_Tree;
 use rtCamp\Publishio\Modules\MCP\Editing\Live_Approval;
 use rtCamp\Publishio\Modules\MCP\Editing\Outline;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Fields;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
@@ -39,7 +40,7 @@ final class Get_Post extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return __( 'Reads a post\'s details and its block outline: every block\'s path and a short text, plus each synced pattern\'s override fields. Returns no markup; use get-post-content for a block\'s markup. is_live means the post is published, scheduled or private, so edits need the user\'s approval.', 'publishio' );
+		return __( 'Reads a post\'s details, the custom fields update-post can set, and its block outline: every block\'s path and a short text, plus each synced pattern\'s override fields. Returns no markup; use get-post-content for a block\'s markup. is_live means the post is published, scheduled or private, so edits need the user\'s approval.', 'publishio' );
 	}
 
 	/**
@@ -92,6 +93,7 @@ final class Get_Post extends Ability {
 						'alt' => $string,
 					],
 				],
+				'fields'         => Schema::custom_fields(),
 				'outline'        => Schema::outline(),
 			],
 		];
@@ -130,6 +132,8 @@ final class Get_Post extends Ability {
 			return $outline;
 		}
 
+		$fields = isset( $input['path'] ) ? [] : Post_Fields::describe( $post );
+
 		return [
 			'post_id'        => $post->ID,
 			'title'          => $post->post_title,
@@ -146,7 +150,8 @@ final class Get_Post extends Ability {
 			'url'            => Post_Details::url( $post ),
 			'edit_url'       => (string) get_edit_post_link( $post, 'raw' ),
 			'featured_image' => self::featured_image( $post ),
-			'outline'        => $outline,
+		] + ( [] === $fields ? [] : [ 'fields' => $fields ] ) + [
+			'outline' => $outline,
 		];
 	}
 

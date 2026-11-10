@@ -12,6 +12,7 @@ namespace rtCamp\Publishio\Modules\MCP\Abilities\Content;
 use rtCamp\Publishio\Modules\MCP\Abilities\Ability;
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
 use rtCamp\Publishio\Modules\MCP\Editing\Errors;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Fields;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
@@ -36,7 +37,7 @@ final class Update_Post extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return __( 'Changes a post\'s title, slug, excerpt, parent or template. Only the fields given change. Content changes go through the block tools.', 'publishio' );
+		return __( 'Changes a post\'s title, slug, excerpt, parent, template or custom fields. Only the fields given change. Content changes go through the block tools.', 'publishio' );
 	}
 
 	/**
@@ -53,6 +54,7 @@ final class Update_Post extends Ability {
 					'maxLength'   => 200,
 					'description' => 'A template the theme offers for this post type, such as "page-wide". An empty string uses the default template.',
 				],
+				'fields'         => Schema::field_values( 'Custom fields to set, by the keys get-post lists under fields, such as {"price": 49}. null resets a field to its default. Each field takes the type get-post gives for it.' ),
 				'approval_token' => Schema::approval_token(),
 			] + Post_Details::properties(),
 			'additionalProperties' => false,
@@ -76,6 +78,7 @@ final class Update_Post extends Ability {
 				'parent_id' => [ 'type' => 'integer' ],
 				'template'  => $string,
 				'url'       => Schema::post_url(),
+				'fields'    => Schema::field_values( 'The custom fields given, as saved. The site may have changed a value, such as rounding a price.' ),
 			],
 		];
 	}
@@ -124,11 +127,28 @@ final class Update_Post extends Ability {
 			$fields['page_template'] = $template;
 		}
 
-		if ( [] !== $fields ) {
-			$result = wp_update_post( wp_slash( [ 'ID' => $post->ID ] + $fields ), true );
+		$values = Post_Fields::check( $post, is_array( $input['fields'] ?? null ) ? $input['fields'] : [] );
+
+		if ( is_wp_error( $values ) ) {
+			return $values;
+		}
+
+		$before  = $post;
+		$changes = [] !== $fields || [] !== $values;
+		$saved   = [];
+
+		// Saved as core's REST API saves a post, so the after-insert hooks and the revision see the new fields too.
+		if ( $changes ) {
+			$result = wp_update_post( wp_slash( [ 'ID' => $post->ID ] + $fields ), true, false );
 
 			if ( is_wp_error( $result ) ) {
 				return Errors::make( 'save_failed', $result->get_error_message(), 500 );
+			}
+
+			$saved = [] === $values ? [] : Post_Fields::save( $post, $values );
+
+			if ( is_wp_error( $saved ) ) {
+				return $saved;
 			}
 		}
 
@@ -136,6 +156,10 @@ final class Update_Post extends Ability {
 
 		if ( ! $post instanceof \WP_Post ) {
 			return Errors::post_not_found( (int) $input['post_id'] );
+		}
+
+		if ( $changes ) {
+			wp_after_insert_post( $post, true, $before );
 		}
 
 		return [
@@ -146,6 +170,6 @@ final class Update_Post extends Ability {
 			'parent_id' => (int) $post->post_parent,
 			'template'  => (string) get_page_template_slug( $post ),
 			'url'       => Post_Details::url( $post ),
-		];
+		] + ( [] === $saved ? [] : [ 'fields' => $saved ] );
 	}
 }

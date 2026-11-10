@@ -51,5 +51,6 @@ Pick the best image from the media library with `publishio-search-attachments`, 
 
 - Assign terms with `publishio-get-taxonomy-terms` and `publishio-set-post-terms`. No tool creates terms, so ask the user to add a new one in WordPress. Set the featured image with `publishio-set-featured-image`.
 - Set the slug and excerpt with `publishio-update-post`. If `publishio-get-yoast-meta` works, set the fields it returned with `publishio-set-yoast-meta`.
+- Set the custom fields `publishio-get-post` lists, such as a product's price, with `publishio-update-post`. A block bound to a field shows its value, so set the field instead of writing the value into the block.
 - When the content and all details are set, show the finished page with `publishio-preview-post` and share the links it returns. Show it again after later significant changes.
 - Offer to save new sections as patterns with `publishio-create-pattern`.

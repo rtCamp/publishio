@@ -31,7 +31,7 @@ import {
 } from './helpers';
 
 /** Release INSTALL-10 upgrades from. Pinned so runs are reproducible; bump it after each release. */
-const PREVIOUS_RELEASE = '1.1.0';
+const PREVIOUS_RELEASE = '1.4.0';
 
 const status = () => wpCli( 'plugin list --name=publishio --field=status' );
 

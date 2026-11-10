@@ -168,4 +168,54 @@ class Search_PostsTest extends Ability_TestCase {
 		sort( $own );
 		$this->assertSame( $own, $ids );
 	}
+
+	/**
+	 * Sticky posts follow the statuses and authors asked for like any other post, instead of being added to the results.
+	 */
+	public function test_sticky_posts_follow_the_filters(): void {
+		$author = self::factory()->user->create( [ 'role' => 'author' ] );
+		$sticky = self::factory()->post->create(
+			[
+				'post_author' => self::factory()->user->create( [ 'role' => 'author' ] ),
+				'post_status' => 'publish',
+			]
+		);
+		$draft  = self::factory()->post->create(
+			[
+				'post_author' => $author,
+				'post_status' => 'draft',
+			]
+		);
+
+		stick_post( $sticky );
+		wp_set_current_user( $author );
+
+		$this->assertSame( [ $draft ], $this->result_ids( $this->execute( [ 'status' => [ 'draft' ] ] ) ) );
+	}
+
+	/**
+	 * A type the post tools don't work on, such as menu items, isn't searched.
+	 */
+	public function test_unsupported_types_are_not_searched(): void {
+		$editor = self::factory()->user->create( [ 'role' => 'editor' ] );
+
+		self::factory()->post->create(
+			[
+				'post_type'   => 'nav_menu_item',
+				'post_status' => 'publish',
+				'post_author' => $editor,
+			]
+		);
+		wp_set_current_user( $editor );
+
+		$this->assertSame(
+			[],
+			$this->execute(
+				[
+					'post_type' => 'nav_menu_item',
+					'status'    => [ 'publish' ],
+				]
+			)
+		);
+	}
 }

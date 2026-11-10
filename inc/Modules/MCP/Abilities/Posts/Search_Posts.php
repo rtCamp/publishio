@@ -11,6 +11,7 @@ namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Post_Details;
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
  * Class - Search_Posts
@@ -36,7 +37,7 @@ class Search_Posts {
 						'post_type' => [
 							'type'        => 'string',
 							'default'     => 'post',
-							'description' => 'Post type slug. Defaults to "post". Use "any" for all types.',
+							'description' => 'Post type slug. Defaults to "post". Use "any" for every type get-post-types lists.',
 						],
 						'status'    => [
 							'type'        => 'array',
@@ -85,26 +86,41 @@ class Search_Posts {
 					return current_user_can( 'edit_posts' );
 				},
 				'execute_callback'    => static function ( array $input ): array {
-					$args = [
-						'post_type'      => sanitize_key( $input['post_type'] ?? 'post' ),
-						'post_status'    => array_map( 'sanitize_key', (array) ( $input['status'] ?? [ 'publish', 'draft' ] ) ),
-						'posts_per_page' => min( (int) ( $input['per_page'] ?? 10 ), 50 ),
-						'orderby'        => 'date',
-						'order'          => 'DESC',
-						'perm'           => 'editable',
+					$post_type = sanitize_key( $input['post_type'] ?? 'post' );
+					$per_page  = min( (int) ( $input['per_page'] ?? 10 ), 50 );
+					$types     = 'any' === $post_type ? wp_list_pluck( Post_Writer::editable_types(), 'name' ) : array_filter( [ $post_type ], [ Post_Writer::class, 'is_supported_type' ] );
+					$args      = [
+						'post_status'            => array_map( 'sanitize_key', (array) ( $input['status'] ?? [ 'publish', 'draft' ] ) ),
+						'posts_per_page'         => $per_page,
+						'orderby'                => [
+							'date' => 'DESC',
+							'ID'   => 'DESC',
+						],
+						'perm'                   => 'editable',
+						'ignore_sticky_posts'    => true,
+						'no_found_rows'          => true,
+						'update_post_meta_cache' => false,
 					];
 
 					if ( ! empty( $input['search'] ) ) {
 						$args['s'] = sanitize_text_field( $input['search'] );
 					}
 
-					$query   = new \WP_Query( $args );
+					// One query per type: with several types, WP_Query checks a capability no role has and returns only the user's own posts.
+					$posts = [];
+
+					foreach ( $types as $type ) {
+						$posts = array_merge( $posts, array_filter( ( new \WP_Query( [ 'post_type' => $type ] + $args ) )->posts, static fn ( $post ): bool => $post instanceof \WP_Post ) );
+					}
+
+					usort(
+						$posts,
+						static fn ( \WP_Post $a, \WP_Post $b ): int => [ $b->post_date, $b->ID ] <=> [ $a->post_date, $a->ID ]
+					);
+
 					$results = [];
 
-					foreach ( $query->posts as $post ) {
-						if ( ! ( $post instanceof \WP_Post ) ) {
-							continue;
-						}
+					foreach ( array_slice( $posts, 0, $per_page ) as $post ) {
 						$results[] = [
 							'post_id'   => $post->ID,
 							'title'     => $post->post_title,

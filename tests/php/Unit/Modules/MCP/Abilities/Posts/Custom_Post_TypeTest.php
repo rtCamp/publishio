@@ -38,8 +38,12 @@ class Custom_Post_TypeTest extends TestCase {
 
 	private const GENRE = 'publishio_genre';
 
+	private const SECRET = 'publishio_secret';
+
+	private const INTERNAL = 'publishio_internal';
+
 	/**
-	 * Register a book type with a genre taxonomy, featured images and excerpts, a note type without them, and a ledger type visitors can't view, and run as an editor.
+	 * Register a book type with a genre taxonomy, featured images and excerpts, a note type without them, a ledger type visitors can't view, a secret type with its own capabilities and an internal type without an admin screen, and run as an editor.
 	 */
 	protected function setUp(): void {
 		parent::setUp();
@@ -73,6 +77,22 @@ class Custom_Post_TypeTest extends TestCase {
 				'supports'     => [ 'title', 'editor' ],
 			]
 		);
+		register_post_type(
+			'publishio_secret',
+			[
+				'public'          => false,
+				'show_ui'         => true,
+				'capability_type' => 'publishio_secret',
+				'map_meta_cap'    => true,
+			]
+		);
+		register_post_type(
+			'publishio_internal',
+			[
+				'public'  => false,
+				'show_ui' => false,
+			]
+		);
 		register_taxonomy(
 			self::GENRE,
 			self::BOOK,
@@ -93,6 +113,8 @@ class Custom_Post_TypeTest extends TestCase {
 		unregister_post_type( self::BOOK );
 		unregister_post_type( self::NOTE );
 		unregister_post_type( self::LEDGER );
+		unregister_post_type( self::SECRET );
+		unregister_post_type( self::INTERNAL );
 		wp_set_current_user( 0 );
 
 		parent::tearDown();
@@ -304,6 +326,124 @@ class Custom_Post_TypeTest extends TestCase {
 		$this->assertIsArray( $renamed );
 		$this->assertSame( 'Renamed', $renamed['title'] );
 		$this->assertNull( $renamed['url'] );
+	}
+
+	/**
+	 * Searching every type finds items of types visitors can't view and other people's items, newest first.
+	 */
+	public function test_any_finds_types_visitors_cant_view(): void {
+		$admin = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$entry = self::factory()->post->create(
+			[
+				'post_type'   => self::LEDGER,
+				'post_status' => 'publish',
+				'post_author' => $admin,
+				'post_title'  => 'Harbor Hotel invoice',
+				'post_date'   => '2026-03-02 00:00:00',
+			]
+		);
+		$book  = self::factory()->post->create(
+			[
+				'post_type'   => self::BOOK,
+				'post_status' => 'publish',
+				'post_author' => $admin,
+				'post_title'  => 'Harbor Hotel guide',
+				'post_date'   => '2026-03-01 00:00:00',
+			]
+		);
+
+		$found = $this->run_ability(
+			'search-posts',
+			[
+				'search'    => 'Harbor Hotel',
+				'post_type' => 'any',
+				'status'    => [ 'publish' ],
+			]
+		);
+
+		$this->assertIsArray( $found );
+		$this->assertSame( [ $entry, $book ], array_column( $found, 'post_id' ) );
+		$this->assertSame( self::LEDGER, $found[0]['post_type'] );
+	}
+
+	/**
+	 * Searching every type leaves out other people's items without the right to edit them, types the user can't edit, and types without an admin screen.
+	 */
+	public function test_any_searches_only_what_the_user_can_edit(): void {
+		$admin       = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$contributor = self::factory()->user->create( [ 'role' => 'contributor' ] );
+		$create      = static fn ( string $type, int $author ): int => self::factory()->post->create(
+			[
+				'post_type'   => $type,
+				'post_status' => 'draft',
+				'post_author' => $author,
+				'post_title'  => 'Quarterly report',
+			]
+		);
+		$theirs      = $create( self::LEDGER, $admin );
+		$secret      = $create( self::SECRET, $admin );
+		$internal    = $create( self::INTERNAL, $admin );
+
+		$editor_ids = array_column(
+			(array) $this->run_ability(
+				'search-posts',
+				[
+					'search'    => 'Quarterly',
+					'post_type' => 'any',
+				]
+			),
+			'post_id'
+		);
+
+		wp_set_current_user( $contributor );
+
+		$own = $create( self::LEDGER, $contributor );
+
+		$contributor_ids = array_column(
+			(array) $this->run_ability(
+				'search-posts',
+				[
+					'search'    => 'Quarterly',
+					'post_type' => 'any',
+				]
+			),
+			'post_id'
+		);
+
+		$this->assertContains( $theirs, $editor_ids );
+		$this->assertNotContains( $secret, $editor_ids );
+		$this->assertNotContains( $internal, $editor_ids );
+		$this->assertSame( [ $own ], $contributor_ids );
+	}
+
+	/**
+	 * Items of several types with the same date come newest ID first, so each type's limit cuts where the merged list does.
+	 */
+	public function test_any_breaks_date_ties_by_id(): void {
+		$create = static fn ( string $type, string $status ): int => self::factory()->post->create(
+			[
+				'post_type'   => $type,
+				'post_status' => $status,
+				'post_author' => get_current_user_id(),
+				'post_title'  => 'Tied entry',
+				'post_date'   => '2026-04-01 00:00:00',
+			]
+		);
+
+		$create( self::BOOK, 'publish' );
+		$create( self::LEDGER, 'publish' );
+
+		$newest = $create( self::BOOK, 'draft' );
+		$found  = $this->run_ability(
+			'search-posts',
+			[
+				'search'    => 'Tied entry',
+				'post_type' => 'any',
+				'per_page'  => 1,
+			]
+		);
+
+		$this->assertSame( [ $newest ], array_column( (array) $found, 'post_id' ) );
 	}
 
 	/**

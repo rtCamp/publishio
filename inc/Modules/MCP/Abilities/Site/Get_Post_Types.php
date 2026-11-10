@@ -98,11 +98,7 @@ final class Get_Post_Types extends Ability {
 	protected function execute( array $input ): array { // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- No input.
 		$types = [];
 
-		foreach ( get_post_types( [ 'show_ui' => true ], 'objects' ) as $type ) {
-			if ( ! Post_Writer::is_supported_type( $type->name ) || ! current_user_can( $type->cap->edit_posts ) ) { // phpcs:ignore WordPress.WP.Capabilities.Undetermined -- The post type's own capability.
-				continue;
-			}
-
+		foreach ( Post_Writer::editable_types() as $type ) {
 			$taxonomies = array_values(
 				array_filter(
 					get_object_taxonomies( $type->name ),

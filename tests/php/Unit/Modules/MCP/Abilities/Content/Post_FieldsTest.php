@@ -79,8 +79,9 @@ class Post_FieldsTest extends TestCase {
 			self::PRODUCT,
 			'colors',
 			[
-				'type'   => 'string',
-				'single' => false,
+				'type'        => 'string',
+				'single'      => false,
+				'description' => 'One color per entry.',
 			]
 		);
 		$this->field(
@@ -117,7 +118,7 @@ class Post_FieldsTest extends TestCase {
 	 * Remove the fields and types, and reset the user.
 	 */
 	protected function tearDown(): void {
-		foreach ( [ 'price', 'status', 'colors', '_secret', 'hidden', 'locked', 'footnotes', 'notes', 'stage' ] as $key ) {
+		foreach ( [ 'price', 'status', 'colors', '_secret', 'hidden', 'locked', 'footnotes', 'notes', 'stage', 'featured', 'size', 'code' ] as $key ) {
 			unregister_post_meta( self::PRODUCT, $key );
 		}
 
@@ -486,6 +487,98 @@ class Post_FieldsTest extends TestCase {
 			)
 		);
 		$this->assertSame( 'post_not_found', $this->code( $this->run_ability( 'get-post', [ 'post_id' => $others ] ) ) );
+	}
+
+	/**
+	 * Booleans, objects, patterns and fields with several values read clearly and save and reset like any other.
+	 */
+	public function test_fields_of_each_kind(): void {
+		$this->field(
+			self::PRODUCT,
+			'featured',
+			[
+				'type'    => 'boolean',
+				'default' => false,
+			]
+		);
+		$this->field(
+			self::PRODUCT,
+			'size',
+			[
+				'type'         => 'object',
+				'show_in_rest' => [
+					'schema' => [
+						'type'       => 'object',
+						'properties' => [ 'width' => [ 'type' => 'number' ] ],
+					],
+				],
+			]
+		);
+		$this->field(
+			self::PRODUCT,
+			'code',
+			[
+				'type'         => 'string',
+				'show_in_rest' => [
+					'schema' => [
+						'type'    => 'string',
+						'pattern' => '^[A-Z]{3}$',
+					],
+				],
+			]
+		);
+
+		$product = $this->post( self::PRODUCT, 'draft' );
+		$read    = $this->run_ability( 'get-post', [ 'post_id' => $product ] );
+
+		$this->assertIsArray( $read );
+		$this->assertStringContainsString( '"size":{"value":{},', (string) wp_json_encode( $read ) );
+		$this->assertSame( '^[A-Z]{3}$', $read['fields']['code']['pattern'] );
+		$this->assertSame(
+			[
+				'value'       => [],
+				'type'        => 'array',
+				'description' => 'One color per entry.',
+				'items'       => [ 'type' => 'string' ],
+			],
+			$read['fields']['colors']
+		);
+
+		$this->assertIsArray(
+			$this->run_ability(
+				'update-post',
+				[
+					'post_id' => $product,
+					'fields'  => [ 'featured' => false ],
+				]
+			)
+		);
+
+		$reset = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'fields'  => [
+					'featured' => null,
+					'size'     => null,
+				],
+			]
+		);
+
+		$this->assertIsArray( $reset );
+		$this->assertFalse( metadata_exists( 'post', $product, 'featured' ) );
+		$this->assertSame( '{"featured":false,"size":{}}', wp_json_encode( $reset['fields'] ) );
+
+		$extra = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'fields'  => [ 'size' => [ 'depth' => 2 ] ],
+			]
+		);
+
+		$this->assertSame( 'invalid_field_value', $this->code( $extra ) );
+		$this->assertStringContainsString( 'size: depth is not a valid property of Object.', $extra->get_error_message() ); // @phpstan-ignore method.nonObject
 	}
 
 	/**

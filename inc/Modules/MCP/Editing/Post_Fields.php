@@ -15,7 +15,7 @@ namespace rtCamp\Publishio\Modules\MCP\Editing;
  * Only the fields the block editor's REST API offers (registered with show_in_rest, on a type shown in REST that supports custom fields) that aren't protected and that the user can edit. Fields are keyed by meta key, as block bindings name them.
  */
 final class Post_Fields extends \WP_REST_Post_Meta_Fields {
-	private const SCHEMA_KEYS = [ 'type', 'title', 'description', 'enum', 'format', 'minimum', 'maximum', 'items', 'properties' ];
+	private const SCHEMA_KEYS = [ 'type', 'title', 'description', 'enum', 'format', 'pattern', 'minLength', 'maxLength', 'minimum', 'maximum', 'items', 'properties' ];
 
 	// The Footnotes block's own storage, which it rewrites from the content.
 	private const BLOCK_STORAGE_KEYS = [ 'footnotes' ];
@@ -38,16 +38,7 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 		$described = [];
 
 		foreach ( $fields as $key => $args ) {
-			$schema = array_filter(
-				array_intersect_key( $args['schema'], array_flip( self::SCHEMA_KEYS ) ),
-				static fn ( mixed $value ): bool => '' !== $value && [] !== $value
-			);
-
-			if ( isset( $schema['enum'] ) && is_array( $schema['enum'] ) ) {
-				$schema['enum'] = array_values( $schema['enum'] );
-			}
-
-			$described[ $key ] = [ 'value' => $values[ $args['name'] ] ?? null ] + $schema;
+			$described[ $key ] = [ 'value' => self::for_json( $values[ $args['name'] ] ?? null, $args['schema'] ) ] + self::summary( $args );
 		}
 
 		return $described;
@@ -102,10 +93,11 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 		$fields     = new self( $post->post_type );
 		$registered = $fields->get_registered_fields();
 		$meta       = [];
+		$resets     = [];
 
 		foreach ( $values as $key => $value ) {
-			// Nothing to reset, and core would refuse because an empty stored value doesn't fit types such as number.
-			if ( null === $value && ! metadata_exists( 'post', $post->ID, (string) $key ) ) {
+			if ( self::resets( $registered[ $key ], $value ) ) {
+				$resets[] = (string) $key;
 				continue;
 			}
 
@@ -118,11 +110,16 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 			return Errors::make( 'save_failed', implode( ' ', $result->get_error_messages() ), 500 );
 		}
 
+		// Not through update_value(), which refuses to reset a stored false or empty number. check() made sure the user may delete each one.
+		foreach ( $resets as $key ) {
+			delete_post_meta( $post->ID, wp_slash( $key ) );
+		}
+
 		$stored = $fields->get_value( $post->ID, new \WP_REST_Request() );
 		$saved  = [];
 
 		foreach ( array_keys( $values ) as $key ) {
-			$saved[ (string) $key ] = $stored[ $registered[ $key ]['name'] ] ?? null;
+			$saved[ (string) $key ] = self::for_json( $stored[ $registered[ $key ]['name'] ] ?? null, $registered[ $key ]['schema'] );
 		}
 
 		return $saved;
@@ -164,12 +161,16 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 	 * @param mixed                $value The new value.
 	 */
 	private static function problem( \WP_Post $post, string $key, array $args, mixed $value ): ?string {
-		$resets = null === $value || ( [] === $value && empty( $args['single'] ) );
-
-		if ( ! $resets ) {
+		if ( ! self::resets( $args, $value ) ) {
 			$valid = rest_validate_value_from_schema( $value, $args['schema'], $key );
 
-			return is_wp_error( $valid ) ? $valid->get_error_message() : null;
+			if ( ! is_wp_error( $valid ) ) {
+				return null;
+			}
+
+			$message = $valid->get_error_message();
+
+			return str_starts_with( $message, $key ) ? $message : $key . ': ' . $message;
 		}
 
 		if ( ! current_user_can( 'delete_post_meta', $post->ID, $key ) ) {
@@ -177,10 +178,69 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 			return sprintf( __( '%s can\'t be reset by your account.', 'publishio' ), $key );
 		}
 
-		$stored = ! empty( $args['single'] ) && metadata_exists( 'post', $post->ID, $key ) ? rest_validate_value_from_schema( get_post_meta( $post->ID, $key, true ), $args['schema'] ) : true;
+		// As core decides: a stored value get-post showed as null isn't reset, so it isn't lost unseen.
+		$unreadable = ! empty( $args['single'] ) && metadata_exists( 'post', $post->ID, $key ) && null === self::prepare_value( get_post_meta( $post->ID, $key, true ), new \WP_REST_Request(), $args );
 
 		/* translators: %s: field key */
-		return is_wp_error( $stored ) ? sprintf( __( '%s holds a value that isn\'t valid, so it can\'t be reset. Set a valid value instead.', 'publishio' ), $key ) : null;
+		return $unreadable ? sprintf( __( '%s holds a value that isn\'t valid, so it can\'t be reset. Set a valid value instead.', 'publishio' ), $key ) : null;
+	}
+
+	/**
+	 * Whether a value resets a field: null, or no values for a field that holds several.
+	 *
+	 * @param array<string, mixed> $args  Core's REST settings for the field.
+	 * @param mixed                $value The new value.
+	 */
+	private static function resets( array $args, mixed $value ): bool {
+		return null === $value || ( [] === $value && empty( $args['single'] ) );
+	}
+
+	/**
+	 * What a field takes, from its schema. A field that holds several values is described as a whole, with its items' type.
+	 *
+	 * @param array<string, mixed> $args Core's REST settings for the field.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function summary( array $args ): array {
+		if ( ! empty( $args['single'] ) ) {
+			return self::keywords( $args['schema'] );
+		}
+
+		$item  = self::keywords( $args['schema']['items'] ?? [] );
+		$about = array_intersect_key( $item, array_flip( [ 'title', 'description' ] ) );
+
+		return [ 'type' => 'array' ] + $about + [ 'items' => array_diff_key( $item, $about ) ];
+	}
+
+	/**
+	 * The schema keywords that say what to send, without empty ones. Core matches an enum's values, so labels keyed by value become a plain list.
+	 *
+	 * @param array<string, mixed> $schema A field's schema.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function keywords( array $schema ): array {
+		$keywords = array_filter(
+			array_intersect_key( $schema, array_flip( self::SCHEMA_KEYS ) ),
+			static fn ( mixed $value ): bool => '' !== $value && [] !== $value
+		);
+
+		if ( isset( $keywords['enum'] ) && is_array( $keywords['enum'] ) ) {
+			$keywords['enum'] = array_values( $keywords['enum'] );
+		}
+
+		return $keywords;
+	}
+
+	/**
+	 * A value as it should encode: an empty object as {}, not [].
+	 *
+	 * @param mixed                $value  The value.
+	 * @param array<string, mixed> $schema The field's schema.
+	 */
+	private static function for_json( mixed $value, array $schema ): mixed {
+		return 'object' === ( $schema['type'] ?? '' ) && [] === $value ? new \stdClass() : $value;
 	}
 
 	/**

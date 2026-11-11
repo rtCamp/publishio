@@ -87,7 +87,7 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 	 * @param \WP_Post             $post   The post.
 	 * @param array<string, mixed> $values Values by meta key, from check().
 	 *
-	 * @return array<string, mixed>|\WP_Error
+	 * @return array<string, mixed>|\WP_Error Core's error when a value couldn't be saved.
 	 */
 	public static function save( \WP_Post $post, array $values ): array|\WP_Error {
 		$fields     = new self( $post->post_type );
@@ -107,7 +107,7 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 		$result = [] === $meta ? null : $fields->update_value( $meta, $post->ID );
 
 		if ( is_wp_error( $result ) ) {
-			return Errors::make( 'save_failed', implode( ' ', $result->get_error_messages() ), 500 );
+			return $result;
 		}
 
 		// Not through update_value(), which refuses to reset a stored false or empty number. check() made sure the user may delete each one.
@@ -162,13 +162,25 @@ final class Post_Fields extends \WP_REST_Post_Meta_Fields {
 	 */
 	private static function problem( \WP_Post $post, string $key, array $args, mixed $value ): ?string {
 		if ( ! self::resets( $args, $value ) ) {
+			$type = $args['schema']['type'] ?? '';
+
+			if ( 'array' === $type && ! is_array( $value ) ) {
+				/* translators: %s: field key */
+				return sprintf( __( '%s takes a list, such as ["first", "second"].', 'publishio' ), $key );
+			}
+
+			if ( 'object' === $type && ! is_array( $value ) ) {
+				/* translators: %s: field key */
+				return sprintf( __( '%s takes an object with the keys get-post lists.', 'publishio' ), $key );
+			}
+
 			$valid = rest_validate_value_from_schema( $value, $args['schema'], $key );
 
 			if ( ! is_wp_error( $valid ) ) {
 				return null;
 			}
 
-			$message = $valid->get_error_message();
+			$message = rtrim( $valid->get_error_message(), '.' ) . '.';
 
 			return str_starts_with( $message, $key ) ? $message : $key . ': ' . $message;
 		}

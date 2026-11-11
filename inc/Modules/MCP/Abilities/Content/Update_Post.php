@@ -148,7 +148,7 @@ final class Update_Post extends Ability {
 			$saved = [] === $values ? [] : Post_Fields::save( $post, $values );
 
 			if ( is_wp_error( $saved ) ) {
-				return $saved;
+				return self::fields_not_saved( $saved, $before, [] !== $fields );
 			}
 		}
 
@@ -171,5 +171,29 @@ final class Update_Post extends Ability {
 			'template'  => (string) get_page_template_slug( $post ),
 			'url'       => Post_Details::url( $post ),
 		] + ( [] === $saved ? [] : [ 'fields' => $saved ] );
+	}
+
+	/**
+	 * The refusal for fields core couldn't save. When the post's own details were saved first, the after-insert hooks still run and the message says so.
+	 *
+	 * @param \WP_Error $error         Core's error.
+	 * @param \WP_Post  $before        The post before the change.
+	 * @param bool      $details_saved Whether the title, slug or other details were saved.
+	 */
+	private static function fields_not_saved( \WP_Error $error, \WP_Post $before, bool $details_saved ): \WP_Error {
+		$reason = implode( ' ', $error->get_error_messages() );
+
+		if ( ! $details_saved ) {
+			return Errors::make( 'save_failed', $reason, 500 );
+		}
+
+		$post = get_post( $before->ID );
+
+		if ( $post instanceof \WP_Post ) {
+			wp_after_insert_post( $post, true, $before );
+		}
+
+		/* translators: %s: why core couldn't save the fields */
+		return Errors::make( 'save_failed', sprintf( __( 'The other changes were saved, but the custom fields weren\'t: %s Send only the fields again.', 'publishio' ), $reason ), 500 );
 	}
 }

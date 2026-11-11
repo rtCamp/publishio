@@ -11,6 +11,7 @@ namespace rtCamp\Publishio\Modules\MCP\Abilities\Posts;
 
 use rtCamp\Publishio\Modules\MCP\Abilities\Content\Post_Details;
 use rtCamp\Publishio\Modules\MCP\Abilities\Schema;
+use rtCamp\Publishio\Modules\MCP\Editing\Errors;
 use rtCamp\Publishio\Modules\MCP\Editing\Post_Writer;
 
 /**
@@ -85,11 +86,17 @@ class Search_Posts {
 				'permission_callback' => static function () {
 					return current_user_can( 'edit_posts' );
 				},
-				'execute_callback'    => static function ( array $input ): array {
+				'execute_callback'    => static function ( array $input ): array|\WP_Error {
 					$post_type = sanitize_key( $input['post_type'] ?? 'post' );
-					$per_page  = min( (int) ( $input['per_page'] ?? 10 ), 50 );
-					$types     = 'any' === $post_type ? wp_list_pluck( Post_Writer::editable_types(), 'name' ) : array_filter( [ $post_type ], [ Post_Writer::class, 'is_supported_type' ] );
-					$args      = [
+
+					if ( 'any' !== $post_type && ! Post_Writer::is_supported_type( $post_type ) ) {
+						/* translators: %s: post type slug */
+						return Errors::make( 'unsupported_type', sprintf( __( '"%s" isn\'t a type these tools work on. Find saved patterns with list-patterns and media with search-attachments. get-post-types lists the types you can search.', 'publishio' ), $post_type ) );
+					}
+
+					$per_page = min( (int) ( $input['per_page'] ?? 10 ), 50 );
+					$types    = 'any' === $post_type ? wp_list_pluck( Post_Writer::editable_types(), 'name' ) : [ $post_type ];
+					$args     = [
 						'post_status'            => array_map( 'sanitize_key', (array) ( $input['status'] ?? [ 'publish', 'draft' ] ) ),
 						'posts_per_page'         => $per_page,
 						'orderby'                => [

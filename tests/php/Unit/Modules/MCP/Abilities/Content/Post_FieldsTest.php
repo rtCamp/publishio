@@ -509,7 +509,12 @@ class Post_FieldsTest extends TestCase {
 				'show_in_rest' => [
 					'schema' => [
 						'type'       => 'object',
-						'properties' => [ 'width' => [ 'type' => 'number' ] ],
+						'properties' => [
+							'width' => [
+								'type'    => 'number',
+								'minimum' => 0,
+							],
+						],
 					],
 				],
 			]
@@ -579,6 +584,76 @@ class Post_FieldsTest extends TestCase {
 
 		$this->assertSame( 'invalid_field_value', $this->code( $extra ) );
 		$this->assertStringContainsString( 'size: depth is not a valid property of Object.', $extra->get_error_message() ); // @phpstan-ignore method.nonObject
+
+		$text = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'fields'  => [
+					'colors' => 'red, blue',
+					'size'   => 'wide',
+				],
+			]
+		);
+
+		$this->assertSame( 'invalid_field_value', $this->code( $text ) );
+		$this->assertStringContainsString( 'colors takes a list, such as ["first", "second"]. size takes an object with the keys get-post lists.', $text->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( [], get_post_meta( $product, 'colors', false ) );
+
+		$joined = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'fields'  => [
+					'size'     => [ 'width' => -1 ],
+					'featured' => 'yes',
+				],
+			]
+		);
+
+		$this->assertStringContainsString( 'size[width] must be greater than or equal to 0. featured is not of type boolean.', $joined->get_error_message() ); // @phpstan-ignore method.nonObject
+	}
+
+	/**
+	 * When core can't save a field after the post's details were saved, the error says so and the after-insert hooks still run. A save of fields alone just fails.
+	 */
+	public function test_fields_that_fail_to_save(): void {
+		$product = $this->post( self::PRODUCT, 'draft' );
+		$after   = 0;
+
+		add_filter( 'update_post_metadata', static fn ( mixed ...$args ): mixed => 'price' === $args[2] ? false : $args[0], 10, 3 );
+		add_action(
+			'wp_after_insert_post',
+			static function () use ( &$after ): void {
+				++$after;
+			}
+		);
+
+		$both = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'title'   => 'Renamed',
+				'fields'  => [ 'price' => 10 ],
+			]
+		);
+
+		$this->assertSame( 'save_failed', $this->code( $both ) );
+		$this->assertStringContainsString( 'The other changes were saved, but the custom fields weren\'t:', $both->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( 'Renamed', get_the_title( $product ) );
+		$this->assertSame( 1, $after );
+
+		$alone = $this->run_ability(
+			'update-post',
+			[
+				'post_id' => $product,
+				'fields'  => [ 'price' => 10 ],
+			]
+		);
+
+		$this->assertSame( 'save_failed', $this->code( $alone ) );
+		$this->assertStringNotContainsString( 'The other changes were saved', $alone->get_error_message() ); // @phpstan-ignore method.nonObject
+		$this->assertSame( 1, $after );
 	}
 
 	/**

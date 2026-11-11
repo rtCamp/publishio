@@ -194,9 +194,9 @@ class Search_PostsTest extends Ability_TestCase {
 	}
 
 	/**
-	 * A type the post tools don't work on, such as menu items, isn't searched.
+	 * A type the post tools don't work on, such as menu items or saved patterns, is refused with the tool to use instead, not searched.
 	 */
-	public function test_unsupported_types_are_not_searched(): void {
+	public function test_unsupported_types_are_refused(): void {
 		$editor = self::factory()->user->create( [ 'role' => 'editor' ] );
 
 		self::factory()->post->create(
@@ -208,14 +208,17 @@ class Search_PostsTest extends Ability_TestCase {
 		);
 		wp_set_current_user( $editor );
 
-		$this->assertSame(
-			[],
-			$this->execute(
+		foreach ( [ 'nav_menu_item', 'wp_block' ] as $type ) {
+			$result = $this->execute(
 				[
-					'post_type' => 'nav_menu_item',
+					'post_type' => $type,
 					'status'    => [ 'publish' ],
 				]
-			)
-		);
+			);
+
+			$this->assertWPError( $result, $type );
+			$this->assertSame( 'unsupported_type', $result->get_error_code() );
+			$this->assertStringContainsString( 'Find saved patterns with list-patterns and media with search-attachments.', $result->get_error_message() );
+		}
 	}
 }

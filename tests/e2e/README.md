@@ -54,36 +54,38 @@ screenshots, errors and traces.
 
 ## Test groups
 
-| Group                       | What it covers                                                             | WordPress                   |
-| --------------------------- | -------------------------------------------------------------------------- | --------------------------- |
-| `smoke`                     | Admin screens, Status page, OAuth, MCP tools, editor, AI skill             | latest                      |
-| `install`                   | Install from the zip, activate, upgrade, uninstall                         | latest                      |
-| `smoke-wp69`                | Same as `smoke`                                                            | 6.9 (minimum)               |
-| `install-wp69`              | Same as `install`                                                          | 6.9 (minimum)               |
-| `full`                      | `smoke` plus pattern-compatibility checks                                  | latest                      |
-| `multisite`                 | Discovery, connecting an app and the Status page on a subdirectory subsite | latest                      |
-| `multisite-subdomain`       | The same on a subdomain subsite                                            | latest                      |
-| `smoke-multisite`           | Same as `smoke`, on the main site of a subdirectory network                | latest                      |
-| `smoke-multisite-subdomain` | Same as `smoke`, on the main site of a subdomain network                   | latest                      |
-| `install-wp68`              | INSTALL-09 only: install is refused below the 6.9 minimum                  | 6.8 (local only, not in CI) |
+| Group                       | What it covers                                                                            | WordPress                   |
+| --------------------------- | ----------------------------------------------------------------------------------------- | --------------------------- |
+| `smoke`                     | Admin screens, Status page, OAuth, MCP tools, custom fields, editor, AI skill             | latest                      |
+| `install`                   | Install from the zip, activate, upgrade, uninstall                                        | latest                      |
+| `smoke-wp69`                | Same as `smoke`                                                                           | 6.9 (minimum)               |
+| `install-wp69`              | Same as `install`                                                                         | 6.9 (minimum)               |
+| `full`                      | `smoke` plus pattern-compatibility checks                                                 | latest                      |
+| `multisite`                 | Discovery, connecting an app, the Status page and custom fields on a subdirectory subsite | latest                      |
+| `multisite-subdomain`       | The same on a subdomain subsite                                                           | latest                      |
+| `smoke-multisite`           | Same as `smoke`, on the main site of a subdirectory network                               | latest                      |
+| `smoke-multisite-subdomain` | Same as `smoke`, on the main site of a subdomain network                                  | latest                      |
+| `install-wp68`              | INSTALL-09 only: install is refused below the 6.9 minimum                                 | 6.8 (local only, not in CI) |
 
 SKILL-11 (Yoast SEO) installs the latest Yoast release on WordPress 7.0 and later, so new Yoast releases
 are covered, and Yoast 28.7 (the last release that supports 6.9) on `smoke-wp69`. A new Yoast release
 can therefore make SKILL-11 fail on a PR; check the Yoast version in the test's report annotation.
 The latest-WordPress E2E site uses `.wp-env.e2e.json`; `.wp-env.test.json` is the PHP unit tests' site.
 
+**Custom fields (SMOKE-12, MULTISITE-02):** the fixture plugin in `tests/e2e/plugins/publishio-e2e-fields` registers an `e2e_product` type with fields of every kind (number, string with a pattern, enum, boolean, integer range, email, list, object, an administrators-only field, a protected and a hidden one), a type without custom-field support and a type visitors can't view. It also refuses to store the tagline `E2E fail save`, standing in for a database error, and counts `wp_after_insert_post` runs per product in `_e2e_after_insert` (SMOKE-12.12). wp-env maps it into the repo-mounted sites (`.wp-env.e2e.json`, `.wp-env.test-wp69.json` and both networks) but leaves it inactive; the specs activate it (MULTISITE-02 on the subsite only), and deactivate it and delete its posts afterwards. It is never in the plugin zip.
+
 The two networks are `.wp-env.test-multisite.json` (subdirectory, `localhost:8893/site2/`) and `.wp-env.test-multisite-subdomain.json` (subdomain, `site2.localhost:8896`). Setup creates `site2` and activates Publishio on it and on the main site. The subdomain network sets `COOKIE_DOMAIN` to `false`, since Chromium refuses the `.localhost` cookie domain core would use, so each host has its own login. On Linux, `site2.localhost` may need a line in `/etc/hosts`; CI adds it.
 
 ## In CI (GitHub Actions)
 
-| When                                  | What runs                                                                                     | Workflow               |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------- |
-| Every pull request                    | `smoke` (2 parallel jobs), `install`, `multisite` and `multisite-subdomain`, latest WordPress | `e2e.yml`              |
-| Every push to `main`                  | The same, plus `smoke-wp69` and `install-wp69`                                                | `e2e.yml`              |
-| Nightly, Sun–Fri 20:30 UTC, on `main` | All tests on PHP 8.2–8.4 and two themes; skipped if `main` is unchanged                       | `e2e-scheduled.yml`    |
-| Weekly, Sat 20:30 UTC, on `main`      | Every combination, including both multisite networks and WordPress trunk                      | `e2e-scheduled.yml`    |
-| New WordPress release                 | `full` and `install` tests affected by WordPress updates                                      | `wp-release-watch.yml` |
-| Manual                                | Your choice of groups, versions and theme                                                     | `e2e.yml`              |
+| When                                  | What runs                                                                                                           | Workflow               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Every pull request                    | `smoke` (2 parallel jobs), `install`, `multisite` and `multisite-subdomain`, latest WordPress                       | `e2e.yml`              |
+| Every push to `main`                  | The same, plus `smoke-wp69` and `install-wp69`                                                                      | `e2e.yml`              |
+| Nightly, Sun–Fri 20:30 UTC, on `main` | All tests on PHP 8.2–8.4 and two themes, plus `multisite` and `multisite-subdomain`; skipped if `main` is unchanged | `e2e-scheduled.yml`    |
+| Weekly, Sat 20:30 UTC, on `main`      | Every combination, including all four multisite groups and WordPress trunk                                          | `e2e-scheduled.yml`    |
+| New WordPress release                 | `full` and `install` tests affected by WordPress updates                                                            | `wp-release-watch.yml` |
+| Manual                                | Your choice of groups, versions and theme                                                                           | `e2e.yml`              |
 
 **Run manually:** Actions → **E2E** → **Run workflow**, pick the branch and the groups.
 
@@ -108,7 +110,11 @@ INSTALL-09 is never run in CI (see [Run them locally](#run-them-locally)).
 4. Prefer user-facing locators (`getByRole`, `getByLabel`, `getByText`) so tests wait for the page
    on their own.
 5. A test for a known bug: keep it, with `test.fixme( true, '<reason>' )` until the bug is fixed.
-6. Assert UI text through `STATUS_TEXT` in `tests/e2e/utils/status.js` (Status page copy), and
+6. Every test asserts something: ESLint (`playwright/expect-expect`) fails a test without an
+   `expect`, or a helper named `expect…`/`assert…`. Call MCP tools that must succeed with
+   `mcp.callToolOk()`, which fails on a tool error, so a failed call can't pass as an empty result;
+   use `mcp.callTool()` only when the test expects an error, and assert `isError` and the text.
+7. Assert UI text through `STATUS_TEXT` in `tests/e2e/utils/status.js` (Status page copy), and
    error messages with the exact text the plugin returns, not a single word.
 
 **Types are not checked here.** `tsconfig.json` excludes `tests/e2e/` and `bin/`, so the JSDoc

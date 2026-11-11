@@ -594,7 +594,7 @@ test.describe(
 				} );
 				expect( pageDraft.isError, pageDraft.text ).toBe( false );
 				const pattern = (
-					await mcp.callTool( 'publishio/list-patterns', {
+					await mcp.callToolOk( 'publishio/list-patterns', {
 						source: 'theme',
 						post_type: 'page',
 					} )

@@ -132,7 +132,7 @@
 			"timeout": 60000
 		},
 		"multisite": {
-			"description": "Every PR: connecting to a subsite of a subdirectory network",
+			"description": "Every PR and nightly: connecting to a subsite of a subdirectory network, and custom fields there",
 			"site": "test-multisite",
 			"testMatch": [ "multisite/**/*.spec.js" ],
 			"grep": "@multisite",
@@ -140,7 +140,7 @@
 			"timeout": 60000
 		},
 		"multisite-subdomain": {
-			"description": "Every PR: connecting to a subsite of a subdomain network",
+			"description": "Every PR and nightly: connecting to a subsite of a subdomain network, and custom fields there",
 			"site": "test-multisite-subdomain",
 			"testMatch": [ "multisite/**/*.spec.js" ],
 			"grep": "@multisite",

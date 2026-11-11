@@ -1,9 +1,29 @@
 /**
  * External dependencies
  */
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+/**
+ * Internal dependencies
+ */
+import { wpCliQuietly } from './wp-cli';
 
 export const PASSWORD = 'e2e-Password-123!';
+
+/**
+ * Create (or reuse) a user on one site of a network, with WP-CLI.
+ *
+ * @param {string} login   User login: letters and digits only, as multisite requires.
+ * @param {string} role    WordPress role on that site.
+ * @param {string} siteUrl The site's URL.
+ * @return {string} The login.
+ */
+export function ensureSiteUser( login, role, siteUrl ) {
+	wpCliQuietly(
+		`user create ${ login } ${ login }@example.test --role=${ role } --user_pass=${ PASSWORD } --url=${ siteUrl }`,
+		/already registered/
+	);
+	return login;
+}
 
 /**
  * Create (or reuse) a user with the given role.
@@ -104,8 +124,15 @@ export async function loginBrowser(
 	} );
 	const page = await context.newPage();
 	await page.goto( '/wp-login.php' );
-	await page.getByLabel( 'Username or Email Address' ).fill( username );
-	await page.getByLabel( 'Password', { exact: true } ).fill( password );
+	const user = page.getByLabel( 'Username or Email Address' );
+	const pass = page.getByLabel( 'Password', { exact: true } );
+	// wp-login.php focuses and selects the username field 200 ms after load (wp_attempt_focus).
+	// Typing before then can land the password in the username field, so wait for it.
+	await expect( user ).toBeFocused();
+	await user.fill( username );
+	await pass.fill( password );
+	await expect( user ).toHaveValue( username );
+	await expect( pass ).toHaveValue( password );
 	await page.getByRole( 'button', { name: 'Log In' } ).click();
 	await page.waitForURL( /wp-admin/ );
 	await page.close();

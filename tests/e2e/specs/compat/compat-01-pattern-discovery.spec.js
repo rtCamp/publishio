@@ -28,7 +28,7 @@ test.describe(
 					} )
 				).filter( ( p ) => p.inserter !== false );
 				const mcpNames = (
-					await mcp.callTool( 'publishio/list-patterns' )
+					await mcp.callToolOk( 'publishio/list-patterns' )
 				).data.patterns.map( ( p ) => p.name );
 
 				const theme = wpCli( 'option get stylesheet' );
@@ -118,7 +118,7 @@ test.describe(
 					);
 
 					const listed = (
-						await mcp.callTool( 'publishio/list-patterns', {
+						await mcp.callToolOk( 'publishio/list-patterns', {
 							source: 'user',
 						} )
 					).data.patterns;
@@ -159,7 +159,7 @@ test.describe(
 				);
 				try {
 					const data = (
-						await mcp.callTool( 'publishio/list-patterns' )
+						await mcp.callToolOk( 'publishio/list-patterns' )
 					).data.patterns;
 					const own = data.find( ( p ) => p.name === name );
 					expect( own, `${ name } is listed` ).toBeTruthy();

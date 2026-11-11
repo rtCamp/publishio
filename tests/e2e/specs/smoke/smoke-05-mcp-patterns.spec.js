@@ -82,8 +82,8 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		'SMOKE-05.4 list-patterns filters by search and category',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
-			const all = ( await mcp.callTool( 'publishio/list-patterns' ) ).data
-				.patterns;
+			const all = ( await mcp.callToolOk( 'publishio/list-patterns' ) )
+				.data.patterns;
 			const withCategory = all.find( ( p ) => p.categories.length > 0 );
 			test.skip(
 				! withCategory,
@@ -92,7 +92,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 
 			const category = withCategory.categories[ 0 ];
 			const byCategory = (
-				await mcp.callTool( 'publishio/list-patterns', {
+				await mcp.callToolOk( 'publishio/list-patterns', {
 					category,
 				} )
 			).data.patterns;
@@ -103,7 +103,7 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 
 			const search = withCategory.title.split( ' ' )[ 0 ].toLowerCase();
 			const bySearch = (
-				await mcp.callTool( 'publishio/list-patterns', { search } )
+				await mcp.callToolOk( 'publishio/list-patterns', { search } )
 			).data.patterns;
 			expect( bySearch.map( ( p ) => p.name ) ).toContain(
 				withCategory.name
@@ -115,8 +115,8 @@ test.describe( 'MCP server', { tag: [ '@smoke', '@plugin-update' ] }, () => {
 		'SMOKE-05.5 get-pattern returns markup and an outline for a known pattern',
 		{ tag: '@wp-update' },
 		async ( { mcp } ) => {
-			const all = ( await mcp.callTool( 'publishio/list-patterns' ) ).data
-				.patterns;
+			const all = ( await mcp.callToolOk( 'publishio/list-patterns' ) )
+				.data.patterns;
 			const name = all.find( ( p ) =>
 				p.name.startsWith( `${ settings.theme }/` )
 			).name;

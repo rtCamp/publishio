@@ -139,4 +139,17 @@ export class McpClient {
 		}
 		return { isError: !! result?.isError, data, text, raw: result };
 	}
+
+	/**
+	 * Call a tool that must succeed. A tool error fails here with its own message, instead of
+	 * later as an empty list or an undefined field that some assertions would let through.
+	 *
+	 * @param {string} abilityName Ability name, e.g. publishio/get-post.
+	 * @param {Object} args        Tool arguments.
+	 */
+	async callToolOk( abilityName, args = {} ) {
+		const res = await this.callTool( abilityName, args );
+		expect( res.isError, `${ abilityName }: ${ res.text }` ).toBe( false );
+		return res;
+	}
 }

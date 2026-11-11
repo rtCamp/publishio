@@ -10,20 +10,21 @@
 import { test, expect } from '../../fixtures';
 import { currentSite } from '../../config/env';
 import {
-	TEST_REDIRECT_URI,
-	buildAuthorizeUrl,
-	createPkce,
+	connectToSite,
 	discoverFrom,
-	exchangeCode,
-	provisionMetadataClient,
+	mcpClientFor,
 	randomState,
-	submitConsentViaApi,
 	wellKnownUrl,
 } from '../../utils/oauth';
-import { McpClient, PROTOCOL_VERSION } from '../../utils/mcp';
+import { PROTOCOL_VERSION } from '../../utils/mcp';
 import { STATUS_PAGE, expectLocalStatus } from '../../utils/status';
-import { PASSWORD, loginApi, loginBrowser } from '../../utils/users';
-import { wpCli, wpCliQuietly } from '../../utils/wp-cli';
+import {
+	PASSWORD,
+	ensureSiteUser,
+	loginApi,
+	loginBrowser,
+} from '../../utils/users';
+import { wpCli } from '../../utils/wp-cli';
 
 // Letters and digits only: multisite rejects underscores in usernames.
 const EDITOR = 'e2esubsiteeditor';
@@ -41,10 +42,7 @@ test.describe(
 			issuer = subsite.replace( /\/$/, '' );
 			mcpUrl = `${ issuer }/wp-json/mcp/publishio`;
 
-			wpCliQuietly(
-				`user create ${ EDITOR } ${ EDITOR }@example.test --role=editor --user_pass=${ PASSWORD } --url=${ subsite }`,
-				/already registered/
-			);
+			ensureSiteUser( EDITOR, 'editor', subsite );
 		} );
 
 		test(
@@ -83,43 +81,21 @@ test.describe(
 					`post create --post_title='${ title }' --post_status=publish --url=${ subsite }`
 				);
 
-				const discovery = await discoverFrom( anonApi, mcpUrl );
-				const client = provisionMetadataClient(
-					{
-						client_name: 'E2E Subsite Client',
-						redirect_uris: [ TEST_REDIRECT_URI ],
-					},
-					subsite
-				);
-				const pkce = createPkce();
-				const state = randomState();
 				const editorApi = await loginApi(
 					playwright,
 					EDITOR,
 					PASSWORD,
 					subsite
 				);
-
-				const redirect = await submitConsentViaApi(
+				const connection = await connectToSite(
+					anonApi,
 					editorApi,
-					buildAuthorizeUrl( discovery, client, pkce, state )
+					subsite
 				);
 				await editorApi.dispose();
-				expect( redirect.searchParams.get( 'state' ) ).toBe( state );
-				expect( redirect.searchParams.get( 'iss' ) ).toBe( issuer );
+				const token = connection.tokens.access_token;
 
-				const tokenRes = await exchangeCode(
-					anonApi,
-					discovery,
-					client,
-					redirect.searchParams.get( 'code' ),
-					pkce.verifier
-				);
-				expect( tokenRes.status(), await tokenRes.text() ).toBe( 200 );
-				const token = ( await tokenRes.json() ).access_token;
-
-				const mcp = new McpClient( anonApi, mcpUrl, token );
-				await mcp.initialize();
+				const mcp = await mcpClientFor( anonApi, connection );
 				const found = await mcp.callTool( 'publishio/search-posts', {
 					search: title,
 				} );

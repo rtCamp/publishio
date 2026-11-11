@@ -54,9 +54,12 @@ test.describe(
 			'SMOKE-06.3 insert-blocks adds valid block markup to a post',
 			{ tag: '@wp-update' },
 			async ( { mcp } ) => {
-				const { data } = await mcp.callTool( 'publishio/create-post', {
-					title: 'E2E append blocks',
-				} );
+				const { data } = await mcp.callToolOk(
+					'publishio/create-post',
+					{
+						title: 'E2E append blocks',
+					}
+				);
 				const markup =
 					'<!-- wp:heading --><h2 class="wp-block-heading">Hello</h2><!-- /wp:heading -->' +
 					'<!-- wp:paragraph --><p>World</p><!-- /wp:paragraph -->';
@@ -67,7 +70,7 @@ test.describe(
 				} );
 				expect( append.isError, append.text ).toBe( false );
 
-				const post = await mcp.callTool( 'publishio/get-post', {
+				const post = await mcp.callToolOk( 'publishio/get-post', {
 					post_id: data.post_id,
 				} );
 				expect(
@@ -79,7 +82,7 @@ test.describe(
 		test( 'SMOKE-06.4 posts and pages take block markup and patterns', async ( {
 			mcp,
 		} ) => {
-			const page = await mcp.callTool( 'publishio/create-post', {
+			const page = await mcp.callToolOk( 'publishio/create-post', {
 				title: 'E2E page',
 				post_type: 'page',
 			} );
@@ -89,11 +92,11 @@ test.describe(
 			} );
 			expect( raw.isError, raw.text ).toBe( false );
 
-			const post = await mcp.callTool( 'publishio/create-post', {
+			const post = await mcp.callToolOk( 'publishio/create-post', {
 				title: 'E2E post',
 			} );
 			const name = (
-				await mcp.callTool( 'publishio/list-patterns', {
+				await mcp.callToolOk( 'publishio/list-patterns', {
 					source: 'theme',
 					post_type: 'post',
 				} )
@@ -109,6 +112,7 @@ test.describe(
 				post_id: post.data.post_id,
 				pattern: 'nope/does-not-exist',
 			} );
+			expect( unknown.isError ).toBe( true );
 			expect( unknown.text ).toMatch( /^unknown_pattern: / );
 		} );
 

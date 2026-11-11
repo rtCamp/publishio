@@ -53,6 +53,20 @@ final class Post_Writer {
 	}
 
 	/**
+	 * The post types the post tools work on that have an admin screen and that the current user can edit, public or not.
+	 *
+	 * @return list<\WP_Post_Type>
+	 */
+	public static function editable_types(): array {
+		return array_values(
+			array_filter(
+				get_post_types( [ 'show_ui' => true ], 'objects' ),
+				static fn ( \WP_Post_Type $type ): bool => self::is_supported_type( $type->name ) && current_user_can( $type->cap->edit_posts ) // phpcs:ignore WordPress.WP.Capabilities.Undetermined -- The post type's own capability.
+			)
+		);
+	}
+
+	/**
 	 * Find a post the current user can edit, whatever editor its type uses.
 	 *
 	 * A post the user can't read is reported as not found, so its title isn't revealed.

@@ -30,7 +30,7 @@ https://youtu.be/yUo94HqA9os
 * **Edits any block:** The AI adds, changes, moves, copies and removes blocks one section at a time. Every change is checked before it's saved, so content opens cleanly in the Block Editor.
 * **Plan first, then previews:** The AI proposes the whole plan and waits for your yes before it writes anything. In apps that show previews, you see each section as it's added, every pattern it saves, and the finished page with how it looks in search results and as a shared link.
 * **Live pages are safe:** A change to a published, scheduled or private page needs your OK in the chat first, and the AI can't publish.
-* **SEO & metadata:** Adds the slug, excerpt, featured image, categories and tags, and Yoast SEO fields, on posts, pages and custom post types.
+* **SEO & metadata:** Adds the slug, excerpt, featured image, categories and tags, custom fields, and Yoast SEO fields, on posts, pages and custom post types.
 * **Runs on your own site:** A self-hosted MCP endpoint with OAuth — no third-party service in the middle.
 * **Theme agnostic:** Works with any block-based / FSE theme.
 
@@ -108,7 +108,7 @@ Yes — Publishio adds no third-party service. It runs entirely on your own Word
 Yes, with sites in subfolders, on subdomains or on their own domains. Network-activate Publishio, or activate it site by site. On a network whose sites are in subfolders, it must also run on the main site, because AI apps look for a subfolder site's connection details at the main site's address; **Publishio → Status** on the subsite tells you if it doesn't. Each site has its own MCP server URL and its own connections: approving an app on one site gives it no access to another, and each site's **Publishio → Connections** page lists that site's connections, including those of super admins who aren't members of the site. Changing your password ends your connections on every site. Log Out Everywhere does too when Publishio is network-activated; activated site by site, it only reaches the sites that run Publishio.
 
 = Does it support custom post types? =
-Yes. Publishio works with any post type that uses the Block Editor — pages, posts, and custom post types (e.g. portfolio, product, event). Featured images, categories, tags and Yoast fields work on every type that has them. Just tell the AI which post type to create.
+Yes. Publishio works with any post type that uses the Block Editor — pages, posts, and custom post types (e.g. portfolio, product, event). Featured images, categories, tags and Yoast fields work on every type that has them. The AI can also read and set custom fields, such as a product's price, when the plugin that adds them shows them in the block editor (`show_in_rest`); ACF fields aren't supported yet. Just tell the AI which post type to create.
 
 = Does it work with AI platforms other than ChatGPT and Claude? =
 Yes, if the app supports Client ID Metadata Documents (CIMD), the OAuth sign-in method the MCP specification recommends. Claude (web, desktop, and Claude Code) and ChatGPT support it. Cursor, Gemini CLI, and Windsurf only support the older dynamic client registration, so they can't connect until they add CIMD support.

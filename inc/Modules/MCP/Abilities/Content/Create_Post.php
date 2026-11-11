@@ -35,7 +35,7 @@ final class Create_Post extends Ability {
 	 * {@inheritDoc}
 	 */
 	protected function description(): string {
-		return __( 'Creates an empty draft of any post type that uses the block editor (see get-post-types). Add its content afterwards with insert-pattern or insert-blocks, one section per call. Drafts are never published; the user publishes in WordPress.', 'publishio' );
+		return __( 'Creates an empty draft of any post type that uses the block editor (see get-post-types). Add its content afterwards with insert-pattern or insert-blocks, one section per call, and set its custom fields with update-post. Drafts are never published; the user publishes in WordPress.', 'publishio' );
 	}
 
 	/**

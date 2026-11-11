@@ -115,7 +115,7 @@ test.describe(
 			}
 
 			const saved = (
-				await mcp.callTool( 'publishio/get-post', { post_id: id } )
+				await mcp.callToolOk( 'publishio/get-post', { post_id: id } )
 			).data;
 			expect( saved.status ).toBe( 'draft' );
 			expect( saved.outline.rows ).toEqual( [] );
@@ -144,7 +144,7 @@ test.describe(
 				expect( inserted.isError, inserted.text ).toBe( false );
 				expect( inserted.data.changed ).toEqual( [ '1:paragraph' ] );
 				let content = (
-					await mcp.callTool( 'publishio/get-post-content', {
+					await mcp.callToolOk( 'publishio/get-post-content', {
 						post_id: postId,
 					} )
 				).data.markup;
@@ -161,7 +161,7 @@ test.describe(
 				} );
 				expect( deleted.isError, deleted.text ).toBe( false );
 				content = (
-					await mcp.callTool( 'publishio/get-post-content', {
+					await mcp.callToolOk( 'publishio/get-post-content', {
 						post_id: postId,
 					} )
 				).data.markup;
@@ -197,7 +197,7 @@ test.describe(
 				expect( pageDelete.isError, pageDelete.text ).toBe( false );
 				expect(
 					(
-						await mcp.callTool( 'publishio/get-post-content', {
+						await mcp.callToolOk( 'publishio/get-post-content', {
 							post_id: pageId,
 						} )
 					).data.markup
@@ -211,7 +211,7 @@ test.describe(
 			async ( { mcp, page } ) => {
 				requiresTwentyTwentyFive();
 				const { markup } = (
-					await mcp.callTool( 'publishio/get-pattern', {
+					await mcp.callToolOk( 'publishio/get-pattern', {
 						name: 'twentytwentyfive/cta-centered-heading',
 					} )
 				).data;
@@ -235,10 +235,13 @@ test.describe(
 				).toBeVisible();
 				await evidence( page, 'SKILL-03 render-blocks preview' );
 
-				const invalid = await mcp.callTool( 'publishio/render-blocks', {
-					markup: '<!-- wp:column --><div class="wp-block-column"></div><!-- /wp:column -->',
-					post_id: pageId,
-				} );
+				const invalid = await mcp.callToolOk(
+					'publishio/render-blocks',
+					{
+						markup: '<!-- wp:column --><div class="wp-block-column"></div><!-- /wp:column -->',
+						post_id: pageId,
+					}
+				);
 				expect( invalid.data.valid ).toBe( false );
 				expect( invalid.data.errors.map( ( e ) => e.code ) ).toContain(
 					'invalid_parent'
@@ -246,7 +249,7 @@ test.describe(
 
 				expect(
 					(
-						await mcp.callTool( 'publishio/get-post-content', {
+						await mcp.callToolOk( 'publishio/get-post-content', {
 							post_id: pageId,
 						} )
 					).data.markup
@@ -270,7 +273,7 @@ test.describe(
 
 				const path = pathIn( res.data, 'heading' );
 				const { markup } = (
-					await mcp.callTool( 'publishio/get-post-content', {
+					await mcp.callToolOk( 'publishio/get-post-content', {
 						post_id: pageId,
 						path,
 					} )
@@ -286,7 +289,7 @@ test.describe(
 				expect( replaced.isError, replaced.text ).toBe( false );
 			}
 			const content = (
-				await mcp.callTool( 'publishio/get-post-content', {
+				await mcp.callToolOk( 'publishio/get-post-content', {
 					post_id: pageId,
 				} )
 			).data.markup;
@@ -340,7 +343,7 @@ test.describe(
 			expect( copied.data.changed ).toHaveLength( 2 );
 
 			const content = (
-				await mcp.callTool( 'publishio/get-post-content', {
+				await mcp.callToolOk( 'publishio/get-post-content', {
 					post_id: pageId,
 				} )
 			).data.markup;
@@ -369,7 +372,7 @@ test.describe(
 				try {
 					const image =
 						await test.step( 'search-attachments finds it', async () => {
-							const found = await mcp.callTool(
+							const found = await mcp.callToolOk(
 								'publishio/search-attachments',
 								{ search: keyword, mime_type: 'image' }
 							);
@@ -389,7 +392,7 @@ test.describe(
 							);
 							expect( none.isError, none.text ).toBe( false );
 							expect( none.data ).toEqual( [] );
-							const notVideo = await mcp.callTool(
+							const notVideo = await mcp.callToolOk(
 								'publishio/search-attachments',
 								{ search: keyword, mime_type: 'video' }
 							);
@@ -406,7 +409,7 @@ test.describe(
 						expect( featured.isError, featured.text ).toBe( false );
 						expect(
 							(
-								await mcp.callTool( 'publishio/get-post', {
+								await mcp.callToolOk( 'publishio/get-post', {
 									post_id: postId,
 								} )
 							).data.featured_image?.id
@@ -507,7 +510,7 @@ test.describe(
 								`${ name } has a ${ blockName }`
 							).toBeTruthy();
 							const { markup } = (
-								await mcp.callTool(
+								await mcp.callToolOk(
 									'publishio/get-post-content',
 									{ post_id: pageId, path }
 								)
@@ -528,9 +531,12 @@ test.describe(
 
 					await test.step( 'the page holds both blocks and opens cleanly', async () => {
 						const content = (
-							await mcp.callTool( 'publishio/get-post-content', {
-								post_id: pageId,
-							} )
+							await mcp.callToolOk(
+								'publishio/get-post-content',
+								{
+									post_id: pageId,
+								}
+							)
 						).data.markup;
 						expect( content ).toMatch(
 							new RegExp(
@@ -594,7 +600,7 @@ test.describe(
 				expect(
 					categories.data.terms.map( ( t ) => t.slug )
 				).toContain( 'skill-news' );
-				const tags = await mcp.callTool(
+				const tags = await mcp.callToolOk(
 					'publishio/get-taxonomy-terms',
 					{
 						taxonomy: 'post_tag',
@@ -620,7 +626,7 @@ test.describe(
 					expect( set.isError, set.text ).toBe( false );
 				}
 				const assigned = (
-					await mcp.callTool( 'publishio/get-post-terms', {
+					await mcp.callToolOk( 'publishio/get-post-terms', {
 						post_id: postId,
 					} )
 				).data.taxonomies;
@@ -678,7 +684,7 @@ test.describe(
 				const ids = all.data.map( ( p ) => p.post_id );
 				expect( ids ).toEqual( expect.arrayContaining( [ postId ] ) );
 
-				const pages = await mcp.callTool( 'publishio/search-posts', {
+				const pages = await mcp.callToolOk( 'publishio/search-posts', {
 					search: 'SKILL-09 searchable',
 					post_type: 'page',
 				} );
@@ -739,7 +745,7 @@ test.describe(
 					);
 					expect( updated.isError, updated.text ).toBe( false );
 					const saved = (
-						await mcp.callTool( 'publishio/get-post', {
+						await mcp.callToolOk( 'publishio/get-post', {
 							post_id: postId,
 						} )
 					).data;
@@ -877,7 +883,7 @@ test.describe(
 					);
 					expect( set.isError, set.text ).toBe( false );
 
-					const read = await mcp.callTool(
+					const read = await mcp.callToolOk(
 						'publishio/get-yoast-meta',
 						{
 							post_id: pageId,

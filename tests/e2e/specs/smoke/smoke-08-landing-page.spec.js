@@ -84,7 +84,7 @@ async function fillText( mcp, postId, inserted, text ) {
 
 	for ( const row of rows.slice( 0, copy.length ) ) {
 		const { markup } = (
-			await mcp.callTool( 'publishio/get-post-content', {
+			await mcp.callToolOk( 'publishio/get-post-content', {
 				post_id: postId,
 				path: row.path,
 			} )
@@ -114,7 +114,7 @@ test.describe(
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page } ) => {
 				const available = (
-					await mcp.callTool( 'publishio/list-patterns', {
+					await mcp.callToolOk( 'publishio/list-patterns', {
 						post_type: 'page',
 					} )
 				).data.patterns.map( ( p ) => p.name );
@@ -155,11 +155,11 @@ test.describe(
 				} );
 				expect( updated.isError, updated.text ).toBe( false );
 
-				const saved = await mcp.callTool( 'publishio/get-post', {
+				const saved = await mcp.callToolOk( 'publishio/get-post', {
 					post_id: pageId,
 				} );
 				const markup = (
-					await mcp.callTool( 'publishio/get-post-content', {
+					await mcp.callToolOk( 'publishio/get-post-content', {
 						post_id: pageId,
 					} )
 				).data.markup;

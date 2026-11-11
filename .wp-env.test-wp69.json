@@ -5,6 +5,9 @@
 	"port": 8892,
 	"testsEnvironment": false,
 	"plugins": [ "." ],
+	"mappings": {
+		"wp-content/plugins/publishio-e2e-fields": "./tests/e2e/plugins/publishio-e2e-fields"
+	},
 	"config": {
 		"FS_METHOD": "direct",
 		"WP_DEBUG": true,

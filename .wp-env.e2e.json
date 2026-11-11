@@ -4,6 +4,9 @@
 	"port": 8895,
 	"testsEnvironment": false,
 	"plugins": [ "https://downloads.wordpress.org/plugin/ai.zip", "." ],
+	"mappings": {
+		"wp-content/plugins/publishio-e2e-fields": "./tests/e2e/plugins/publishio-e2e-fields"
+	},
 	"config": {
 		"FS_METHOD": "direct",
 		"WP_DEBUG": true,

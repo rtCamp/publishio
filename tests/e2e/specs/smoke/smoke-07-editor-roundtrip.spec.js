@@ -33,14 +33,14 @@ async function invalidBlocks( page ) {
  */
 async function buildPageFromPattern( mcp, pageId ) {
 	const patterns = (
-		await mcp.callTool( 'publishio/list-patterns', { post_type: 'page' } )
+		await mcp.callToolOk( 'publishio/list-patterns', { post_type: 'page' } )
 	).data.patterns.filter( ( p ) =>
 		p.name.startsWith( `${ settings.theme }/` )
 	);
 
 	for ( const p of patterns ) {
 		const full = (
-			await mcp.callTool( 'publishio/get-pattern', { name: p.name } )
+			await mcp.callToolOk( 'publishio/get-pattern', { name: p.name } )
 		).data;
 		const skip = [
 			'core/template-part',
@@ -91,9 +91,12 @@ test.describe(
 			'SMOKE-07.1 a post written by every block-edit tool opens without block warnings and round-trips',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
-				const { data } = await mcp.callTool( 'publishio/create-post', {
-					title: 'E2E round-trip post',
-				} );
+				const { data } = await mcp.callToolOk(
+					'publishio/create-post',
+					{
+						title: 'E2E round-trip post',
+					}
+				);
 				const appended = await mcp.callTool(
 					'publishio/insert-blocks',
 					{
@@ -163,10 +166,13 @@ test.describe(
 			'SMOKE-07.2 a page built with insert-pattern and replace-block opens without block warnings',
 			{ tag: '@wp-update' },
 			async ( { mcp, admin, editor, page, requestUtils } ) => {
-				const { data } = await mcp.callTool( 'publishio/create-post', {
-					title: 'E2E round-trip page',
-					post_type: 'page',
-				} );
+				const { data } = await mcp.callToolOk(
+					'publishio/create-post',
+					{
+						title: 'E2E round-trip page',
+						post_type: 'page',
+					}
+				);
 				const patternName = await buildPageFromPattern(
 					mcp,
 					data.post_id
@@ -201,9 +207,12 @@ test.describe(
 							'<!-- wp:heading {"metadata":{"name":"CTA heading","bindings":{"__default":{"source":"core/pattern-overrides"}}}} --><h2 class="wp-block-heading">Ready?</h2><!-- /wp:heading -->',
 					},
 				} );
-				const { data } = await mcp.callTool( 'publishio/create-post', {
-					title: 'E2E synced pattern post',
-				} );
+				const { data } = await mcp.callToolOk(
+					'publishio/create-post',
+					{
+						title: 'E2E synced pattern post',
+					}
+				);
 
 				const inserted = await mcp.callTool(
 					'publishio/insert-pattern',
@@ -220,6 +229,7 @@ test.describe(
 					path: '0:block',
 					markup: `<!-- wp:block {"ref":${ pattern.id },"content":{"Nope":{"content":"x"}}} /-->`,
 				} );
+				expect( unknown.isError ).toBe( true );
 				expect( unknown.text ).toMatch( /^unknown_override: / );
 
 				const replaced = await mcp.callTool(

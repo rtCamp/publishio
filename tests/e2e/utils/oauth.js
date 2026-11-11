@@ -9,6 +9,7 @@ import { expect } from '@playwright/test';
 /**
  * Internal dependencies
  */
+import { McpClient } from './mcp';
 import { wpCli } from './wp-cli';
 
 export const TEST_REDIRECT_URI = 'http://localhost:9999/callback';
@@ -319,6 +320,65 @@ export async function connect( anonApi, userApi, clientOverrides = {} ) {
 	expect( tokenRes.status(), await tokenRes.text() ).toBe( 200 );
 
 	return { discovery, client, tokens: await tokenRes.json() };
+}
+
+/**
+ * Connect an MCP client to one site of a network (or any site but the project's own) as the
+ * user logged in to `userApi` on it, with a CIMD client seeded on that site.
+ *
+ * @param {import('@playwright/test').APIRequestContext} anonApi Logged-out context.
+ * @param {import('@playwright/test').APIRequestContext} userApi Context logged in to the site.
+ * @param {string}                                       siteUrl The site's URL, with a trailing slash.
+ */
+export async function connectToSite( anonApi, userApi, siteUrl ) {
+	const issuer = siteUrl.replace( /\/$/, '' );
+	const discovery = await discoverFrom(
+		anonApi,
+		`${ issuer }/wp-json/mcp/publishio`
+	);
+	const client = provisionMetadataClient(
+		{
+			client_name: 'E2E Subsite Client',
+			redirect_uris: [ TEST_REDIRECT_URI ],
+		},
+		siteUrl
+	);
+	const pkce = createPkce();
+	const state = randomState();
+
+	const redirect = await submitConsentViaApi(
+		userApi,
+		buildAuthorizeUrl( discovery, client, pkce, state )
+	);
+	expect( redirect.searchParams.get( 'state' ) ).toBe( state );
+	expect( redirect.searchParams.get( 'iss' ) ).toBe( issuer );
+
+	const tokenRes = await exchangeCode(
+		anonApi,
+		discovery,
+		client,
+		redirect.searchParams.get( 'code' ),
+		pkce.verifier
+	);
+	expect( tokenRes.status(), await tokenRes.text() ).toBe( 200 );
+
+	return { discovery, client, tokens: await tokenRes.json() };
+}
+
+/**
+ * An initialized MCP client for a connection from connect() or connectToSite().
+ *
+ * @param {import('@playwright/test').APIRequestContext} anonApi    Logged-out context.
+ * @param {{discovery: Discovery, tokens: Object}}       connection The connection.
+ */
+export async function mcpClientFor( anonApi, connection ) {
+	const client = new McpClient(
+		anonApi,
+		connection.discovery.resource,
+		connection.tokens.access_token
+	);
+	await client.initialize();
+	return client;
 }
 
 /**

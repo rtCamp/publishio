@@ -1,6 +1,7 @@
 // eslint.config.mjs
 import wordpress from '@wordpress/eslint-plugin';
 import jest from 'eslint-plugin-jest';
+import playwright from 'eslint-plugin-playwright';
 
 export default [
 	{
@@ -180,6 +181,19 @@ export default [
 			'react-hooks/rules-of-hooks': 'off',
 			// OAuth/MCP wire fields are snake_case.
 			camelcase: 'off',
+		},
+	},
+
+	// Every E2E test must assert something (setup/teardown projects are not tests). Helpers named
+	// expect*/assert* count, because they call expect.
+	{
+		files: [ 'tests/e2e/specs/**/*.spec.js' ],
+		plugins: { playwright },
+		rules: {
+			'playwright/expect-expect': [
+				'error',
+				{ assertFunctionPatterns: [ '^(expect|assert)[A-Z]' ] },
+			],
 		},
 	},
 

@@ -30,7 +30,7 @@ Setup steps for Copilot code review on pull requests.
 
 ### [`pr-title.yml`](pr-title.yml)
 
-Triggers on PRs. Validates [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) format to keep `main` history clean.
+Triggers on PRs. Validates [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) format to keep `main` history clean. Allowed types: `feat`, `fix`, `enhance`, `refactor`, `perf`, `test`, `docs`, `ci`, `chore` and `release` (release PRs, such as `release(1.5.0): bump version and update changelog`). Draft PRs are skipped.
 
 ### [`release.yml`](release.yml)
 

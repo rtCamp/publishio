@@ -6,7 +6,7 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires PHP:      8.2
 Requires at least: 6.9
 Tested up to:      7.1
-Stable tag:        1.4.0
+Stable tag:        1.5.0
 
 AI publishing that follows your design system. Connect ChatGPT or Claude to WordPress and build pages and posts that match your patterns and theme.
 
@@ -154,6 +154,11 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 
 == Changelog ==
 
+= 1.5.0 =
+* Let the AI read and set custom fields, such as a product's price. It sees each field's type, description and allowed values, and checks every value before saving any. It can use the fields the plugin that adds them shows in the block editor, when your account can edit them, and a change to a published post still needs your OK.
+* Fix searching "any" post type, which skipped types visitors can't view, such as invoices, and found only your own posts.
+* Stop searching saved patterns, menu items and other site content with search-posts; the AI is pointed to list-patterns or search-attachments instead.
+
 = 1.4.0 =
 * Support WordPress multisite networks, with sites in subfolders, on subdomains or on their own domains. Each site has its own MCP server URL and its own connections.
 * Let sites in subfolders connect. The main site answers AI apps for them, so Publishio must run there too, and the Status page on a subfolder site says if it doesn't.
@@ -216,6 +221,9 @@ The source code is available on <a href="https://github.com/rtCamp/publishio">Gi
 * AI Skill file for guided content generation.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+* Custom fields. The AI can now read and set custom fields, and searching "any" post type finds every type you can edit.
 
 = 1.4.0 =
 * Multisite support. On a network with sites in subfolders, network-activate Publishio or activate it on the main site too. Apps whose client ID is hosted on your own domain or a name under it are now refused; the `publishio_cimd_is_install_host` filter can allow one.

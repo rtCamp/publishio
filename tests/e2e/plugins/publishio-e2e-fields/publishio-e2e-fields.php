@@ -160,6 +160,27 @@ add_action(
 			register_post_meta( 'e2e_product', $key, $args + [ 'single' => true ] );
 		}
 
+		// Stands in for a database error: this tagline is never saved, so update_value() fails after
+		// the post's own details were saved (SMOKE-12.12).
+		add_filter(
+			'update_post_metadata',
+			static fn ( $check, $object_id, $meta_key, $meta_value ) => 'e2e_tagline' === $meta_key && 'E2E fail save' === $meta_value ? false : $check, // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter -- The filter passes the object ID before the key.
+			10,
+			4
+		);
+
+		// Counts wp_after_insert_post runs per product, so a test can see whether the hooks ran.
+		add_action(
+			'wp_after_insert_post',
+			static function ( int $post_id, WP_Post $post ): void {
+				if ( 'e2e_product' === $post->post_type ) {
+					update_post_meta( $post_id, '_e2e_after_insert', (int) get_post_meta( $post_id, '_e2e_after_insert', true ) + 1 );
+				}
+			},
+			10,
+			2
+		);
+
 		// Registered and in the REST API, but its type doesn't support custom fields.
 		register_post_meta(
 			'e2e_nofields',

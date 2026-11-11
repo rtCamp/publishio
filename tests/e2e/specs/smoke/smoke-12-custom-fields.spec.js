@@ -21,10 +21,15 @@ import {
 	PRODUCT_FIELDS,
 	activateFieldsPlugin,
 	cannotReset,
+	FAILING_TAGLINE,
+	afterInsertRuns,
+	fieldsNotSaved,
 	invalidFields,
 	noFieldsOn,
 	removeFieldsFixture,
 	storedMeta,
+	takesList,
+	takesObject,
 	unknownField,
 } from '../../utils/custom-fields';
 import { connect, mcpClientFor } from '../../utils/oauth';
@@ -46,6 +51,17 @@ const VALID = {
 	[ ADMIN_ONLY_FIELD ]: 'Reorder in May',
 };
 const STORED = { ...VALID, e2e_price: 20, e2e_tagline: 'Bold tagline' };
+
+/**
+ * search-posts' refusal of a type the post tools don't work on.
+ *
+ * @param {string} type The post type sent.
+ */
+const unsupportedType = ( type ) =>
+	`unsupported_type: "${ type }" isn't a type these tools work on. Find saved patterns with list-patterns and media with search-attachments. get-post-types lists the types you can search.`;
+
+/** WordPress's reason when the fixture refuses to store the tagline. */
+const DB_ERROR = 'Could not update the meta value of e2e_tagline in database.';
 
 const unique = ( label ) => `SMOKE-12 ${ label } ${ Date.now() }`;
 
@@ -188,11 +204,11 @@ test.describe(
 				expect( outOfRange.isError ).toBe( true );
 				expect( outOfRange.text ).toBe(
 					invalidFields(
-						'e2e_price must be greater than or equal to 0',
+						'e2e_price must be greater than or equal to 0.',
 						'e2e_sku does not match pattern ^[A-Z]{3}-[0-9]{4}$.',
 						'e2e_color is not one of red, green, and blue.',
 						'e2e_in_stock is not of type boolean.',
-						'e2e_stock must be between 0 (inclusive) and 1000 (inclusive)',
+						'e2e_stock must be between 0 (inclusive) and 1000 (inclusive).',
 						'e2e_contact: Invalid email address.',
 						'e2e_dimensions: depth is not a valid property of Object.'
 					)
@@ -207,6 +223,26 @@ test.describe(
 					invalidFields(
 						'e2e_price is not of type number.',
 						'e2e_stock is not of type integer.'
+					)
+				);
+
+				// A list or an object sent as text: WordPress would split the text on commas, or
+				// read an empty string as an empty object.
+				const wrongShape = await mcp.callTool(
+					'publishio/update-post',
+					{
+						post_id: id,
+						fields: {
+							e2e_features: 'Waterproof, Solar',
+							e2e_dimensions: '',
+						},
+					}
+				);
+				expect( wrongShape.isError ).toBe( true );
+				expect( wrongShape.text ).toBe(
+					invalidFields(
+						takesList( 'e2e_features' ),
+						takesObject( 'e2e_dimensions' )
 					)
 				);
 
@@ -505,5 +541,46 @@ test.describe(
 				);
 			}
 		);
+
+		test( "SMOKE-12.11 search-posts refuses a type the post tools don't work on and names the tools that find it", async ( {
+			mcp,
+		} ) => {
+			// On 1.4.0 these returned results; an empty list would tell the AI nothing exists.
+			for ( const type of [ 'wp_block', 'attachment' ] ) {
+				const res = await mcp.callTool( 'publishio/search-posts', {
+					post_type: type,
+				} );
+				expect( res.isError, type ).toBe( true );
+				expect( res.text ).toBe( unsupportedType( type ) );
+			}
+		} );
+
+		test( 'SMOKE-12.12 when the fields fail to save after the title, the error says what was saved and the after-insert hooks still run', async ( {
+			mcp,
+		} ) => {
+			const id = await newProduct( mcp, unique( 'save failure' ) );
+			const runs = afterInsertRuns( id );
+
+			const both = await mcp.callTool( 'publishio/update-post', {
+				post_id: id,
+				title: 'Saved title',
+				fields: { e2e_price: 3, e2e_tagline: FAILING_TAGLINE },
+			} );
+			expect( both.isError ).toBe( true );
+			expect( both.text ).toBe( fieldsNotSaved( DB_ERROR, true ) );
+			expect( wpCli( `post get ${ id } --field=post_title` ) ).toBe(
+				'Saved title'
+			);
+			expect( afterInsertRuns( id ) ).toBe( runs + 1 );
+
+			// Only fields sent: nothing else was saved, so the error is WordPress's own.
+			const fieldsOnly = await mcp.callTool( 'publishio/update-post', {
+				post_id: id,
+				fields: { e2e_tagline: FAILING_TAGLINE },
+			} );
+			expect( fieldsOnly.isError ).toBe( true );
+			expect( fieldsOnly.text ).toBe( fieldsNotSaved( DB_ERROR, false ) );
+			expect( storedMeta( id ) ).not.toHaveProperty( 'e2e_tagline' );
+		} );
 	}
 );

@@ -115,6 +115,46 @@ export const invalidFields = ( ...problems ) =>
 	) } Nothing was saved. Fix these and send the fields again.`;
 
 /**
+ * The problem update-post reports for a list field sent something other than a list.
+ *
+ * @param {string} key The field's key.
+ */
+export const takesList = ( key ) =>
+	`${ key } takes a list, such as ["first", "second"].`;
+
+/**
+ * The problem update-post reports for an object field sent something other than an object.
+ *
+ * @param {string} key The field's key.
+ */
+export const takesObject = ( key ) =>
+	`${ key } takes an object with the keys get-post lists.`;
+
+/**
+ * update-post's error when the fields failed to save.
+ *
+ * @param {string}  reason       WordPress's reason.
+ * @param {boolean} detailsSaved Whether the title or other details were saved first.
+ */
+export const fieldsNotSaved = ( reason, detailsSaved ) =>
+	detailsSaved
+		? `save_failed: The other changes were saved, but the custom fields weren't: ${ reason } Send only the fields again.`
+		: `save_failed: ${ reason }`;
+
+/** A tagline value the fixture refuses to store, standing in for a database error. */
+export const FAILING_TAGLINE = 'E2E fail save';
+
+/**
+ * How many times wp_after_insert_post ran for a product, as the fixture counts it.
+ *
+ * @param {number|string} postId  Post ID.
+ * @param {string}        siteUrl Site URL; the main site when omitted.
+ * @return {number} The count.
+ */
+export const afterInsertRuns = ( postId, siteUrl = '' ) =>
+	Number( storedMeta( postId, siteUrl )._e2e_after_insert?.[ 0 ] ?? 0 );
+
+/**
  * update-post's refusal to reset a field whose stored value get-post showed as null.
  *
  * @param {string} key The field's key.

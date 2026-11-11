@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, edited, reopened, ready_for_review]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -18,7 +18,8 @@ permissions:
 jobs:
   run:
     name: Validate PR title
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    # The trigger is pull_request_target, so checking for a pull_request event skipped every run.
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-slim
     permissions:
       pull-requests: read

@@ -100,12 +100,18 @@ export async function showText( page, title, text ) {
 /**
  * The Publishio row on the Plugins screen.
  *
+ * Exact name: on sites where wp-env maps the E2E fixture plugin, "Select Publishio" alone also
+ * matches the "Select Publishio E2E custom fields" checkbox.
+ *
  * @param {import('@playwright/test').Page} page Page to use.
  * @return {import('@playwright/test').Locator} The row.
  */
 export const pluginRow = ( page ) =>
 	page.getByRole( 'row' ).filter( {
-		has: page.getByRole( 'checkbox', { name: 'Select Publishio' } ),
+		has: page.getByRole( 'checkbox', {
+			name: 'Select Publishio',
+			exact: true,
+		} ),
 	} );
 
 /**
